@@ -1,0 +1,28 @@
+name: exsurgat
+description: "GABC renderer for Flutter."
+version: 0.0.1
+homepage:
+
+environment:
+  sdk: ^3.11.4
+  flutter: ">=1.17.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_svg: ^2.3.0
+  webview_flutter: ^4.14.0
+  xml: ^7.0.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+# For information on the generic Dart part of this file, see the
+# following page: https://dart.dev/tools/pub/pubspec
+
+# The following section is specific to Flutter packages.
+flutter:
+  assets:
+    - assets/exsurge.html
