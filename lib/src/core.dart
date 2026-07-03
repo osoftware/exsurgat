@@ -74,6 +74,14 @@ class Rect implements Geom {
 
   Rect clone() => Rect.fromXYWH(x, y, width, height);
 
+  Rect copyWith({double? x, double? y, double? width, double? height}) =>
+      Rect.fromXYWH(
+        x ?? this.x,
+        y ?? this.y,
+        width ?? this.width,
+        height ?? this.height,
+      );
+
   double get right => x + width;
   double get bottom => y + height;
 
@@ -165,14 +173,14 @@ enum Step {
 }
 
 class Pitch {
-  final int step;
+  final Step step;
   final int octave;
 
   Pitch(int step, [int? octave])
-    : step = octave == null ? step % 12 : step,
+    : step = Step.values[octave == null ? step % 12 : step],
       octave = octave ?? (step ~/ 12);
 
-  int toInt() => octave * 12 + step;
+  int toInt() => octave * 12 + step.value;
 
   Pitch transpose(int stepDelta) => Pitch(toInt() + stepDelta);
 

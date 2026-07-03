@@ -1,4 +1,4 @@
-import 'package:exsurgat/src/drawing.dart';
+import 'drawing.dart';
 
 enum TextMeasuringStrategy { svg, canvas, openTypeJS }
 
