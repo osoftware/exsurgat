@@ -9,7 +9,7 @@ import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
 
 class GlyphVisualizer extends ChantLayoutElement {
-  GlyphVisualizer(ChantContext ctxt, dynamic glyphCode) {
+  GlyphVisualizer(ChantContext ctxt, GlyphCode? glyphCode) {
     glyph = null;
     setGlyph(ctxt, glyphCode);
   }
@@ -17,19 +17,16 @@ class GlyphVisualizer extends ChantLayoutElement {
   GlyphCode? glyphCode;
   Glyph? glyph;
   late dynamic glyphRef;
+  String? align;
 
-  void setGlyph(ChantContext ctxt, dynamic glyphCode) {
+  void setGlyph(ChantContext ctxt, GlyphCode? glyphCode) {
     if (this.glyphCode != glyphCode) {
-      final normalized = glyphCode == null || glyphCode == ''
-          ? GlyphCode.none
-          : glyphCode as GlyphCode;
+      final normalized = glyphCode ?? GlyphCode.none;
       this.glyphCode = normalized;
       glyph = glyphs[normalized];
     }
 
-    if (glyph == null) {
-      glyph = glyphs[GlyphCode.none];
-    }
+    glyph ??= glyphs[GlyphCode.none];
 
     origin = core.Point(
       glyph!.origin.x * ctxt.glyphScaling,
@@ -41,6 +38,8 @@ class GlyphVisualizer extends ChantLayoutElement {
       glyph!.bounds.width * ctxt.glyphScaling,
       glyph!.bounds.height * ctxt.glyphScaling,
     );
+
+    align = glyph!.align;
   }
 
   void setStaffPosition(ChantContext ctxt, int staffPosition) {
@@ -79,9 +78,23 @@ class GlyphVisualizer extends ChantLayoutElement {
     return QuickSvg.createNode('use', getSvgAttributes(ctxt, null));
   }
 
+  XmlElement createSvgNodeWithAttributes(ChantContext ctxt, dynamic source) {
+    return QuickSvg.createNode('use', getSvgAttributes(ctxt, source));
+  }
+
+  SvgTreeNode createSvgTree(ChantContext ctxt, [dynamic source]) {
+    var attributes = getSvgAttributes(ctxt, source);
+    if (source != null) attributes['source'] = source;
+    return QuickSvg.createSvgTree("use", attributes);
+  }
+
   @override
   String createSvgFragment(ChantContext ctxt) {
     return QuickSvg.createFragment('use', getSvgAttributes(ctxt, null), null);
+  }
+
+  String createSvgFragmentWithAttributes(ChantContext ctxt, dynamic source) {
+    return QuickSvg.createFragment('use', getSvgAttributes(ctxt, source), null);
   }
 
   Map<String, dynamic> getSvgAttributes(ChantContext ctxt, dynamic source) {

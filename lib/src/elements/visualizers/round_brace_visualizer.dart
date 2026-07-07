@@ -1,9 +1,11 @@
 import 'dart:ui';
+
+import 'package:xml/xml.dart';
+
 import '../../core.dart' as core;
 import '../../drawing.dart';
-import '../chant_layout_element.dart';
 import '../../quick_svg.dart';
-import 'package:xml/xml.dart';
+import '../chant_layout_element.dart';
 
 class RoundBraceVisualizer extends ChantLayoutElement {
   RoundBraceVisualizer(
@@ -11,7 +13,7 @@ class RoundBraceVisualizer extends ChantLayoutElement {
     double x1,
     double x2,
     double y,
-    bool isAbove,
+    this.isAbove,
   ) {
     ignoreBounds = true;
     if (x1 > x2) {
@@ -19,7 +21,6 @@ class RoundBraceVisualizer extends ChantLayoutElement {
       x1 = x2;
       x2 = temp;
     }
-    this.isAbove = isAbove;
     braceHeight = (3 * ctxt.staffInterval) / 2;
     bounds = core.Rect.fromXYWH(
       x1,

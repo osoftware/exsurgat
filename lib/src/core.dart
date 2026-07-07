@@ -54,6 +54,8 @@ class Point implements Geom {
 
   Point clone() => Point(x, y);
 
+  Point copyWith({double? x, double? y}) => Point(x ?? this.x, y ?? this.y);
+
   bool equals(Point other) => x == other.x && y == other.y;
 }
 
@@ -237,3 +239,22 @@ String getCssForProperties(Map<String, dynamic> properties) {
       .map((entry) => '${entry.key}: ${entry.value};')
       .join();
 }
+
+mixin Flags on Enum {
+  int get value;
+
+  bool hasFlag(Flags flag) => (value & flag.value) != 0;
+  bool hasAnyFlag(int flags) => (value & flags) != 0;
+
+  int operator |(Flags other) => value | other.value;
+}
+
+/// Combines a [Flags] enum value with an [int] (result of `|` operator) and
+/// returns the combined int value. Used for setting flags on Note fields.
+int combineFlags(int current, Flags flag) => current | flag.value;
+
+/// Returns true if [flags] (an int) has the given [flag] set.
+bool hasFlag(int flags, Flags flag) => (flags & flag.value) != 0;
+
+/// Returns true if [flags] (an int) has any of the given [mask] bits set.
+bool hasAnyFlag(int flags, int mask) => (flags & mask) != 0;

@@ -26,9 +26,9 @@ class LyricArray {
   }
 
   static double getRight(
-    List<dynamic> lyricArray,
-    bool presumeConnectorNeeded,
-  ) {
+    List<dynamic> lyricArray, [
+    bool presumeConnectorNeeded = false,
+  ]) {
     if (lyricArray.isEmpty) return double.nan;
     var x = -double.maxFinite;
     for (final lyric in lyricArray) {
@@ -120,11 +120,14 @@ class Lyric extends TextElement {
   int centerStartIndex = -1;
   int centerLength = 0;
   bool needsConnector = false;
+  bool elidesToNext = false;
   double widthWithoutConnector = 0;
   double vowelSegmentWidth = 0;
   double? connectorWidth;
   double? defaultConnectorWidth;
   dynamic language;
+
+  double? lineWidth;
 
   bool allowsConnector() =>
       lyricType == LyricType.beginningSyllable ||

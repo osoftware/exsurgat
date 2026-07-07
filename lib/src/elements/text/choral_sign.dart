@@ -4,7 +4,7 @@ import 'text_element.dart';
 
 class ChoralSign extends TextElement {
   ChoralSign(ChantContext ctxt, String text, this.note, int sourceIndex)
-    : positionHint = MarkingPositionHint.Default,
+    : positionHint = MarkingPositionHint.defaultHint,
       super(
         ctxt,
         (ctxt.textStyles['choralSign']?['prefix'] ?? '') + text,
@@ -17,7 +17,7 @@ class ChoralSign extends TextElement {
     textType = TextTypes['choralSign']!;
   }
 
-  MarkingPositionHint positionHint = MarkingPositionHint.Default;
+  MarkingPositionHint positionHint = MarkingPositionHint.defaultHint;
   dynamic note;
 
   void performLayout(ChantContext ctxt) {
@@ -32,7 +32,7 @@ class ChoralSign extends TextElement {
 
     double offset;
     double staffPosition;
-    if (positionHint == MarkingPositionHint.Below) {
+    if (positionHint == MarkingPositionHint.below) {
       offset = -1;
       staffPosition = note.staffPosition.toDouble() + 2 * offset;
       staffPosition += (staffPosition % 2 == 0) ? 0.3 : 1;

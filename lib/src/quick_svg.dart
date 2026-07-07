@@ -139,6 +139,7 @@ class QuickSvg {
     return node;
   }
 
+  // TODO: seems to deviate from original
   static SvgTreeNode createSvgTree(
     String name,
     Map<String, dynamic> props, [
@@ -162,9 +163,9 @@ class QuickSvg {
 
   static String createFragment(
     String name,
-    Map<String, dynamic> attributes,
+    Map<String, dynamic> attributes, [
     String? child,
-  ) {
+  ]) {
     final attrs = attributes.entries
         .where((entry) => entry.value != null)
         .map((entry) => '${entry.key}="${entry.value}"')

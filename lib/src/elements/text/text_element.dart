@@ -41,7 +41,7 @@ abstract class TextElement extends ChantLayoutElement {
   late List<TextSpan> spans;
   late TextStyleDefinition textType;
   bool? rightAligned;
-  bool? needsLayout;
+  bool needsLayout = false;
   DropCap? dropCap;
   bool? forceConnector;
   TextSpan? connectorSpan;

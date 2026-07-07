@@ -1,7 +1,7 @@
 import 'package:exsurgat/src/glyphs.dart'; // Assuming Step is defined here
 
 import '../../drawing.dart';
-import '../visualizer/glyph_visualizer.dart';
+import '../visualizers/glyph_visualizer.dart';
 import 'chant_notation_element.dart';
 
 enum AccidentalType {
@@ -18,6 +18,7 @@ class Accidental extends ChantNotationElement {
   bool isAccidental = true;
   int staffPosition;
   AccidentalType accidentalType;
+  Pitch? pitch;
 
   Accidental({required this.staffPosition, required this.accidentalType}) {
     keepWithNext = true;

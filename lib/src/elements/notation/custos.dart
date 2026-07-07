@@ -1,6 +1,6 @@
 import '../../drawing.dart';
 import '../../glyphs.dart';
-import '../visualizer/glyph_visualizer.dart';
+import '../visualizers/glyph_visualizer.dart';
 import 'chant_notation_element.dart';
 
 class Custos extends ChantNotationElement {

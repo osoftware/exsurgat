@@ -1,6 +1,7 @@
+import 'package:xml/xml.dart';
+
 import '../core.dart' as core;
 import '../drawing.dart';
-import 'package:xml/xml.dart';
 
 abstract class ChantLayoutElement {
   ChantLayoutElement() {

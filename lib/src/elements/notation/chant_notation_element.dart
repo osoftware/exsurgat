@@ -6,6 +6,7 @@ import '../../core.dart' as core;
 import '../../drawing.dart';
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
+import '../text/lyric.dart';
 
 const double kDefaultTrailingSpace = 0.0;
 
@@ -13,27 +14,33 @@ class ChantNotationElement extends ChantLayoutElement {
   ChantNotationElement() {
     leadingSpace = 0.0;
     trailingSpace = kDefaultTrailingSpace;
-    keepWithNext = false;
-    needsLayout = true;
-    lyrics = <dynamic>[];
-    visualizers = <ChantLayoutElement>[];
-    alText = <dynamic>[];
-    translationText = <dynamic>[];
   }
 
   double leadingSpace = 0.0;
   double trailingSpace = kDefaultTrailingSpace;
+  double calculatedTrailingSpace = 0;
   bool keepWithNext = false;
   bool needsLayout = true;
-  List<dynamic> lyrics = <dynamic>[];
+  bool allowLineBreakBeforeNext = false;
+  int? sourceIndex;
+  String sourceGabc = '';
+  int sourceLength = 0;
+  bool? firstOfSyllable;
+  bool? firstOfParentheses;
+  List<Lyric> lyrics = [];
   dynamic score;
   dynamic line;
-  List<ChantLayoutElement> visualizers = <ChantLayoutElement>[];
+  final List<ChantLayoutElement> visualizers = <ChantLayoutElement>[];
   List<dynamic> alText = <dynamic>[];
   List<dynamic> translationText = <dynamic>[];
   dynamic cssClass;
+
+  @Deprecated('Use is operator instead')
   bool isNeume = false;
+
   bool hasNoWidth = false;
+
+  ChantNotationElement? firstWithNoWidth;
 
   bool hasLyrics() => lyrics.isNotEmpty;
 
@@ -41,9 +48,7 @@ class ChantNotationElement extends ChantLayoutElement {
     if (lyrics.isEmpty) return bounds.right;
     var x = double.maxFinite;
     for (final lyric in lyrics) {
-      if (lyric != null) {
-        x = math.min(x, lyric.bounds.x);
-      }
+      x = math.min(x, lyric.bounds.x);
     }
     return bounds.x + x;
   }
@@ -52,9 +57,7 @@ class ChantNotationElement extends ChantLayoutElement {
     if (lyrics.isEmpty) return bounds.x;
     var x = -double.maxFinite;
     for (final lyric in lyrics) {
-      if (lyric != null) {
-        x = math.max(x, lyric.bounds.x + lyric.bounds.width);
-      }
+      x = math.max(x, lyric.bounds.x + lyric.bounds.width);
     }
     return bounds.x + x;
   }
@@ -88,7 +91,7 @@ class ChantNotationElement extends ChantLayoutElement {
   }
 
   void performLayout(ChantContext ctxt) {
-    visualizers = <ChantLayoutElement>[];
+    visualizers.clear();
     bounds = const core.Rect.fromXYWH(0, 0, 0, 0);
     for (final lyric in lyrics) {
       lyric.recalculateMetrics(ctxt);

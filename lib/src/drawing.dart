@@ -1,7 +1,9 @@
 import 'dart:ui';
 
+import 'elements/brace_point.dart';
 import 'package:xml/xml.dart';
 
+import 'elements/notation/neumes/neume.dart';
 import 'elements/text/lyric.dart';
 import 'elements/text/text_element.dart';
 import 'glyphs.dart';
@@ -171,11 +173,15 @@ class ChantContext {
   List<dynamic> Function(List<dynamic> annotationSpans)?
   mergeAnnotationWithTextLeft;
   dynamic baseTextStyle;
+  bool editable = false;
+  bool startExtraTextOnlyFromFirst = false;
 
   late Canvas canvasCtxt;
 
   @Deprecated('should be irrelevant')
   double pixelRatio = 1.0;
+
+  BracePoint? lastStartBrace;
 
   int convertStaffPositionToSymmetric(int staffPosition) =>
       staffPosition - staffLineCount;
@@ -314,7 +320,7 @@ class ChantContext {
 
     for (int i = currNotationIndex + 1; i < (notations.length); i++) {
       final notation = notations[i];
-      if (notation.isNeume == true && !notation.hasNoWidth) {
+      if (notation is Neume && !notation.hasNoWidth) {
         return notation;
       }
     }
@@ -333,7 +339,7 @@ class ChantContext {
   void setCanvasSize(double width, double height, [double scale = 1]) {}
 }
 
-enum MarkingPositionHint { Default, Above, Below }
+enum MarkingPositionHint { defaultHint, above, below }
 
 final TextSpan __connectorSpan = TextSpan(' • ', [], []);
 
@@ -350,4 +356,49 @@ List<dynamic> __mergeAnnotationWithTextLeft(List<dynamic> annotationSpans) {
     }
   }
   return result;
+}
+
+extension CanvasPathBuilderExtension on Canvas {
+  CanvasPathBuilder beginPath({
+    required double strokeWidth,
+    required Color color,
+  }) => CanvasPathBuilder(this, strokeWidth: strokeWidth, color: color);
+}
+
+/// Mimic HTML5 canvas
+class CanvasPathBuilder {
+  final Path _path = Path();
+  final Canvas _canvas;
+  bool _disposed = false;
+
+  double strokeWidth;
+  Color color;
+
+  CanvasPathBuilder(
+    this._canvas, {
+    required this.strokeWidth,
+    required this.color,
+  });
+
+  void moveTo(double x, double y) {
+    _path.moveTo(x, y);
+  }
+
+  void lineTo(double x, double y) {
+    _path.lineTo(x, y);
+  }
+
+  void stroke() {
+    if (_disposed) {
+      throw StateError('This path has already been drawn.');
+    }
+    _canvas.drawPath(
+      _path,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..color = color
+        ..strokeWidth = strokeWidth,
+    );
+    _disposed = true;
+  }
 }
