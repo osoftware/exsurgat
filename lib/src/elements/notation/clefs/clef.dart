@@ -8,9 +8,7 @@ abstract class Clef extends ChantNotationElement {
   final int octave;
   final Accidental? defaultAccidental;
   Accidental? activeAccidental;
-  bool isClef = true;
 
-  int? elementIndex;
   Clef? model;
 
   Clef({
@@ -26,14 +24,9 @@ abstract class Clef extends ChantNotationElement {
     activeAccidental = defaultAccidental;
   }
 
-  int pitchToStaffPosition(Pitch pitch) {
-    return 0;
-  }
+  int pitchToStaffPosition(Pitch pitch);
 
-  Pitch staffPositionToPitch(int staffPosition) {
-    // overridden by subclasses
-    return Pitch(Step.ut.value, octave);
-  }
+  Pitch staffPositionToPitch(int staffPosition);
 
   @override
   void performLayout(ChantContext ctxt) {

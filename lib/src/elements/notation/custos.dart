@@ -1,5 +1,6 @@
 import '../../drawing.dart';
 import '../../glyphs.dart';
+import '../brace_point.dart';
 import '../visualizers/glyph_visualizer.dart';
 import 'chant_notation_element.dart';
 
@@ -7,6 +8,8 @@ class Custos extends ChantNotationElement {
   bool auto;
   int staffPosition = 2;
   int? staffPositionOffset;
+
+  BracePoint? braceEnd;
 
   Custos({this.auto = false});
 
@@ -20,9 +23,9 @@ class Custos extends ChantNotationElement {
       if (neume != null) {
         final note = neume.notes[0];
         staffPosition =
-            ctxt.activeClef.pitchToStaffPosition(note.pitch) +
-            (note.staffPositionOffset ?? 0);
-        staffPositionOffset = note.staffPositionOffset;
+            ctxt.activeClef!.pitchToStaffPosition(note.pitch!) +
+            note.staffPositionOffset.toInt();
+        staffPositionOffset = note.staffPositionOffset.toInt();
       }
 
       // in case there was a weird fa/do clef change, let's sanitize the staffPosition by making sure it is

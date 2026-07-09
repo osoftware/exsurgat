@@ -2,16 +2,20 @@ import '../../drawing.dart';
 import 'title_text_element.dart';
 
 class TextLeftRight extends TitleTextElement {
-  TextLeftRight(ChantContext ctxt, String text, String type, int sourceIndex)
-    : super(
-        ctxt,
-        (ctxt.textStyles['leftRight']?['prefix'] ?? '') + text,
-        (ctxt) => ctxt.textStyles['leftRight']?['font'],
-        (ctxt) => ctxt.textStyles['leftRight']?['size'],
-        type == 'textLeft' ? 'start' : 'end',
-        sourceIndex,
-        text,
-      ) {
+  TextLeftRight(
+    ChantContext ctxt,
+    String text,
+    String type, [
+    int sourceIndex = 0,
+  ]) : super(
+         ctxt,
+         (ctxt.textStyles['leftRight']?['prefix'] ?? '') + text,
+         (ctxt) => ctxt.textStyles['leftRight']?['font'],
+         (ctxt) => ctxt.textStyles['leftRight']?['size'],
+         type == 'textLeft' ? 'start' : 'end',
+         sourceIndex,
+         text,
+       ) {
     textType = TextTypes['leftRight']!;
     extraClass = type == 'textLeft' ? 'textLeft' : 'textRight';
     headerKey = type == 'textLeft' ? 'text-left' : 'text-right';

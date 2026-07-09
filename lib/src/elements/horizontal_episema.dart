@@ -76,7 +76,7 @@ class HorizontalEpisema extends ChantLayoutElement {
           if (step.abs() < ctxt.staffLineCount ||
               (ledgerLine != null &&
                   ctxt.convertStaffPositionToSymmetric(
-                        ledgerLine['staffPosition'],
+                        ledgerLine.staffPosition,
                       ) ==
                       -step)) {
             step += 2 / 3;
@@ -108,7 +108,7 @@ class HorizontalEpisema extends ChantLayoutElement {
           if (step.abs() < ctxt.staffLineCount ||
               (ledgerLine != null &&
                   ctxt.convertStaffPositionToSymmetric(
-                        ledgerLine['staffPosition'],
+                        ledgerLine.staffPosition,
                       ) ==
                       -step)) {
             step -= 2 / 3;

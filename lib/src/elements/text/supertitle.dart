@@ -2,7 +2,7 @@ import '../../drawing.dart';
 import 'title_text_element.dart';
 
 class Supertitle extends TitleTextElement {
-  Supertitle(ChantContext ctxt, String text, int sourceIndex)
+  Supertitle(ChantContext ctxt, String text, [int sourceIndex = 0])
     : super(
         ctxt,
         (ctxt.textStyles['supertitle']?['prefix'] ?? '') + text,

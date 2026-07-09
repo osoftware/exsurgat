@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import '../../core.dart' as core;
 import '../../drawing.dart';
+import '../notation/chant_notation_element.dart';
 import 'drop_cap.dart';
 import 'text_element.dart';
 
@@ -58,17 +59,20 @@ class LyricArray {
     return lyricArray.indexOf(filtered.isNotEmpty ? filtered[0] : null);
   }
 
-  static void mergeIn(List<dynamic> lyricArray, List<dynamic> newLyrics) {
+  static void mergeIn(List<Lyric> lyricArray, List<Lyric> newLyrics) {
     for (var i = 0; i < newLyrics.length; ++i) {
-      if (newLyrics[i].originalText != null || lyricArray[i] == null) {
-        lyricArray[i] = newLyrics[i];
+      if (newLyrics[i].originalText.isNotEmpty) {
+        lyricArray.add(newLyrics[i]);
       }
     }
   }
 
-  static void mergeInArray(List<dynamic> lyricArray, List<dynamic> notations) {
+  static void mergeInArray(
+    List<Lyric> lyricArray,
+    List<ChantNotationElement> notations,
+  ) {
     for (var i = 0; i < notations.length; ++i) {
-      mergeIn(lyricArray, notations[i].lyrics as List<dynamic>);
+      mergeIn(lyricArray, notations[i].lyrics);
     }
   }
 

@@ -15,7 +15,6 @@ enum AccidentalType {
 }
 
 class Accidental extends ChantNotationElement {
-  bool isAccidental = true;
   int staffPosition;
   AccidentalType accidentalType;
   Pitch? pitch;

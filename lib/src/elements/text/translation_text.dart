@@ -1,4 +1,5 @@
 import '../../drawing.dart';
+import '../notation/chant_notation_element.dart';
 import 'text_element.dart';
 
 class TranslationText extends TextElement {
@@ -24,4 +25,5 @@ class TranslationText extends TextElement {
 
   final dynamic notation;
   late double padding;
+  ChantNotationElement? endNeume;
 }

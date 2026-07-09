@@ -2,7 +2,7 @@ import '../../drawing.dart';
 import 'text_element.dart';
 
 class Annotation extends TextElement {
-  Annotation(ChantContext ctxt, String text, this.elementIndex)
+  Annotation(ChantContext ctxt, String text, [this.elementIndex])
     : padding =
           ctxt.staffInterval *
           (ctxt.textStyles['annotation']?['padding'] as num? ?? 0).toDouble(),
@@ -22,4 +22,9 @@ class Annotation extends TextElement {
 
   int? elementIndex;
   late double padding;
+
+  /// The original, unmodified text of the annotation, before any prefix or
+  /// markup processing. Mirrors the JavaScript `unsanitizedText` property
+  /// used by `ChantScore.serializeToJson`.
+  String get unsanitizedText => sourceGabc;
 }

@@ -23,6 +23,7 @@ class ChiRhoClef extends Clef {
         Pitch.stepToStaffOffset(Step.ut);
   }
 
+  @override
   Pitch staffPositionToPitch(int staffPosition) {
     var offset = staffPosition - this.staffPosition;
     var octaveOffset = (offset / 7).floor();

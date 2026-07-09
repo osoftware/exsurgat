@@ -39,13 +39,11 @@ class Annotations extends ChantLayoutElement {
     double y = 0;
     for (var annotation in annotations) {
       annotation.recalculateMetrics(ctxt, resetNewLines);
-      bounds = bounds.union(
-        core.Rect.fromXYWH(
-          0,
-          y,
-          annotation.bounds.width,
-          annotation.bounds.height,
-        ),
+      bounds += core.Rect.fromXYWH(
+        0,
+        y,
+        annotation.bounds.width,
+        annotation.bounds.height,
       );
       annotation.bounds = core.Rect.fromXYWH(
         annotation.bounds.x,

@@ -2,9 +2,11 @@ import 'package:xml/xml.dart';
 
 import '../../../drawing.dart';
 import '../../../glyphs.dart';
+import '../../brace_point.dart';
 import '../../chant_layout_element.dart';
 import '../../horizontal_episema.dart';
 import '../../mora.dart';
+import '../../text/above_lines_text.dart';
 import '../../visualizers/glyph_visualizer.dart';
 import 'neume.dart';
 
@@ -59,6 +61,11 @@ class Note extends ChantLayoutElement {
   // this.neume gets set when a note is added to a neume via Neume.addNote()
   Neume? neume;
 
+  // indices used by ChantScore.updateNotations for selection tracking
+  int? elementIndex;
+  int? noteIndex;
+  dynamic line;
+
   // various markings that can exist on a note, organized by type
   // for faster access and simpler code logic
   final List<HorizontalEpisema> episemata = [];
@@ -69,12 +76,12 @@ class Note extends ChantLayoutElement {
   dynamic ictus;
   dynamic accuteAccent;
   dynamic braceStart;
-  dynamic braceEnd;
+  BracePoint? braceEnd;
   dynamic svgNode;
   dynamic accent;
   dynamic choralSign;
   dynamic inclinataFlags;
-  dynamic alText;
+  AboveLinesText? alText;
 
   Note({this.pitch});
 

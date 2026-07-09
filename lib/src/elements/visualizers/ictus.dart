@@ -38,7 +38,7 @@ class Ictus extends GlyphVisualizer {
         ((ctxt.convertStaffPositionToSymmetric(staffPosition).abs() <
                 ctxt.staffLineCount) ||
             (note.neume!.ledgerLines.isNotEmpty &&
-                note.neume!.ledgerLines[0]['staffPosition'] == staffPosition));
+                note.neume!.ledgerLines.first.staffPosition == staffPosition));
 
     // The porrectus requires special handling of the note width,
     // otherwise the width is just that of the note itself

@@ -1,8 +1,9 @@
 import 'dart:ui';
 
-import 'elements/brace_point.dart';
 import 'package:xml/xml.dart';
 
+import 'elements/brace_point.dart';
+import 'elements/notation/clefs/clef.dart';
 import 'elements/notation/neumes/neume.dart';
 import 'elements/text/lyric.dart';
 import 'elements/text/text_element.dart';
@@ -139,7 +140,7 @@ class ChantContext {
   double glyphPunctumWidth = 0;
   double glyphPunctumHeight = 0;
   double maxExtraSpaceInStaffIntervals = 0.5;
-  dynamic activeClef;
+  Clef? activeClef;
   Color neumeLineColor = ChantColors.nigric;
   Color staffLineColor = ChantColors.nigric;
   Color dividerLineColor = ChantColors.nigric;
@@ -170,7 +171,7 @@ class ChantContext {
   String noteIdPrefix = 'note-';
   double hyphenWidth = 0;
   double minLyricWordSpacing = 1.0;
-  List<dynamic> Function(List<dynamic> annotationSpans)?
+  List<dynamic> Function(List<List<TextSpan>> annotationSpans)?
   mergeAnnotationWithTextLeft;
   dynamic baseTextStyle;
   bool editable = false;
@@ -254,7 +255,7 @@ class ChantContext {
     for (final entry in TextTypes.entries) {
       final style = textStyles[entry.key] ?? {};
       final cssClass = entry.value.cssClass;
-      final color = style['color'] ?? textColor;
+      final color = (style['color'] as Color? ?? textColor).toSvgString();
       final font = style['font'] ?? 'serif';
       final size = style['size'] ?? 16;
       buffer.writeln(
@@ -311,7 +312,7 @@ class ChantContext {
   double calculateHeightFromStaffPosition(num staffPosition) =>
       -staffPosition * staffInterval;
 
-  dynamic findNextNeume() {
+  Neume? findNextNeume() {
     if (currNotationIndex < 0) {
       throw StateError(
         'findNextNeume() called without a valid currNotationIndex set',
@@ -343,7 +344,9 @@ enum MarkingPositionHint { defaultHint, above, below }
 
 final TextSpan __connectorSpan = TextSpan(' • ', [], []);
 
-List<dynamic> __mergeAnnotationWithTextLeft(List<dynamic> annotationSpans) {
+List<dynamic> __mergeAnnotationWithTextLeft(
+  List<List<TextSpan>> annotationSpans,
+) {
   var result = <dynamic>[];
   for (final spans in annotationSpans) {
     if (result.isNotEmpty) {
@@ -400,5 +403,11 @@ class CanvasPathBuilder {
         ..strokeWidth = strokeWidth,
     );
     _disposed = true;
+  }
+}
+
+extension Svg on Color {
+  String toSvgString() {
+    return "rgb(${r * 100}% ${g * 100}% ${b * 100}% / $a)";
   }
 }

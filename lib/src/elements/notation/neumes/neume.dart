@@ -3,18 +3,27 @@ import '../chant_notation_element.dart';
 import 'neume_builder.dart';
 import 'note.dart';
 
+class LedgerLine {
+  final Note element;
+  final Note endElem;
+  final int staffPosition;
+
+  LedgerLine({
+    required this.element,
+    required this.endElem,
+    required this.staffPosition,
+  });
+}
+
 /// Neumes base class
 class Neume extends ChantNotationElement {
-  final List<Note> notes;
-  late List<Map<String, dynamic>> ledgerLines;
+  final List<Note> notes = [];
+  List<LedgerLine> ledgerLines = [];
 
-  double calculatedTrailingSpace = 0;
-
-  Neume([this.notes = const []]) {
+  Neume([List<Note> notes = const []]) {
     for (var note in notes) {
-      note.neume = this;
+      addNote(note);
     }
-    isNeume = true; // TODO: replace with type checking
   }
 
   void addNote(Note note) {
@@ -68,12 +77,12 @@ class Neume extends ChantNotationElement {
     super.finishLayout(ctxt);
   }
 
-  List<Map<String, dynamic>> requiresLedgerLine(ChantContext ctxt) {
+  List<LedgerLine> requiresLedgerLine(ChantContext ctxt) {
     dynamic firstAbove = false;
     bool needsAbove = false;
     dynamic firstBelow = false;
     bool needsBelow = false;
-    List<Map<String, dynamic>> result = [];
+    List<LedgerLine> result = [];
     int ledgerLinePositionAbove = ctxt.staffLineCount * 2 + 1;
 
     if (notes.isEmpty) return result;
@@ -97,30 +106,34 @@ class Neume extends ChantNotationElement {
       }
       if (needsAbove || needsBelow) {
         var endI = i; // Math.abs(staffPosition) >= 4? i : i - 1;
-        result.add({
-          'element':
+        result.add(
+          LedgerLine(
+            element:
+                notes[(firstAbove != false && firstAbove != 0)
+                    ? firstAbove
+                    : (firstBelow != false && firstBelow != 0)
+                    ? firstBelow
+                    : 0],
+            endElem: notes[endI],
+            staffPosition: needsAbove ? ledgerLinePositionAbove : -1,
+          ),
+        );
+        firstAbove = firstBelow = needsAbove = needsBelow = false;
+      }
+    }
+    if (needsAbove || needsBelow) {
+      result.add(
+        LedgerLine(
+          element:
               notes[(firstAbove != false && firstAbove != 0)
                   ? firstAbove
                   : (firstBelow != false && firstBelow != 0)
                   ? firstBelow
                   : 0],
-          'endElem': notes[endI],
-          'staffPosition': needsAbove ? ledgerLinePositionAbove : -1,
-        });
-        firstAbove = firstBelow = needsAbove = needsBelow = false;
-      }
-    }
-    if (needsAbove || needsBelow) {
-      result.add({
-        'element':
-            notes[(firstAbove != false && firstAbove != 0)
-                ? firstAbove
-                : (firstBelow != false && firstBelow != 0)
-                ? firstBelow
-                : 0],
-        'endElem': notes[notes.length - 1],
-        'staffPosition': needsAbove ? ledgerLinePositionAbove : -1,
-      });
+          endElem: notes[notes.length - 1],
+          staffPosition: needsAbove ? ledgerLinePositionAbove : -1,
+        ),
+      );
     }
     return result;
   }

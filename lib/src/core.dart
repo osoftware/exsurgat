@@ -115,7 +115,7 @@ class Rect implements Geom {
         other.bottom <= bottom;
   }
 
-  Rect union(Rect other) {
+  Rect operator +(Rect other) {
     final double newX = math.min(x, other.x);
     final double newY = math.min(y, other.y);
     final double newRight = math.max(right, other.right);

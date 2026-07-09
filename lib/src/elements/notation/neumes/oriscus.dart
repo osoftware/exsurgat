@@ -6,7 +6,7 @@ import 'note.dart';
 class Oriscus extends Neume {
   @override
   void positionMarkings() {
-    positionEpisemataAbove(notes[0]);
+    positionEpisemataAbove(notes.first);
   }
 
   @override
@@ -29,8 +29,8 @@ class Oriscus extends Neume {
         final neume = ctxt.findNextNeume();
 
         if (neume != null) {
-          final nextNoteStaffPosition = ctxt.activeClef.pitchToStaffPosition(
-            neume.notes[0].pitch,
+          final nextNoteStaffPosition = ctxt.activeClef!.pitchToStaffPosition(
+            neume.notes.first.pitch!,
           );
 
           if (nextNoteStaffPosition > note.staffPosition) {

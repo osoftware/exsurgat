@@ -20,6 +20,7 @@ class FaClef extends Clef {
         Pitch.stepToStaffOffset(Step.fa);
   }
 
+  @override
   Pitch staffPositionToPitch(int staffPosition) {
     var offset = staffPosition - this.staffPosition + 3;
     var octaveOffset = (offset / 7).floor();

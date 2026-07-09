@@ -23,6 +23,7 @@ class TrebleClef extends Clef {
         Pitch.stepToStaffOffset(Step.so);
   }
 
+  @override
   Pitch staffPositionToPitch(int staffPosition) {
     var offset = staffPosition - this.staffPosition + 4;
     var octaveOffset = (offset / 7).floor();

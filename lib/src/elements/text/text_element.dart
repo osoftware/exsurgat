@@ -32,7 +32,7 @@ abstract class TextElement extends ChantLayoutElement {
 
   final String Function(ChantContext ctxt) fontFamily;
   final double Function(ChantContext ctxt) fontSize;
-  final String textAnchor;
+  String textAnchor;
   int sourceIndex;
   String sourceGabc;
   String dominantBaseline = 'baseline';

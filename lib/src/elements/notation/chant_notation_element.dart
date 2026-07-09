@@ -6,7 +6,9 @@ import '../../core.dart' as core;
 import '../../drawing.dart';
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
+import '../text/above_lines_text.dart';
 import '../text/lyric.dart';
+import '../text/translation_text.dart';
 
 const double kDefaultTrailingSpace = 0.0;
 
@@ -30,13 +32,13 @@ class ChantNotationElement extends ChantLayoutElement {
   List<Lyric> lyrics = [];
   dynamic score;
   dynamic line;
+  dynamic mapping;
+  int notationIndex = 0;
+  int? elementIndex;
   final List<ChantLayoutElement> visualizers = <ChantLayoutElement>[];
-  List<dynamic> alText = <dynamic>[];
-  List<dynamic> translationText = <dynamic>[];
+  List<AboveLinesText> alText = [];
+  List<TranslationText> translationText = [];
   dynamic cssClass;
-
-  @Deprecated('Use is operator instead')
-  bool isNeume = false;
 
   bool hasNoWidth = false;
 
@@ -70,7 +72,7 @@ class ChantNotationElement extends ChantLayoutElement {
           bounds.height == 0) {
         bounds = chantLayoutElement.bounds.clone();
       } else {
-        bounds = bounds.union(chantLayoutElement.bounds);
+        bounds += chantLayoutElement.bounds;
       }
     }
     visualizers.add(chantLayoutElement);
@@ -84,7 +86,7 @@ class ChantNotationElement extends ChantLayoutElement {
           bounds.height == 0) {
         bounds = chantLayoutElement.bounds.clone();
       } else {
-        bounds = bounds.union(chantLayoutElement.bounds);
+        bounds += chantLayoutElement.bounds;
       }
     }
     visualizers.insert(0, chantLayoutElement);

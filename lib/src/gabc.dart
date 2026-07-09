@@ -392,8 +392,7 @@ class Gabc {
             final curNotation = mapping.notations[k];
             final prevNotation = k > 0 ? mapping.notations[k - 1] : null;
             final prevIsAccidental =
-                prevNotation != null &&
-                (prevNotation as Accidental).isAccidental;
+                prevNotation != null && prevNotation is Accidental;
 
             if (curNotation is Custos) {
               curNotation.resetDependencies();
@@ -401,11 +400,11 @@ class Gabc {
               curNotation.resetDependencies();
             }
 
-            if ((curNotation as dynamic).isClef) {
-              ctxt.activeClef = mapping.notations[k];
+            if (curNotation is Clef) {
+              ctxt.activeClef = curNotation;
             }
 
-            if ((curNotation as Accidental).isAccidental) {
+            if (curNotation is Accidental) {
               (ctxt.activeClef as Clef).activeAccidental = curNotation;
             } else if ((curNotation as Divider).resetsAccidentals ||
                 (!prevIsAccidental &&
@@ -509,8 +508,8 @@ class Gabc {
           for (var k = 0; k < mapping.notations.length; k++) {
             final curNotation = mapping.notations[k];
             elementIndex += curNotation is Neume ? curNotation.notes.length : 1;
-            if ((curNotation as dynamic).isClef) {
-              ctxt.activeClef = mapping.notations[k];
+            if (curNotation is Clef) {
+              ctxt.activeClef = curNotation;
             }
           }
 
@@ -591,7 +590,7 @@ class Gabc {
       for (var i = 0; i < items.length; i++) {
         final cne = items[i];
 
-        if ((cne as Accidental).isAccidental && i + 1 < items.length) continue;
+        if (cne is Accidental && i + 1 < items.length) continue;
 
         notationWithLyrics = cne;
         break;
@@ -639,11 +638,11 @@ class Gabc {
       }
 
       if (alText.isNotEmpty) {
-        notationWithLyrics.alText = alText.cast<dynamic>();
+        notationWithLyrics.alText = alText;
       }
 
       if (translationText.isNotEmpty) {
-        notationWithLyrics.translationText = translationText.cast<dynamic>();
+        notationWithLyrics.translationText = translationText;
         for (var i = 0; i < translationText.length; ++i) {
           final transText = translationText[i];
           if (transText.textAnchor == 'end' &&
@@ -919,20 +918,20 @@ class Gabc {
             : null;
         notation.sourceIndex = sourceIndex;
         if (match != null) notation.sourceGabc = match[0]!;
-        if ((notation as dynamic).isClef) {
+        if (notation is Clef) {
           ctxt.activeClef = notation;
           if (prevNotation != null &&
               prevNotation.trailingSpace == kDefaultTrailingSpace &&
-              (prevNotation as Divider).isDivider) {
+              prevNotation is Divider) {
             prevNotation.trailingSpace = trailingSpaceForAccidental()(ctxt);
           }
-        } else if ((notation as Accidental).isAccidental) {
-          (ctxt.activeClef as Clef).activeAccidental = notation;
+        } else if (notation is Accidental) {
+          ctxt.activeClef?.activeAccidental = notation;
         } else if (notation.trailingSpace == kDefaultTrailingSpace &&
             notation is Custos) {
           notation.trailingSpace = trailingSpaceForAccidental()(ctxt);
         } else if ((notation as Divider).resetsAccidentals) {
-          (ctxt.activeClef as Clef).resetAccidentals();
+          ctxt.activeClef?.resetAccidentals();
         }
 
         notations.add(notation);
@@ -1207,8 +1206,8 @@ class Gabc {
         final note = notes[firstNoteIndex++];
         neume.addNote(note);
         if (note.alText != null) {
-          if (neume.alText.isEmpty) neume.alText = <dynamic>[];
-          neume.alText.add(note.alText);
+          if (neume.alText.isEmpty) neume.alText = [];
+          neume.alText.add(note.alText!);
         }
       }
 
@@ -1769,6 +1768,23 @@ class Gabc {
       note.staffPositionOffset = offset.round();
       note.staffPosition = staffPosition + offset.round();
     }
+  }
+
+  /// Parses a string of gabc notations (as stored in the JSON serialization
+  /// format) and populates [score] with the resulting mappings.
+  ///
+  /// If [createDropCap] is `true`, then a drop cap is created for the score.
+  ///
+  /// TODO: The JavaScript implementation references `Gabc.parseChantNotations`
+  ///   from `ChantScore.unserializeFromJson`, but this method is not actually
+  ///   defined in the original `Exsurge.Gabc.js` source. This is a placeholder
+  ///   until the full JSON round-trip serialization is implemented.
+  static void parseChantNotations(
+    String notations,
+    dynamic score,
+    bool createDropCap,
+  ) {
+    // TODO: implement full parsing of serialized notations into the score.
   }
 }
 
