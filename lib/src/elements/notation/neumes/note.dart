@@ -2,6 +2,7 @@ import 'package:xml/xml.dart';
 
 import '../../../drawing.dart';
 import '../../../glyphs.dart';
+import '../../../quick_svg.dart';
 import '../../brace_point.dart';
 import '../../chant_layout_element.dart';
 import '../../horizontal_episema.dart';
@@ -85,7 +86,7 @@ class Note extends ChantLayoutElement {
 
   Note({this.pitch});
 
-  void setGlyph(ChantContext ctxt, GlyphCode? glyphCode) {
+  void setGlyph(ChantContext ctxt, GlyphCode glyphCode) {
     if (glyphVisualizer != null) {
       glyphVisualizer!.setGlyph(ctxt, glyphCode);
     } else {
@@ -114,7 +115,8 @@ class Note extends ChantLayoutElement {
     return svgNode;
   }
 
-  dynamic createSvgTree({required ChantContext ctxt}) {
+  @override
+  SvgTreeNode createSvgTree(ChantContext ctxt) {
     glyphVisualizer!.bounds = bounds.clone();
     return glyphVisualizer!.createSvgTree(ctxt, this);
   }

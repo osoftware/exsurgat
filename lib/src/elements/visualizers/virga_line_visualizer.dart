@@ -39,6 +39,11 @@ class VirgaLineVisualizer extends ChantLayoutElement {
   }
 
   @override
+  SvgTreeNode createSvgTree(ChantContext ctxt) {
+    return QuickSvg.createSvgTree('rect', getSvgProps(ctxt));
+  }
+
+  @override
   String createSvgFragment(ChantContext ctxt) {
     return QuickSvg.createFragment('rect', getSvgProps(ctxt), null);
   }

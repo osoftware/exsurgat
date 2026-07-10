@@ -10,6 +10,9 @@ class SvgTreeNode {
   final List<dynamic> children;
 }
 
+typedef NodeMaker<T> =
+    T Function(String name, Map<String, dynamic> attrs, [Object? children]);
+
 class QuickSvg {
   static const String ns = 'http://www.w3.org/2000/svg';
   static const String xmlns = 'https://www.w3.org/2000/xmlns/';
@@ -59,12 +62,12 @@ class QuickSvg {
       XmlElement(XmlName.parts('use', namespaceUri: ns))
         ..setAttribute('xlink:href', '#$nodeRef');
 
-  static String svgFragmentForGlyph(dynamic glyph) {
+  static String svgFragmentForGlyph(Glyph glyph) {
     final buffer = StringBuffer();
-    for (final path in glyph.paths ?? const <dynamic>[]) {
-      final name = path.data != null ? 'path' : 'g';
+    for (final path in glyph.paths) {
+      final name = path.data.isNotEmpty ? 'path' : 'g';
       final attrs = <String, dynamic>{};
-      if (path.data != null) {
+      if (path.data.isNotEmpty) {
         attrs['d'] = path.data;
       }
       if (path.type == 'negative') {
@@ -75,11 +78,8 @@ class QuickSvg {
     return buffer.toString();
   }
 
-  static List<dynamic> nodesForGlyph(
-    Glyph glyph, {
-    String functionName = 'createNode',
-  }) {
-    final nodes = <dynamic>[];
+  static List<T> nodesForGlyph<T>(Glyph glyph, NodeMaker<T> make) {
+    final nodes = <T>[];
     for (final path in glyph.paths) {
       final props = <String, dynamic>{};
       props['d'] = path.data;
@@ -87,65 +87,61 @@ class QuickSvg {
         props['fill'] = '#fff';
       }
       final name = path.data.isNotEmpty ? 'path' : 'g';
-      if (functionName == 'createSvgTree') {
-        nodes.add(createSvgTree(name, props));
-      } else {
-        nodes.add(createNode(name, props));
-      }
+      nodes.add(make(name, props));
     }
     return nodes;
   }
 
   static XmlElement createNode(
     String name, [
-    Map<String, dynamic>? attributes,
+    Map<String, dynamic> attributes = const {},
     Object? children,
   ]) {
     final node = XmlElement(XmlName.parts(name));
 
-    if (attributes != null) {
-      for (final entry in attributes.entries) {
-        if (entry.value == null) {
-          continue;
-        }
-        node.setAttribute(entry.key, entry.value.toString());
-      }
+    for (final entry in attributes.entries) {
+      if (entry.value == null) continue;
+      node.setAttribute(entry.key, entry.value.toString());
     }
 
-    if (children != null) {
-      if (children is String) {
+    switch (children) {
+      case String _:
         node.children.add(XmlText(children));
-      } else if (children is Iterable) {
+      case Iterable _:
         for (final child in children) {
-          if (child is XmlNode) {
-            node.children.add(child);
-          } else if (child is String) {
-            node.children.add(XmlText(child));
-          } else if (child is SvgTreeNode) {
-            node.children.add(
-              createNode(child.name, child.props, child.children),
-            );
-          }
+          node.children.add(switch (child) {
+            XmlNode _ => child,
+            String _ => XmlText(child),
+            SvgTreeNode _ => createNode(
+              child.name,
+              child.props,
+              child.children,
+            ),
+            _ => throw ArgumentError.value(child, 'child'),
+          });
         }
-      } else if (children is XmlNode) {
+      case XmlNode _:
         node.children.add(children);
-      } else if (children is SvgTreeNode) {
+      case SvgTreeNode _:
         node.children.add(
           createNode(children.name, children.props, children.children),
         );
-      }
     }
 
     return node;
   }
 
-  // TODO: seems to deviate from original
   static SvgTreeNode createSvgTree(
     String name,
     Map<String, dynamic> props, [
     Object? children,
   ]) {
-    final normalizedProps = <String, dynamic>{...props};
+    final normalizedProps = props.map((k, v) => MapEntry(k.toCamelCase(), v));
+    if (props['style'] != null) {
+      props['style'] = (props['style'] as Map<String, dynamic>).map(
+        (k, v) => MapEntry(k.toCamelCase(), v),
+      );
+    }
     final normalizedChildren = <dynamic>[];
 
     if (children is Iterable && children is! String) {
@@ -214,5 +210,24 @@ class QuickSvg {
     for (final child in children) {
       node.children.remove(child);
     }
+  }
+}
+
+extension on String {
+  String toCamelCase() {
+    final parts = split('-');
+    final buffer = StringBuffer();
+    bool firstFound = false;
+    for (final part in parts) {
+      if (part.isEmpty) continue;
+      if (!firstFound) {
+        buffer.write(part);
+        firstFound = true;
+      } else {
+        buffer.write(part[0].toUpperCase());
+        buffer.write(part.substring(1));
+      }
+    }
+    return buffer.toString();
   }
 }

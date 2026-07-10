@@ -75,6 +75,11 @@ class NeumeBeamVisualizer extends ChantLayoutElement {
   }
 
   @override
+  SvgTreeNode createSvgTree(ChantContext ctxt) {
+    return QuickSvg.createSvgTree('polygon', getSvgProps(ctxt));
+  }
+
+  @override
   String createSvgFragment(ChantContext ctxt) {
     return QuickSvg.createFragment('polygon', getSvgProps(ctxt), null);
   }

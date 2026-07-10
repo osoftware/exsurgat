@@ -9,8 +9,7 @@ import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
 
 class GlyphVisualizer extends ChantLayoutElement {
-  GlyphVisualizer(ChantContext ctxt, GlyphCode? glyphCode) {
-    glyph = null;
+  GlyphVisualizer(ChantContext ctxt, GlyphCode glyphCode) {
     setGlyph(ctxt, glyphCode);
   }
 
@@ -19,11 +18,12 @@ class GlyphVisualizer extends ChantLayoutElement {
   late dynamic glyphRef;
   String? align;
 
-  void setGlyph(ChantContext ctxt, GlyphCode? glyphCode) {
+  void setGlyph(ChantContext ctxt, GlyphCode glyphCode) {
     if (this.glyphCode != glyphCode) {
-      final normalized = glyphCode ?? GlyphCode.none;
-      this.glyphCode = normalized;
-      glyph = glyphs[normalized];
+      this.glyphCode = glyphCode;
+      glyph = glyphs[glyphCode];
+
+      registerGlyph(ctxt);
     }
 
     glyph ??= glyphs[GlyphCode.none];
@@ -40,6 +40,38 @@ class GlyphVisualizer extends ChantLayoutElement {
     );
 
     align = glyph!.align;
+  }
+
+  void registerGlyph(ChantContext ctxt) {
+    if (ctxt.defs.containsKey(glyphCode!.code)) return;
+
+    ctxt.defs[glyphCode!.code] = QuickSvg.createFragment(
+      'g',
+      getDefProps(ctxt),
+      QuickSvg.svgFragmentForGlyph(glyph!),
+    );
+    ctxt.defsNode.children.add(
+      QuickSvg.createNode(
+        'g',
+        getDefProps(ctxt),
+        QuickSvg.nodesForGlyph(glyph!, QuickSvg.createNode),
+      ),
+    );
+    ctxt.makeDefs.add(
+      () => QuickSvg.createSvgTree(
+        'g',
+        getDefProps(ctxt),
+        QuickSvg.nodesForGlyph(glyph!, QuickSvg.createSvgTree),
+      ),
+    );
+  }
+
+  Map<String, String> getDefProps(ChantContext ctxt) {
+    return {
+      'id': glyphCode!.code,
+      'class': 'glyph',
+      if (ctxt.scaleDefs) 'transform': 'scale(${ctxt.glyphScaling})',
+    };
   }
 
   void setStaffPosition(ChantContext ctxt, int staffPosition) {

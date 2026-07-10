@@ -48,14 +48,26 @@ class LineaVisualizer extends ChantLayoutElement {
 
   @override
   XmlElement createSvgNode(ChantContext ctxt) {
-    final children = <XmlNode>[
+    final children = [
       QuickSvg.createNode('rect', getSvgProps(ctxt, bounds.x)),
       QuickSvg.createNode(
         'rect',
         getSvgProps(ctxt, bounds.x + bounds.width - ctxt.neumeLineWeight),
       ),
     ];
-    return QuickSvg.createNode('g', null, children);
+    return QuickSvg.createNode('g', {}, children);
+  }
+
+  @override
+  SvgTreeNode createSvgTree(ChantContext ctxt) {
+    final children = [
+      QuickSvg.createSvgTree('rect', getSvgProps(ctxt, bounds.x)),
+      QuickSvg.createSvgTree(
+        'rect',
+        getSvgProps(ctxt, bounds.x + bounds.width - ctxt.neumeLineWeight),
+      ),
+    ];
+    return QuickSvg.createSvgTree('g', {}, children);
   }
 
   @override

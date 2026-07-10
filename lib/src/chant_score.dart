@@ -525,12 +525,12 @@ class ChantScore {
   }
 
   /// Returns the SVG attributes for the root `<svg>` element.
-  Map<String, dynamic> getSvgProps(ChantContext ctxt, [dynamic zoom]) {
+  Map<String, dynamic> getSvgProps(ChantContext ctxt, [double? zoom]) {
     double? width;
     double? height;
-    if (zoom is num) {
+    if (zoom != null) {
       width = zoom * bounds.width;
-    } else if (zoom == null) {
+    } else {
       width = bounds.width;
       height = bounds.height;
     }
@@ -571,11 +571,11 @@ class ChantScore {
   }
 
   /// Creates an [SvgTreeNode] representing the score.
-  SvgTreeNode createSvgTree(ChantContext ctxt, [dynamic zoom]) {
+  SvgTreeNode createSvgTree(ChantContext ctxt, [double? zoom]) {
     // create defs section
-    final node = <dynamic>[
+    final node = [
       QuickSvg.createSvgTree('defs', {}, [
-        ...ctxt.makeDefs.map((makeDef) => (makeDef as dynamic).makeSvgTree()),
+        ...ctxt.makeDefs.map((makeDef) => makeDef()),
         ctxt.createStyleTree(),
       ]),
     ];
@@ -585,7 +585,7 @@ class ChantScore {
     for (var i = 0; i < lines.length; i++) {
       // ChantLine.createSvgTree is currently commented out in the Dart port;
       // call it dynamically so the score compiles regardless.
-      node.add((lines[i] as dynamic).createSvgTree(ctxt));
+      node.add(lines[i].createSvgTree(ctxt));
     }
 
     final g = QuickSvg.createSvgTree('g', {}, node);

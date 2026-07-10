@@ -13,7 +13,7 @@ class Mora extends GlyphVisualizer {
   }
 
   void performLayout(ChantContext ctxt) {
-    setGlyph(ctxt, glyphCode);
+    setGlyph(ctxt, GlyphCode.mora);
     horizontalOffset = ctxt.staffInterval / 2 + origin.x;
     var staffPosition = note.staffPosition;
 

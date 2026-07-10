@@ -1,5 +1,6 @@
 import 'package:xml/xml.dart';
 
+import '../../exsurgat.dart';
 import '../core.dart' as core;
 import '../drawing.dart';
 
@@ -22,5 +23,9 @@ abstract class ChantLayoutElement {
 
   XmlElement createSvgNode(ChantContext ctxt);
 
+  SvgTreeNode createSvgTree(ChantContext ctxt);
+
   String createSvgFragment(ChantContext ctxt);
 }
+
+typedef ElementNodeMaker<T> = T Function(ChantLayoutElement e, ChantContext c);

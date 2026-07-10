@@ -422,7 +422,7 @@ class ChantLine extends ChantLayoutElement {
     canvasCtxt.translate(-bounds.x, -bounds.y);
   }
 
-  List<XmlElement> getInnerNodes<T>(
+  List<T> getInnerNodes<T>(
     ChantContext ctxt, {
     double top = 0,
     // TODO: implement generic version
@@ -430,15 +430,17 @@ class ChantLine extends ChantLayoutElement {
     //   'quickSvg': 'createNode',
     //   'elements': 'createSvgNode',
     // },
+    required NodeMaker<T> quickSvg,
+    required ElementNodeMaker<T> element,
   }) {
-    List<XmlElement> inner = [];
+    List<T> inner = [];
 
     final x1 = staffLeft;
     final x2 = staffRight;
     final staffSpaces = this.staffSpaces;
     if (ctxt.editable) {
       inner.add(
-        QuickSvg.createNode('rect', {
+        quickSvg('rect', {
           'key': 'insertion',
           'x': x1,
           'y': ctxt.staffInterval * score.staffLineCount * -2 + 1,
@@ -451,7 +453,7 @@ class ChantLine extends ChantLayoutElement {
 
     for (int i = score.staffLineCount * -2 + 1; i < 0; i += 2) {
       inner.add(
-        QuickSvg.createNode('line', {
+        quickSvg('line', {
           'key': i,
           'x1': x1,
           'y1': ctxt.staffInterval * i,
@@ -465,11 +467,11 @@ class ChantLine extends ChantLayoutElement {
     }
 
     inner = [
-      QuickSvg.createNode('g', {'class': 'staffLines'}, inner),
+      quickSvg('g', {'class': 'staffLines'}, inner),
     ];
 
     if (layoutInsertionCursor(ctxt) != null) {
-      inner.add(layoutInsertionCursor(ctxt)!.createSvgNode(ctxt));
+      inner.add(element(layoutInsertionCursor(ctxt)!, ctxt));
     }
 
     for (int i = 0; i < ledgerLines.length; i++) {
@@ -477,7 +479,7 @@ class ChantLine extends ChantLayoutElement {
       final y = ctxt.calculateHeightFromStaffPosition(ledgerLine.staffPosition);
 
       inner.add(
-        QuickSvg.createNode('line', {
+        quickSvg('line', {
           'x1': ledgerLine.x1,
           'y1': y,
           'x2': ledgerLine.x2,
@@ -495,33 +497,38 @@ class ChantLine extends ChantLayoutElement {
 
     if (notationsStartIndex == 0) {
       if (score.dropCap != null) {
-        inner.add(score.dropCap!.createSvgNode(ctxt));
+        inner.add(element(score.dropCap!, ctxt));
       }
 
       if (score.annotation != null &&
           (ctxt.mergeAnnotationWithTextLeft == null || score.dropCap != null)) {
-        inner.add(score.annotation!.createSvgNode(ctxt));
+        inner.add(element(score.annotation!, ctxt));
       }
     }
 
-    inner.add(startingClef!.createSvgNode(ctxt));
+    inner.add(element(startingClef!, ctxt));
 
     final notations = score.notations;
     final lastIndex = notationsStartIndex + numNotationsOnLine;
 
     for (int i = notationsStartIndex; i < lastIndex; i++) {
-      inner.add(notations[i].createSvgNode(ctxt));
+      inner.add(element(notations[i], ctxt));
     }
 
     if (custos != null) {
-      inner.add(custos!.createSvgNode(ctxt));
+      inner.add(element(custos!, ctxt));
     }
     return inner;
   }
 
   @override
   XmlElement createSvgNode(ChantContext ctxt, {double top = 0}) {
-    final inner = getInnerNodes(ctxt, top: top);
+    final inner = getInnerNodes(
+      ctxt,
+      top: top,
+      quickSvg: QuickSvg.createNode,
+      element: (e, c) => e.createSvgNode(c),
+    );
 
     return QuickSvg.createNode('g', {
       'class': 'chantLine',
@@ -531,16 +538,21 @@ class ChantLine extends ChantLayoutElement {
     }, inner);
   }
 
-  // TODO: implement
-  // SvgTreeNode createSvgTree(ChantContext ctxt, {double top = 0}) {
-  //   final inner = getInnerNodes(ctxt, top: top);
+  @override
+  SvgTreeNode createSvgTree(ChantContext ctxt, {double top = 0}) {
+    final inner = getInnerNodes(
+      ctxt,
+      top: top,
+      quickSvg: QuickSvg.createSvgTree,
+      element: (e, c) => e.createSvgTree(c),
+    );
 
-  //   return QuickSvg.createSvgTree('g', {
-  //     'class': 'chantLine',
-  //     'transform': 'translate(${bounds.x},${bounds.y - top})',
-  //     'element-index': elementIndex,
-  //   }, inner);
-  // }
+    return QuickSvg.createSvgTree('g', {
+      'class': 'chantLine',
+      'transform': 'translate(${bounds.x},${bounds.y - top})',
+      'element-index': elementIndex,
+    }, inner);
+  }
 
   @override
   String createSvgFragment(ChantContext ctxt, {double top = 0}) {

@@ -107,7 +107,7 @@ class ChantContext {
   late String Function(Map<String, dynamic> properties, [String? fontFamily])
   getFontFilenameForProperties;
   final Map<String, dynamic> defs = {};
-  final List<void Function()> makeDefs = [];
+  final List<SvgTreeNode Function()> makeDefs = [];
   late final XmlElement defsNode;
 
   final Map<String, dynamic> textStyles = {};

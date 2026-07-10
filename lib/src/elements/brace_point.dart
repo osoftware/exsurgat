@@ -1,6 +1,7 @@
 import 'package:xml/xml.dart';
 
 import '../drawing.dart';
+import '../quick_svg.dart';
 import 'chant_layout_element.dart';
 import 'notation/neumes/note.dart';
 
@@ -40,6 +41,12 @@ class BracePoint extends ChantLayoutElement {
   @override
   XmlElement createSvgNode(ChantContext ctxt) {
     // TODO: implement createSvgNode
+    throw UnimplementedError();
+  }
+
+  @override
+  SvgTreeNode createSvgTree(ChantContext ctxt) {
+    // TODO: implement createSvgTree
     throw UnimplementedError();
   }
 

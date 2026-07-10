@@ -70,7 +70,15 @@ class Annotations extends ChantLayoutElement {
     updateBounds();
     final result = annotations.map((a) => a.createSvgNode(ctxt)).toList();
     updateBounds(-1.0);
-    return QuickSvg.createNode('g', null, result);
+    return QuickSvg.createNode('g', {}, result);
+  }
+
+  @override
+  SvgTreeNode createSvgTree(ChantContext ctxt) {
+    updateBounds();
+    final result = annotations.map((a) => a.createSvgTree(ctxt)).toList();
+    updateBounds(-1.0);
+    return QuickSvg.createSvgTree('g', {}, result);
   }
 
   @override
