@@ -1,3 +1,5 @@
+import 'package:exsurgat/src/elements/notation/neumes/neume.dart';
+
 import '../drawing.dart';
 import '../glyphs.dart';
 import 'notation/neumes/note.dart';
@@ -42,11 +44,13 @@ class Mora extends GlyphVisualizer {
         // this note is the last in its neume:
         if (note.neume!.trailingSpace == 0) {
           // if this was the last note in its neume, we only care about the next note if there is no trailing space at the end of this neume.
-          var notationIndex = note.neume!.score.notations.indexOf(note.neume);
+          var notationIndex = note.neume!.score.notations.indexOf(note.neume!);
           if (notationIndex >= 0) {
-            var nextNotation = note.neume!.score.notations[notationIndex + 1];
-            if (nextNotation != null && nextNotation.notes != null) {
-              nextNote = nextNotation.notes![0];
+            var nextNotation = note.neume!.score.notations.elementAtOrNull(
+              notationIndex + 1,
+            );
+            if (nextNotation is Neume) {
+              nextNote = nextNotation.notes.first;
             }
           }
         } else if (note.shape != NoteShape.inclinatum) {

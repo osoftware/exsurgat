@@ -19,7 +19,9 @@ class NeumeBuilder {
 
   /// Used to start a hanging line on the left of the next note
   NeumeBuilder lineFrom(Note note) {
-    final previousNotation = ctxt.notations[ctxt.currNotationIndex - 1];
+    final previousNotation = ctxt.currNotationIndex - 1 >= 0
+        ? ctxt.notations[ctxt.currNotationIndex - 1]
+        : null;
     if (x == 0 &&
         previousNotation != null &&
         previousNotation.notes != null &&

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:xml/xml.dart';
 
+import '../../chant_score.dart';
 import '../../core.dart' as core;
 import '../../drawing.dart';
 import '../../quick_svg.dart';
@@ -30,7 +31,7 @@ class ChantNotationElement extends ChantLayoutElement {
   bool? firstOfSyllable;
   bool? firstOfParentheses;
   List<Lyric> lyrics = [];
-  dynamic score;
+  late ChantScore score;
   dynamic line;
   dynamic mapping;
   int notationIndex = 0;
