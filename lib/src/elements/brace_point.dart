@@ -3,6 +3,7 @@ import 'package:xml/xml.dart';
 import '../drawing.dart';
 import '../quick_svg.dart';
 import 'chant_layout_element.dart';
+import 'notation/chant_notation_element.dart';
 import 'notation/neumes/note.dart';
 
 enum BraceShape { roundBrace, curlyBrace, accentedCurlyBrace }
@@ -33,19 +34,19 @@ class BracePoint extends ChantLayoutElement {
   }
 
   @override
-  String createSvgFragment(ChantContext ctxt) {
+  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
     // TODO: implement createSvgFragment
     throw UnimplementedError();
   }
 
   @override
-  XmlElement createSvgNode(ChantContext ctxt) {
+  XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) {
     // TODO: implement createSvgNode
     throw UnimplementedError();
   }
 
   @override
-  SvgTreeNode createSvgTree(ChantContext ctxt) {
+  SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
     // TODO: implement createSvgTree
     throw UnimplementedError();
   }

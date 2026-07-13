@@ -554,7 +554,7 @@ class ChantScore {
     defsCopy.children.add(ctxt.createStyleNode());
     var node = <XmlNode>[defsCopy];
 
-    if (titles != null) node.add(titles!.createSvgNode(ctxt));
+    if (titles != null) node.add(titles!.createSvgNode(ctxt, titles!));
 
     for (var i = 0; i < lines.length; i++) {
       node.add(lines[i].createSvgNode(ctxt));
@@ -629,7 +629,7 @@ class ChantScore {
       defsCopy.children.add(ctxt.createStyleNode());
       final lineFragment = <XmlNode>[
         defsCopy,
-        lines[i].createSvgNode(ctxt, top: top),
+        lines[i].createSvgNode(ctxt, null, top),
       ];
       final height = lines[i].bounds.height + ctxt.staffInterval * 1.5;
       var g = QuickSvg.createNode('g', {}, lineFragment);
@@ -662,7 +662,7 @@ class ChantScore {
     var top = 0.0;
     for (var i = 0; i < lines.length; i++) {
       var lineFragment =
-          fragmentDefs + lines[i].createSvgFragment(ctxt, top: top);
+          fragmentDefs + lines[i].createSvgFragment(ctxt, null, top);
       final height = lines[i].bounds.height + ctxt.staffInterval * 1.5;
       lineFragment = QuickSvg.createFragment('g', {}, lineFragment);
       lineFragment = QuickSvg.createFragment('svg', {

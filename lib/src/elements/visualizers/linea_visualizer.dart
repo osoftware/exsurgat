@@ -6,6 +6,7 @@ import '../../core.dart' as core;
 import '../../drawing.dart' hide Rect;
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
+import '../notation/chant_notation_element.dart';
 
 class LineaVisualizer extends ChantLayoutElement {
   LineaVisualizer(ChantContext ctxt, dynamic note) {
@@ -47,7 +48,7 @@ class LineaVisualizer extends ChantLayoutElement {
   }
 
   @override
-  XmlElement createSvgNode(ChantContext ctxt) {
+  XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) {
     final children = [
       QuickSvg.createNode('rect', getSvgProps(ctxt, bounds.x)),
       QuickSvg.createNode(
@@ -59,7 +60,7 @@ class LineaVisualizer extends ChantLayoutElement {
   }
 
   @override
-  SvgTreeNode createSvgTree(ChantContext ctxt) {
+  SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
     final children = [
       QuickSvg.createSvgTree('rect', getSvgProps(ctxt, bounds.x)),
       QuickSvg.createSvgTree(
@@ -71,7 +72,7 @@ class LineaVisualizer extends ChantLayoutElement {
   }
 
   @override
-  String createSvgFragment(ChantContext ctxt) {
+  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
     final children = [
       QuickSvg.createFragment('rect', getSvgProps(ctxt, bounds.x), null),
       QuickSvg.createFragment(

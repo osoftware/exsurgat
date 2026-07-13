@@ -6,6 +6,7 @@ import '../../core.dart' as core;
 import '../../drawing.dart';
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
+import '../notation/chant_notation_element.dart';
 
 class NeumeBeamVisualizer extends ChantLayoutElement {
   NeumeBeamVisualizer(
@@ -70,17 +71,17 @@ class NeumeBeamVisualizer extends ChantLayoutElement {
   }
 
   @override
-  XmlElement createSvgNode(ChantContext ctxt) {
+  XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) {
     return QuickSvg.createNode('polygon', getSvgProps(ctxt));
   }
 
   @override
-  SvgTreeNode createSvgTree(ChantContext ctxt) {
+  SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
     return QuickSvg.createSvgTree('polygon', getSvgProps(ctxt));
   }
 
   @override
-  String createSvgFragment(ChantContext ctxt) {
+  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
     return QuickSvg.createFragment('polygon', getSvgProps(ctxt), null);
   }
 

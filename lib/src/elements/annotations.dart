@@ -6,6 +6,7 @@ import '../../exsurgat.dart';
 import '../core.dart' as core;
 import '../drawing.dart';
 import 'chant_layout_element.dart';
+import 'notation/chant_notation_element.dart';
 import 'text/annotation.dart';
 
 class Annotations extends ChantLayoutElement {
@@ -66,25 +67,31 @@ class Annotations extends ChantLayoutElement {
   }
 
   @override
-  XmlElement createSvgNode(ChantContext ctxt) {
+  XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) {
     updateBounds();
-    final result = annotations.map((a) => a.createSvgNode(ctxt)).toList();
+    final result = annotations
+        .map((a) => a.createSvgNode(ctxt, source))
+        .toList();
     updateBounds(-1.0);
     return QuickSvg.createNode('g', {}, result);
   }
 
   @override
-  SvgTreeNode createSvgTree(ChantContext ctxt) {
+  SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
     updateBounds();
-    final result = annotations.map((a) => a.createSvgTree(ctxt)).toList();
+    final result = annotations
+        .map((a) => a.createSvgTree(ctxt, source))
+        .toList();
     updateBounds(-1.0);
     return QuickSvg.createSvgTree('g', {}, result);
   }
 
   @override
-  String createSvgFragment(ChantContext ctxt) {
+  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
     updateBounds();
-    final result = annotations.map((a) => a.createSvgFragment(ctxt)).join('');
+    final result = annotations
+        .map((a) => a.createSvgFragment(ctxt, source))
+        .join('');
     updateBounds(-1.0);
     return result;
   }

@@ -7,6 +7,7 @@ import '../../core.dart' as core;
 import '../../drawing.dart' hide Rect;
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
+import '../notation/chant_notation_element.dart';
 
 class DividerLineVisualizer extends ChantLayoutElement {
   DividerLineVisualizer(
@@ -39,17 +40,17 @@ class DividerLineVisualizer extends ChantLayoutElement {
   }
 
   @override
-  XmlElement createSvgNode(ChantContext ctxt) {
+  XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) {
     return QuickSvg.createNode('rect', getSvgProps(ctxt));
   }
 
   @override
-  SvgTreeNode createSvgTree(ChantContext ctxt) {
+  SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
     return QuickSvg.createSvgTree('rect', getSvgProps(ctxt));
   }
 
   @override
-  String createSvgFragment(ChantContext ctxt) {
+  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
     return QuickSvg.createFragment('rect', getSvgProps(ctxt), null);
   }
 

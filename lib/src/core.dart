@@ -166,6 +166,7 @@ enum Step {
   fa(5),
   fu(6),
   so(7),
+  __invalid(8),
   la(9),
   te(10),
   ti(11);

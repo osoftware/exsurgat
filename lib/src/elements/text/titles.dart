@@ -6,6 +6,7 @@ import '../../core.dart' as core;
 import '../../drawing.dart';
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
+import '../notation/chant_notation_element.dart';
 import '../text.dart';
 
 /// Lays out and renders the title elements of a [ChantScore]: the supertitle,
@@ -202,14 +203,15 @@ class Titles extends ChantLayoutElement {
   }
 
   @override
-  XmlElement createSvgNode(ChantContext ctxt) {
+  XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) {
     final nodes = getInnerNodes(ctxt, 'createSvgNode');
 
     final node = QuickSvg.createNode('g', {'class': 'Titles'}, nodes);
     return node;
   }
 
-  SvgTreeNode createSvgTree(ChantContext ctxt) {
+  @override
+  SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
     final nodes = <dynamic>[];
     for (final el in _elements()) {
       if (el != null) {
@@ -224,7 +226,7 @@ class Titles extends ChantLayoutElement {
   }
 
   @override
-  String createSvgFragment(ChantContext ctxt) {
+  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
     var fragment = '';
 
     for (final el in _elements()) {

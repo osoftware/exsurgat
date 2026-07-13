@@ -7,6 +7,7 @@ import '../../drawing.dart';
 import '../../glyphs.dart';
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
+import '../notation/chant_notation_element.dart';
 import 'glyph_visualizer.dart';
 
 class CurlyBraceVisualizer extends ChantLayoutElement {
@@ -74,33 +75,33 @@ class CurlyBraceVisualizer extends ChantLayoutElement {
   }
 
   @override
-  XmlElement createSvgNode(ChantContext ctxt) {
+  XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) {
     final node = QuickSvg.createNode('path', getSvgPathProps(ctxt));
     if (accent != null) {
       return QuickSvg.createNode(
         'g',
         {'class': 'accentedBrace'},
-        [node, accent!.createSvgNode(ctxt)],
+        [node, accent!.createSvgNode(ctxt, source)],
       );
     }
     return node;
   }
 
   @override
-  SvgTreeNode createSvgTree(ChantContext ctxt) {
+  SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
     final node = QuickSvg.createSvgTree('path', getSvgPathProps(ctxt));
     if (accent != null) {
       return QuickSvg.createSvgTree(
         'g',
         {'class': 'accentedBrace'},
-        [node, accent!.createSvgNode(ctxt)],
+        [node, accent!.createSvgNode(ctxt, source)],
       );
     }
     return node;
   }
 
   @override
-  String createSvgFragment(ChantContext ctxt) {
+  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
     final fragment = QuickSvg.createFragment(
       'path',
       getSvgPathProps(ctxt),
@@ -109,7 +110,7 @@ class CurlyBraceVisualizer extends ChantLayoutElement {
     if (accent != null) {
       return QuickSvg.createFragment('g', {
         'class': 'accentedBrace',
-      }, fragment + accent!.createSvgFragment(ctxt));
+      }, fragment + accent!.createSvgFragment(ctxt, source));
     }
     return fragment;
   }

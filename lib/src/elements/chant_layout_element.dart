@@ -21,11 +21,11 @@ abstract class ChantLayoutElement {
 
   void draw(ChantContext ctxt);
 
-  XmlElement createSvgNode(ChantContext ctxt);
+  XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]);
 
-  SvgTreeNode createSvgTree(ChantContext ctxt);
+  SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]);
 
-  String createSvgFragment(ChantContext ctxt);
+  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]);
 }
 
 typedef ElementNodeMaker<T> = T Function(ChantLayoutElement e, ChantContext c);

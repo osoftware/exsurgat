@@ -522,12 +522,16 @@ class ChantLine extends ChantLayoutElement {
   }
 
   @override
-  XmlElement createSvgNode(ChantContext ctxt, {double top = 0}) {
+  XmlElement createSvgNode(
+    ChantContext ctxt, [
+    ChantLayoutElement? source,
+    double top = 0,
+  ]) {
     final inner = getInnerNodes(
       ctxt,
       top: top,
       quickSvg: QuickSvg.createNode,
-      element: (e, c) => e.createSvgNode(c),
+      element: (e, c) => e.createSvgNode(c, source),
     );
 
     return QuickSvg.createNode('g', {
@@ -539,12 +543,16 @@ class ChantLine extends ChantLayoutElement {
   }
 
   @override
-  SvgTreeNode createSvgTree(ChantContext ctxt, {double top = 0}) {
+  SvgTreeNode createSvgTree(
+    ChantContext ctxt, [
+    ChantLayoutElement? source,
+    double top = 0,
+  ]) {
     final inner = getInnerNodes(
       ctxt,
       top: top,
       quickSvg: QuickSvg.createSvgTree,
-      element: (e, c) => e.createSvgTree(c),
+      element: (e, c) => e.createSvgTree(c, source),
     );
 
     return QuickSvg.createSvgTree('g', {
@@ -555,7 +563,11 @@ class ChantLine extends ChantLayoutElement {
   }
 
   @override
-  String createSvgFragment(ChantContext ctxt, {double top = 0}) {
+  String createSvgFragment(
+    ChantContext ctxt, [
+    ChantLayoutElement? source,
+    double top = 0,
+  ]) {
     String inner = '';
 
     final x1 = staffLeft;
@@ -576,7 +588,7 @@ class ChantLine extends ChantLayoutElement {
     inner = QuickSvg.createFragment('g', {'class': 'staffLines'}, inner);
 
     if (layoutInsertionCursor(ctxt) != null) {
-      inner += layoutInsertionCursor(ctxt)!.createSvgFragment(ctxt);
+      inner += layoutInsertionCursor(ctxt)!.createSvgFragment(ctxt, source);
     }
 
     for (int i = 0; i < ledgerLines.length; i++) {
@@ -600,26 +612,26 @@ class ChantLine extends ChantLayoutElement {
 
     if (notationsStartIndex == 0) {
       if (score.dropCap != null) {
-        inner += score.dropCap!.createSvgFragment(ctxt);
+        inner += score.dropCap!.createSvgFragment(ctxt, source);
       }
 
       if (score.annotation != null &&
           (ctxt.mergeAnnotationWithTextLeft == null || score.dropCap != null)) {
-        inner += score.annotation!.createSvgFragment(ctxt);
+        inner += score.annotation!.createSvgFragment(ctxt, source);
       }
     }
 
-    inner += startingClef!.createSvgFragment(ctxt);
+    inner += startingClef!.createSvgFragment(ctxt, source);
 
     final notations = score.notations;
     final lastIndex = notationsStartIndex + numNotationsOnLine;
 
     for (int i = notationsStartIndex; i < lastIndex; i++) {
-      inner += notations[i].createSvgFragment(ctxt);
+      inner += notations[i].createSvgFragment(ctxt, source);
     }
 
     if (custos != null) {
-      inner += custos!.createSvgFragment(ctxt);
+      inner += custos!.createSvgFragment(ctxt, source);
     }
 
     return QuickSvg.createFragment('g', {

@@ -6,6 +6,7 @@ import '../../core.dart' as core;
 import '../../drawing.dart';
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
+import '../notation/chant_notation_element.dart';
 import 'drop_cap.dart';
 import 'lyric.dart';
 
@@ -198,7 +199,7 @@ abstract class TextElement extends ChantLayoutElement {
   }
 
   @override
-  XmlElement createSvgNode(ChantContext ctxt) {
+  XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) {
     final spansXml = spans
         .map(
           (span) => QuickSvg.createNode(
@@ -218,7 +219,8 @@ abstract class TextElement extends ChantLayoutElement {
     return QuickSvg.createNode('text', options, spansXml);
   }
 
-  SvgTreeNode createSvgTree(ChantContext ctxt) {
+  @override
+  SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
     final spansTree = spans
         .map(
           (span) => QuickSvg.createSvgTree(
@@ -239,7 +241,7 @@ abstract class TextElement extends ChantLayoutElement {
   }
 
   @override
-  String createSvgFragment(ChantContext ctxt) {
+  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
     final spansFragment = spans
         .map(
           (span) => QuickSvg.createFragment(

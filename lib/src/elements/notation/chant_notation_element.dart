@@ -116,25 +116,27 @@ class ChantNotationElement extends ChantLayoutElement {
   }
 
   @override
-  XmlElement createSvgNode(ChantContext ctxt) => QuickSvg.createNode(
-    'g',
-    getSvgProps(),
-    visualizers.map((v) => v.createSvgNode(ctxt)),
-  );
+  XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) =>
+      QuickSvg.createNode(
+        'g',
+        getSvgProps(),
+        visualizers.map((v) => v.createSvgNode(ctxt, this)),
+      );
 
   @override
-  SvgTreeNode createSvgTree(ChantContext ctxt) => QuickSvg.createSvgTree(
-    'g',
-    getSvgProps(),
-    visualizers.map((v) => v.createSvgTree(ctxt)),
-  );
+  SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) =>
+      QuickSvg.createSvgTree(
+        'g',
+        getSvgProps(),
+        visualizers.map((v) => v.createSvgTree(ctxt, this)),
+      );
 
   @override
-  String createSvgFragment(ChantContext ctxt) {
+  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
     return QuickSvg.createFragment(
       'g',
       getSvgProps(),
-      visualizers.map((v) => v.createSvgFragment(ctxt)).join(),
+      visualizers.map((v) => v.createSvgFragment(ctxt, this)).join(),
     );
   }
 

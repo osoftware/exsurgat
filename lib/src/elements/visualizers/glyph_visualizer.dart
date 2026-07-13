@@ -7,6 +7,9 @@ import '../../drawing.dart';
 import '../../glyphs.dart';
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
+import '../notation/chant_notation_element.dart';
+import '../notation/clefs/clef.dart';
+import '../notation/neumes/note.dart';
 
 class GlyphVisualizer extends ChantLayoutElement {
   GlyphVisualizer(ChantContext ctxt, GlyphCode glyphCode) {
@@ -106,36 +109,89 @@ class GlyphVisualizer extends ChantLayoutElement {
   }
 
   @override
-  XmlElement createSvgNode(ChantContext ctxt) {
-    return QuickSvg.createNode('use', getSvgAttributes(ctxt, null));
-  }
-
-  XmlElement createSvgNodeWithAttributes(ChantContext ctxt, dynamic source) {
+  XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) {
     return QuickSvg.createNode('use', getSvgAttributes(ctxt, source));
   }
 
-  SvgTreeNode createSvgTree(ChantContext ctxt, [dynamic source]) {
+  XmlElement createSvgNodeWithAttributes(
+    ChantContext ctxt, [
+    ChantLayoutElement? source,
+  ]) {
+    return QuickSvg.createNode('use', getSvgAttributes(ctxt, source));
+  }
+
+  @override
+  SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
     var attributes = getSvgAttributes(ctxt, source);
     if (source != null) attributes['source'] = source;
     return QuickSvg.createSvgTree("use", attributes);
   }
 
   @override
-  String createSvgFragment(ChantContext ctxt) {
-    return QuickSvg.createFragment('use', getSvgAttributes(ctxt, null), null);
-  }
+  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) =>
+      QuickSvg.createFragment('use', getSvgAttributes(ctxt, source), null);
 
-  String createSvgFragmentWithAttributes(ChantContext ctxt, dynamic source) {
+  String createSvgFragmentWithAttributes(
+    ChantContext ctxt, [
+    ChantLayoutElement? source,
+  ]) {
     return QuickSvg.createFragment('use', getSvgAttributes(ctxt, source), null);
   }
 
-  Map<String, dynamic> getSvgAttributes(ChantContext ctxt, dynamic source) {
+  Map<String, dynamic> getSvgAttributes(
+    ChantContext ctxt, [
+    ChantLayoutElement? source,
+  ]) {
+    String className = '';
+    String? id;
+    bool porrectus = <GlyphCode>[
+      .porrectus1,
+      .porrectus2,
+      .porrectus3,
+      .porrectus4,
+    ].contains(glyphCode);
+    if (porrectus) {
+      var notes = (source as Note).neume!.notes;
+      var noteIndex = notes.indexOf(source);
+      var nextNote = noteIndex < notes.length - 1 ? notes[noteIndex + 1] : null;
+      className = switch ((source.selected, nextNote?.selected ?? false)) {
+        (true, true) => "selected",
+        (true, false) => "selectedA",
+        (false, true) => "selectedB",
+        (false, false) => "",
+      };
+    } else {
+      bool selected = switch (source) {
+        Clef c => c.model?.selected ?? false,
+        ChantLayoutElement e => e.selected,
+        _ => false,
+      };
+      className = selected ? "selected" : "";
+    }
+
+    if (source is Note) {
+      className += ' note';
+      id = '${ctxt.noteIdPrefix}${source.noteIndex ?? 0 + 1}';
+      if (porrectus) {
+        className += ' porrectus porrectus-start';
+      } else if (source.glyphVisualizer?.glyphCode == .none) {
+        className += ' porrectus prrectus-end';
+      }
+    }
+
     return <String, dynamic>{
-      'xlink:href': '#${glyphCode.toString()}',
-      'class': '',
-      'x': (bounds.x + origin.x) / ctxt.glyphScaling,
-      'y': (bounds.y + origin.y) / ctxt.glyphScaling,
-      'transform': 'scale(${ctxt.glyphScaling})',
+      'xlink:href': '#$glyphCode',
+      'class': className,
+      'id': ?id,
+      if (source is ChantNotationElement) 'source-index': source.sourceIndex,
+      if (source is ChantNotationElement) 'element-index': source.elementIndex,
+      'x': ctxt.scaleDefs
+          ? bounds.x + origin.x
+          : (bounds.x + origin.x) / ctxt.glyphScaling,
+      'y': ctxt.scaleDefs
+          ? bounds.y + origin.y
+          : (bounds.y + origin.y) / ctxt.glyphScaling,
+      if (!ctxt.scaleDefs) 'transform': 'scale(${ctxt.glyphScaling})',
     };
   }
 }

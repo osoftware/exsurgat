@@ -1,3 +1,4 @@
+import 'package:exsurgat/src/elements/notation/chant_notation_element.dart';
 import 'package:xml/xml.dart';
 
 import '../../../drawing.dart';
@@ -108,7 +109,7 @@ class Note extends ChantLayoutElement {
   }
 
   @override
-  XmlElement createSvgNode(ChantContext ctxt) {
+  XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) {
     // TODO: investigate if this is even needed
     glyphVisualizer!.bounds = bounds.clone();
     svgNode = glyphVisualizer!.createSvgNodeWithAttributes(ctxt, this);
@@ -116,13 +117,13 @@ class Note extends ChantLayoutElement {
   }
 
   @override
-  SvgTreeNode createSvgTree(ChantContext ctxt) {
+  SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
     glyphVisualizer!.bounds = bounds.clone();
     return glyphVisualizer!.createSvgTree(ctxt, this);
   }
 
   @override
-  String createSvgFragment(ChantContext ctxt) {
+  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
     glyphVisualizer!.bounds = bounds.clone();
     return glyphVisualizer!.createSvgFragmentWithAttributes(ctxt, this);
   }
