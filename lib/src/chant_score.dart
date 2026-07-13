@@ -265,7 +265,7 @@ class ChantScore {
 
         notation.notationIndex = notations.length;
         notations.add(notation);
-        if (!hasLyrics && notation.hasLyrics()) hasLyrics = true;
+        if (!hasLyrics && notation.hasLyrics) hasLyrics = true;
         if (!hasAboveLinesText && notation.alText.isNotEmpty) {
           hasAboveLinesText = true;
         }
@@ -314,9 +314,7 @@ class ChantScore {
     // find the first notation with lyrics to use
     for (var i = 0; i < notations.length; i++) {
       final notation = notations[i];
-      if (notation.hasLyrics() &&
-          notation.lyrics.isNotEmpty &&
-          (notation.lyrics[0].spans as List?)?.isNotEmpty == true) {
+      if (notation.hasLyrics && notation.lyrics[0].spans.isNotEmpty) {
         final lyrics = notation.lyrics[0];
         if (useDropCap) {
           dropCap = lyrics.generateDropCap(ctxt);
@@ -369,12 +367,8 @@ class ChantScore {
   /// For web applications, [performLayoutAsync] is more appropriate than
   /// [performLayout], since it will process the notations without locking up
   /// the UI thread.
-  Future<void> performLayoutAsync(
-    ChantContext ctxt, [
-    void Function()? finishedCallback,
-  ]) async {
+  Future<void> performLayoutAsync(ChantContext ctxt) async {
     if (needsLayout == false) {
-      if (finishedCallback != null) finishedCallback();
       return; // nothing to do here!
     }
 
@@ -383,15 +377,12 @@ class ChantScore {
     if (ctxt.hyphenWidth == 0 ||
         ctxt.hyphenWidth / ctxt.textStyles['lyric']['size'] > 0.6) {
       await Future<void>.delayed(const Duration(milliseconds: 100));
-      await performLayoutAsync(ctxt, finishedCallback);
       return;
     }
 
     initializeLayout(ctxt);
 
     await _layoutElementsAsync(ctxt, 0);
-
-    if (finishedCallback != null) finishedCallback();
   }
 
   Future<void> _layoutElementsAsync(ChantContext ctxt, int index) async {

@@ -4,10 +4,7 @@ import 'chant_notation_element.dart';
 class ChantLineBreak extends ChantNotationElement {
   bool justify;
 
-  ChantLineBreak(this.justify) {
-    trailingSpace = 0;
-    calculatedTrailingSpace = 0;
-  }
+  ChantLineBreak(this.justify);
 
   @override
   performLayout(ctxt) {

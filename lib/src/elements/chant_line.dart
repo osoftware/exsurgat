@@ -172,7 +172,7 @@ class ChantLine extends ChantLayoutElement {
       }
 
       if (notation.translationText.isNotEmpty &&
-          notation.translationText[0].text != null) {
+          notation.translationText[0].text.isEmpty) {
         if (notation.translationText[0].origin.y > translationLineBaseline) {
           translationLineBaseline = notation.translationText[0].origin.y;
         }
@@ -262,7 +262,7 @@ class ChantLine extends ChantLayoutElement {
       }
     }
 
-    if (startingClef!.hasLyrics()) {
+    if (startingClef!.hasLyrics) {
       double offset = 0;
       for (int j = 0; j < startingClef!.lyrics.length; j++) {
         startingClef!.lyrics[j].bounds = startingClef!.lyrics[j].bounds
@@ -353,7 +353,9 @@ class ChantLine extends ChantLayoutElement {
     if (insertionCursor != null) {
       insertionCursor!.performLayout(ctxt);
       final ie = score.insertionElement;
-      final trailingSpace = ie is ChantNotationElement ? ie.trailingSpace : 0;
+      final trailingSpace = ie is ChantNotationElement
+          ? ie.trailingSpace(ctxt)
+          : 0;
       insertionCursor!.bounds = insertionCursor!.bounds.copyWith(
         x: (ie!.bounds.right + trailingSpace) / 2 - insertionCursor!.origin.x,
       );
@@ -459,7 +461,7 @@ class ChantLine extends ChantLayoutElement {
           'y1': ctxt.staffInterval * i,
           'x2': x2,
           'y2': ctxt.staffInterval * i,
-          'stroke': ctxt.staffLineColor,
+          'stroke': ctxt.staffLineColor.toSvgString(),
           'stroke-width': ctxt.staffLineWeight,
           'class': 'staffLine',
         }),
@@ -730,7 +732,7 @@ class ChantLine extends ChantLayoutElement {
     } else {
       prev = notations[newElementStart - 1];
       if (prev is DoubleBar &&
-          prev.hasLyrics() &&
+          prev.hasLyrics &&
           (prev.lyrics.length > 1 ||
               !prev.lyrics[0].text.startsWith(RegExp(r'^(i\.?)+j\.?')))) {
         beginningLyrics = prev.lyrics.map((lyric) {
@@ -784,7 +786,7 @@ class ChantLine extends ChantLayoutElement {
     int j;
     int lastNotationIndex = notations.length - 1;
 
-    if (curr.hasLyrics()) {
+    if (curr.hasLyrics) {
       LyricArray.mergeIn(lastLyrics, curr.lyrics);
     }
 
@@ -821,7 +823,7 @@ class ChantLine extends ChantLayoutElement {
           curr is! ChantLineBreak &&
           curr is! Custos &&
           !(curr is TextOnly &&
-              curr.hasLyrics() &&
+              curr.hasLyrics &&
               RegExp(r'^(?:[*†]|i+j\.?)$').hasMatch(curr.lyrics[0].text)) &&
           lastNotationIndex - i > 1 &&
           !(prevNeume as dynamic).keepWithNext &&
@@ -833,7 +835,7 @@ class ChantLine extends ChantLayoutElement {
               curr is! TextOnly &&
               curr is! ChantLineBreak &&
               curr is! Custos &&
-              curr.hasLyrics());
+              curr.hasLyrics);
 
       if (curr is TextOnly && prev == prevNeume) {
         lastLyricsBeforeTextOnly = lastLyrics.toList();
@@ -841,11 +843,11 @@ class ChantLine extends ChantLayoutElement {
       }
       if (curr is TextOnly &&
           textOnlyStartIndex != null &&
-          !notations[textOnlyStartIndex].hasLyrics()) {
+          !notations[textOnlyStartIndex].hasLyrics) {
         textOnlyStartIndex = i;
       }
 
-      if (curr.hasLyrics() && curr.lyrics[0].needsLayout) {
+      if (curr.hasLyrics && curr.lyrics[0].needsLayout) {
         curr.lyrics[0].recalculateMetrics(ctxt);
       }
 
@@ -892,7 +894,7 @@ class ChantLine extends ChantLayoutElement {
             var lastNotationWithLyrics = notations
                 .sublist(notationsStartIndex, i)
                 .reversed
-                .where((notation) => notation.hasLyrics())
+                .where((notation) => notation.hasLyrics)
                 .firstOrNull;
             lastLyricsBeforeTextOnly =
                 lastNotationWithLyrics?.lyrics.toList() ?? [];
@@ -957,7 +959,7 @@ class ChantLine extends ChantLayoutElement {
         int countNotes = 0;
         if (ctxt.minSyllablesLastLine > 0 && ctxt.minNotesLastLine > 0) {
           countSyllables = notationsAfterBreak
-              .where((notation) => notation.hasLyrics())
+              .where((notation) => notation.hasLyrics)
               .length;
           countNotes = notationsAfterBreak
               .whereType<Neume>()
@@ -970,7 +972,7 @@ class ChantLine extends ChantLayoutElement {
           curr = notations[j + 1];
 
           if (ctxt.minSyllablesLastLine > 0 && ctxt.minNotesLastLine > 0) {
-            countSyllables += curr.hasLyrics() ? 1 : 0;
+            countSyllables += curr.hasLyrics ? 1 : 0;
             countNotes += switch (curr) {
               Neume(:final notes) => notes.length,
               _ => 0,
@@ -1051,7 +1053,7 @@ class ChantLine extends ChantLayoutElement {
         if (j >= 1 && notations[j] is Divider && notations[j - 1] is Custos) {
           prevLyrics = [];
           for (int k = j - 2; k >= notationsStartIndex; k--) {
-            if (notations[k].hasLyrics()) {
+            if (notations[k].hasLyrics) {
               LyricArray.mergeIn(prevLyrics, notations[k].lyrics);
               break;
             }
@@ -1075,7 +1077,7 @@ class ChantLine extends ChantLayoutElement {
         break;
       }
 
-      if (curr.hasLyrics()) LyricArray.mergeIn(lastLyrics, curr.lyrics);
+      if (curr.hasLyrics) LyricArray.mergeIn(lastLyrics, curr.lyrics);
 
       if (lastTranslationTextWithEndNeume != null &&
           curr ==
@@ -1234,10 +1236,10 @@ class ChantLine extends ChantLayoutElement {
         if (next != null) {
           final oldBoundsX = curr.bounds.x;
           final barWidth = curr.bounds.width;
-          double leftPoint = (prev is TextOnly && prev.hasLyrics())
+          double leftPoint = (prev is TextOnly && prev.hasLyrics)
               ? prev.lyrics[0].getRight()
               : prev.bounds.right;
-          double rightPoint = (next is TextOnly && next.hasLyrics())
+          double rightPoint = (next is TextOnly && next.hasLyrics)
               ? next.lyrics[0].getLeft()
               : next.bounds.x;
           if (prev is TextOnly) {
@@ -1253,7 +1255,7 @@ class ChantLine extends ChantLayoutElement {
               x: (leftPoint + rightPoint - barWidth) / 2,
             );
           }
-          if (curr.hasLyrics()) {
+          if (curr.hasLyrics) {
             final offset = oldBoundsX - curr.bounds.x;
             for (int j = curr.lyrics.length - 1; j >= 0; j--) {
               curr.lyrics[j].bounds = curr.lyrics[j].bounds.copyWith(
@@ -1286,7 +1288,7 @@ class ChantLine extends ChantLayoutElement {
           : null;
       if (next != null) i++;
       nextOrCurr = next ?? curr;
-      final hasLyrics = nextOrCurr.hasLyrics();
+      final hasLyrics = nextOrCurr.hasLyrics;
 
       if (prev == null) continue;
 
@@ -1341,7 +1343,7 @@ class ChantLine extends ChantLayoutElement {
 
     if (custos != null) {
       lastRightNeume += custos!.bounds.width + (custos as dynamic).leadingSpace;
-      if (custos!.hasLyrics()) {
+      if (custos!.hasLyrics) {
         lastRightLyric = LyricArray.getRight(custos!.lyrics);
       }
     } else if (lastIndex < notations.length) {
@@ -1446,7 +1448,7 @@ class ChantLine extends ChantLayoutElement {
       }
 
       if (multiplier == 0 && curr == custos) {
-        if (curr.hasLyrics()) {
+        if (curr.hasLyrics) {
           curr.bounds = curr.bounds.copyWith(
             x:
                 (curr.bounds.x +
@@ -1667,7 +1669,7 @@ class ChantLine extends ChantLayoutElement {
         for (int j = 0; j < neume.translationText.length; j++) {
           final text = neume.translationText[j];
           if (text.endNeume != null) {
-            double rightX = (text.endNeume!.hasLyrics())
+            double rightX = (text.endNeume!.hasLyrics)
                 ? text.endNeume!.bounds.x +
                       text.endNeume!.lyrics
                           .map((l) => l.bounds.right)
@@ -1831,9 +1833,9 @@ class ChantLine extends ChantLayoutElement {
     }
 
     if ((curr is TextOnly && extraTextOnlyIndex == null) ||
-        (!curr.hasLyrics() && prev.calculatedTrailingSpace < 0)) {
+        (!curr.hasLyrics && prev.calculatedTrailingSpace < 0)) {
       curr.calculatedTrailingSpace = prev.calculatedTrailingSpace;
-      if (curr.hasLyrics()) {
+      if (curr.hasLyrics) {
         curr.calculatedTrailingSpace -= curr.lyrics[0].bounds.width;
       }
       if (curr is TextOnly && curr.lyrics.length == 1) {
@@ -1851,7 +1853,7 @@ class ChantLine extends ChantLayoutElement {
       );
     }
 
-    if (curr.hasLyrics() &&
+    if (curr.hasLyrics &&
         prev is! Divider &&
         prev is! Accidental &&
         numNotationsOnLine > 0 &&
@@ -1906,7 +1908,7 @@ class ChantLine extends ChantLayoutElement {
     } else {
       if ((curr as dynamic).firstOfSyllable != null &&
           prevLyrics.isNotEmpty &&
-          !curr.hasLyrics()) {
+          !curr.hasLyrics) {
         curr.bounds = curr.bounds.copyWith(
           x: math.max(curr.bounds.x, prevLyrics[0].getRight()),
         );
@@ -1915,7 +1917,7 @@ class ChantLine extends ChantLayoutElement {
       }
     }
 
-    if (!curr.hasLyrics()) {
+    if (!curr.hasLyrics) {
       if (curr.bounds.right + curr.calculatedTrailingSpace >
           rightNotationBoundary + spaces.sum + space.condensable) {
         return false;

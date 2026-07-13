@@ -6,7 +6,6 @@ import '../../exsurgat.dart';
 import '../core.dart' as core;
 import '../drawing.dart';
 import 'chant_layout_element.dart';
-import 'notation/chant_notation_element.dart';
 import 'text/annotation.dart';
 
 class Annotations extends ChantLayoutElement {

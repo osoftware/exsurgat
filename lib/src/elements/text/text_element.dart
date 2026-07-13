@@ -6,7 +6,6 @@ import '../../core.dart' as core;
 import '../../drawing.dart';
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
-import '../notation/chant_notation_element.dart';
 import 'drop_cap.dart';
 import 'lyric.dart';
 
@@ -50,7 +49,7 @@ abstract class TextElement extends ChantLayoutElement {
 
   String getCssClasses() => '';
   Map<String, dynamic> getExtraStyleProperties(ChantContext ctxt) =>
-      ctxt.baseTextStyle ?? {};
+      ctxt.baseTextStyle;
 
   void generateSpansFromText(ChantContext ctxt, String text) {
     text = text.replaceAll(RegExp(r'\s+'), ' ');

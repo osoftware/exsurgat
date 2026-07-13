@@ -7,7 +7,6 @@ import '../drawing.dart';
 import '../glyphs.dart';
 import '../quick_svg.dart';
 import 'chant_layout_element.dart';
-import 'notation/chant_notation_element.dart';
 import 'notation/neumes/note.dart';
 
 enum HorizontalEpisemaAlignment { defaultValue, left, center, right }
@@ -193,6 +192,7 @@ class HorizontalEpisema extends ChantLayoutElement {
     return QuickSvg.createNode('rect', getSvgProps(ctxt));
   }
 
+  @override
   SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
     return QuickSvg.createSvgTree('rect', getSvgProps(ctxt));
   }

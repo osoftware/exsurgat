@@ -87,6 +87,12 @@ class Rect implements Geom {
   double get right => x + width;
   double get bottom => y + height;
 
+  bool get isEmpty =>
+      x == double.infinity &&
+      y == double.infinity &&
+      width == double.negativeInfinity &&
+      height == double.negativeInfinity;
+
   @override
   bool operator ==(covariant Rect other) =>
       x == other.x &&

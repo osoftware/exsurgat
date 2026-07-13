@@ -6,11 +6,11 @@ import '../../core.dart' as core;
 import '../../drawing.dart' hide Rect;
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
-import '../notation/chant_notation_element.dart';
+import '../notation/neumes/note.dart';
 
 class LineaVisualizer extends ChantLayoutElement {
-  LineaVisualizer(ChantContext ctxt, dynamic note) {
-    final staffPosition = note.staffPosition as int;
+  LineaVisualizer(ChantContext ctxt, Note note) {
+    final staffPosition = note.staffPosition;
     final y0 =
         ctxt.calculateHeightFromStaffPosition(staffPosition) - note.origin.y;
     final y1 = y0 + note.bounds.height;

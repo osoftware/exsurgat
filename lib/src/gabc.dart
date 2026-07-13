@@ -14,6 +14,7 @@ import 'elements/notation/text_only.dart';
 import 'elements/text.dart';
 import 'elements/visualizers.dart';
 import 'glyphs.dart';
+import 'trailing_space.dart';
 
 // reusable reg exps
 final RegExp _syllablesRegex = RegExp(
@@ -49,37 +50,6 @@ final RegExp regexHeaderLine = RegExp(
   caseSensitive: false,
 );
 final RegExp regexHeaderComment = RegExp(r'^%.*');
-
-/// A trailing space value that may be either a fixed double or a function
-/// computed from the [ChantContext].
-///
-/// This mirrors the JavaScript `DefaultTrailingSpace` which is a function with
-/// an `isDefault` flag set to `true`.
-class TrailingSpaceValue {
-  TrailingSpaceValue(this._value, {this.isDefault = false});
-
-  final double Function(ChantContext ctxt) _value;
-  final bool isDefault;
-
-  double call(ChantContext ctxt) => _value(ctxt);
-}
-
-/// The default trailing space applied to notations, computed from the
-/// [ChantContext].
-final TrailingSpaceValue defaultTrailingSpace = TrailingSpaceValue(
-  (ctxt) => ctxt.intraNeumeSpacing * ctxt.interSyllabicMultiplier,
-  isDefault: true,
-);
-
-TrailingSpaceValue trailingSpaceForAccidental() {
-  return TrailingSpaceValue(
-    (ctxt) => ctxt.intraNeumeSpacing * ctxt.accidentalSpaceMultiplier,
-  );
-}
-
-TrailingSpaceValue trailingSpaceMultiple(double multiplier) {
-  return TrailingSpaceValue((ctxt) => ctxt.intraNeumeSpacing * multiplier);
-}
 
 int _elementCountForNotations(List<dynamic> items) {
   return items.fold(0, (sum, item) {
@@ -224,7 +194,7 @@ class Gabc {
       mappings[mappings.length - 1]
               .notations[mappings[mappings.length - 1].notations.length - 1]
               .trailingSpace =
-          0;
+          TrailingSpace.zero;
     }
 
     return mappings;
@@ -408,7 +378,7 @@ class Gabc {
               (ctxt.activeClef as Clef).activeAccidental = curNotation;
             } else if ((curNotation as Divider).resetsAccidentals ||
                 (!prevIsAccidental &&
-                    curNotation.hasLyrics() &&
+                    curNotation.hasLyrics &&
                     curNotation.lyrics[0].lyricType.index <=
                         LyricType.beginningSyllable.index)) {
               (ctxt.activeClef as Clef).resetAccidentals();
@@ -525,7 +495,7 @@ class Gabc {
       mappings[mappings.length - 1]
               .notations[mappings[mappings.length - 1].notations.length - 1]
               .trailingSpace =
-          0;
+          TrailingSpace.zero;
     }
 
     return headerLength;
@@ -885,8 +855,7 @@ class Gabc {
     var sourceLength = 0;
     final notations = <ChantNotationElement>[];
     var notes = <Note>[];
-    var trailingSpaceIsDefault = true;
-    var trailingSpaceValue = defaultTrailingSpace(ctxt);
+    var trailingSpace = TrailingSpace.defaultTrailingSpace;
 
     void addToLastSourceGabc(String gabc) {
       if (notes.isNotEmpty) {
@@ -896,21 +865,15 @@ class Gabc {
 
     void addNotation(ChantNotationElement? notation, RegExpMatch? match) {
       if (notes.isNotEmpty) {
-        final ts = TrailingSpaceValue(
-          trailingSpaceIsDefault
-              ? (ctxt) => defaultTrailingSpace(ctxt)
-              : (ctxt) => trailingSpaceValue,
-          isDefault: trailingSpaceIsDefault,
-        );
-        final neumes = createNeumesFromNotes(ctxt, notes, ts);
+        final neumes = createNeumesFromNotes(ctxt, notes, trailingSpace);
         for (var i = 0; i < neumes.length; i++) {
           notations.add(neumes[i]);
         }
         notes = [];
       }
 
-      trailingSpaceIsDefault = true;
-      trailingSpaceValue = defaultTrailingSpace(ctxt);
+      // trailingSpaceIsDefault = true;
+      trailingSpace = TrailingSpace.defaultTrailingSpace;
 
       if (notation != null) {
         final prevNotation = notations.isNotEmpty
@@ -921,15 +884,14 @@ class Gabc {
         if (notation is Clef) {
           ctxt.activeClef = notation;
           if (prevNotation != null &&
-              prevNotation.trailingSpace == kDefaultTrailingSpace &&
+              prevNotation.trailingSpace.isDefault &&
               prevNotation is Divider) {
-            prevNotation.trailingSpace = trailingSpaceForAccidental()(ctxt);
+            prevNotation.trailingSpace = TrailingSpace.forAccidental;
           }
         } else if (notation is Accidental) {
           ctxt.activeClef?.activeAccidental = notation;
-        } else if (notation.trailingSpace == kDefaultTrailingSpace &&
-            notation is Custos) {
-          notation.trailingSpace = trailingSpaceForAccidental()(ctxt);
+        } else if (notation.trailingSpace.isDefault && notation is Custos) {
+          notation.trailingSpace = TrailingSpace.forAccidental;
         } else if ((notation as Divider).resetsAccidentals) {
           ctxt.activeClef?.resetAccidentals();
         }
@@ -1075,24 +1037,19 @@ class Gabc {
           break;
 
         case '!':
-          trailingSpaceIsDefault = false;
-          trailingSpaceValue = 0;
+          trailingSpace = TrailingSpace.zero;
           addToLastSourceGabc(atom);
           addNotation(null, match);
           break;
         case ' ':
-          trailingSpaceIsDefault = false;
-          trailingSpaceValue = trailingSpaceMultiple(2)(ctxt);
+          trailingSpace = TrailingSpace.multiple(2);
           addToLastSourceGabc(atom);
           addNotation(null, match);
           break;
 
         default:
           if (atom[0] == '/') {
-            trailingSpaceIsDefault = false;
-            trailingSpaceValue = trailingSpaceMultiple(atom.length.toDouble())(
-              ctxt,
-            );
+            trailingSpace = TrailingSpace.multiple(atom.length.toDouble());
             addToLastSourceGabc(atom);
             addNotation(null, match);
           } else if (atom.length > 1 && atom.endsWith('+')) {
@@ -1130,14 +1087,13 @@ class Gabc {
             );
             accidental.sourceIndex = sourceIndex;
             accidental.sourceLength = sourceLength;
-            accidental.trailingSpace = trailingSpaceForAccidental()(ctxt);
+            accidental.trailingSpace = TrailingSpace.forAccidental;
 
             (ctxt.activeClef as Clef).activeAccidental = accidental;
 
             addNotation(accidental, match);
           } else if (atom.length > 1 && atom[0] == '{') {
-            trailingSpaceIsDefault = false;
-            trailingSpaceValue = 0;
+            trailingSpace = TrailingSpace.zero;
             addNotation(null, match);
             final bracketedNotations = parseNotations(
               ctxt,
@@ -1152,8 +1108,7 @@ class Gabc {
             notations.addAll(bracketedNotations);
           } else {
             if (insertionIndex == -1) {
-              trailingSpaceIsDefault = false;
-              trailingSpaceValue = trailingSpaceMultiple(1)(ctxt);
+              trailingSpace = TrailingSpace.multiple(1);
               addNotation(null, match);
             }
             createNoteFromData(
@@ -1178,7 +1133,7 @@ class Gabc {
   static List<Neume> createNeumesFromNotes(
     ChantContext ctxt,
     List<Note> notes,
-    TrailingSpaceValue finalTrailingSpace,
+    TrailingSpace finalTrailingSpace,
   ) {
     final neumes = <Neume>[];
     var firstNoteIndex = 0;
@@ -1220,9 +1175,9 @@ class Gabc {
 
         neume.keepWithNext = true;
         if (notes[currNoteIndex + 1].shape == NoteShape.quilisma) {
-          neume.trailingSpace = 0;
+          neume.trailingSpace = TrailingSpace.zero;
         } else {
-          neume.trailingSpace = trailingSpaceMultiple(1)(ctxt);
+          neume.trailingSpace = TrailingSpace.multiple(1);
           neume.allowLineBreakBeforeNext = true;
         }
       }
@@ -1272,7 +1227,7 @@ class Gabc {
 
     if (neumes.isNotEmpty) {
       if (!finalTrailingSpace.isDefault) {
-        neumes[neumes.length - 1].trailingSpace = finalTrailingSpace(ctxt);
+        neumes[neumes.length - 1].trailingSpace = finalTrailingSpace;
         neumes[neumes.length - 1].keepWithNext = true;
 
         if (finalTrailingSpace(ctxt) > 0) {
@@ -1859,7 +1814,7 @@ class PunctumState extends NeumeState {
           (currNote.staffPosition % 2 == 1 ||
               prev.staffPosition != currNote.staffPosition - 1 ||
               prev.morae.isEmpty)) {
-        neume.trailingSpace = 0;
+        neume.trailingSpace = TrailingSpace.zero;
       }
       return state;
     }
@@ -1930,7 +1885,7 @@ class OriscusState extends NeumeState {
         (currNote.staffPosition % 2 == 1 ||
             prevNote.staffPosition != currNote.staffPosition - 1 ||
             prevNote.morae.isEmpty)) {
-      neume.trailingSpace = 0;
+      neume.trailingSpace = TrailingSpace.zero;
     }
     return state;
   }

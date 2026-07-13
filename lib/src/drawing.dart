@@ -173,7 +173,7 @@ class ChantContext {
   double minLyricWordSpacing = 1.0;
   List<dynamic> Function(List<List<TextSpan>> annotationSpans)?
   mergeAnnotationWithTextLeft;
-  dynamic baseTextStyle;
+  Map<String, dynamic> baseTextStyle = {};
   bool editable = false;
   bool startExtraTextOnlyFromFirst = false;
 
@@ -206,7 +206,7 @@ class ChantContext {
   void setFont(
     String font, [
     double size = 16,
-    dynamic baseStyle = const {},
+    Map<String, dynamic> baseStyle = const {},
     Map<String, dynamic>? fontDictionary,
   ]) {
     for (final entry in TextTypes.entries) {
