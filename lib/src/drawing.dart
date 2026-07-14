@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:exsurgat/src/elements/notation/chant_notation_element.dart';
 import 'package:xml/xml.dart';
 
 import 'elements/brace_point.dart';
@@ -160,7 +161,7 @@ class ChantContext {
   bool drawGuides = false;
   bool drawDebuggingBounds = false;
   bool setFontFamilyAttributes = false;
-  List<dynamic> notations = [];
+  List<ChantNotationElement> notations = [];
   dynamic activeNotations;
   int currNotationIndex = -1;
   int minSyllablesLastLine = 0;
@@ -229,7 +230,7 @@ class ChantContext {
   }
 
   set textMeasuringStrategy(TextMeasuringStrategy strategy) {
-    textMeasurer = createTextMeasurer(strategy);
+    textMeasurer = TextMeasurer.create(strategy);
   }
 
   void setRubricColor(Color color) {

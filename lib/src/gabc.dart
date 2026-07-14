@@ -51,10 +51,10 @@ final RegExp regexHeaderLine = RegExp(
 );
 final RegExp regexHeaderComment = RegExp(r'^%.*');
 
-int _elementCountForNotations(List<dynamic> items) {
+int _elementCountForNotations(List<ChantNotationElement> items) {
   return items.fold(0, (sum, item) {
-    final dynamic d = item;
-    return sum + ((d.notes != null) ? (d.notes.length as int) : 1);
+    final d = item;
+    return sum + ((d is Neume) ? d.notes.length : 1);
   });
 }
 
@@ -892,7 +892,7 @@ class Gabc {
           ctxt.activeClef?.activeAccidental = notation;
         } else if (notation.trailingSpace.isDefault && notation is Custos) {
           notation.trailingSpace = TrailingSpace.forAccidental;
-        } else if ((notation as Divider).resetsAccidentals) {
+        } else if (notation case Divider d when d.resetsAccidentals) {
           ctxt.activeClef?.resetAccidentals();
         }
 
@@ -1271,7 +1271,7 @@ class Gabc {
     );
 
     var episemaNoteIndex = notes.length;
-    var episemaNote = note;
+    Note episemaNote = note;
 
     for (var i = 1; i < data.length; i++) {
       final c = data[i];
@@ -1330,14 +1330,15 @@ class Gabc {
             if (haveLookahead) lookahead = data[i + 1];
           }
 
-          // TODO: why does js assume it can be null?
-          // if (episemaNote != null)
           episemaNote.episemata.add(episema);
 
           if (episemaNote == note && episemaHadModifier) {
             episemaNote = note;
-          } else if (episemaNoteIndex >= 0 && notes.isNotEmpty) {
+          } else if (episemaNoteIndex > 0 && notes.isNotEmpty) {
             episemaNote = notes[--episemaNoteIndex];
+          } else if (episemaNoteIndex == 0 && notes.isNotEmpty) {
+            // TODO: check if this works
+            // episemaNote = null;
           }
 
           break;

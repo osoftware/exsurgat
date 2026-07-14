@@ -57,7 +57,7 @@ class ChantLine extends ChantLayoutElement {
 
   bool justify = true;
 
-  List<dynamic> ledgerLines = [];
+  List<LedgerLinePos> ledgerLines = [];
   List<dynamic> braces = [];
 
   dynamic nextLine;
@@ -689,8 +689,8 @@ class ChantLine extends ChantLayoutElement {
   ) {
     final notations = score.notations;
     List<dynamic> beginningLyrics = [];
-    dynamic prev;
-    dynamic prevNeume;
+    ChantNotationElement? prev;
+    ChantNotationElement? prevNeume;
     List<Lyric> prevLyrics = [];
     List<dynamic> condensableSpaces = [];
     notationsStartIndex = newElementStart;
@@ -826,8 +826,8 @@ class ChantLine extends ChantLayoutElement {
               curr.hasLyrics &&
               RegExp(r'^(?:[*†]|i+j\.?)$').hasMatch(curr.lyrics[0].text)) &&
           lastNotationIndex - i > 1 &&
-          !(prevNeume as dynamic).keepWithNext &&
-          (prevNeume as dynamic).bounds.right() >= rightNotationBoundary;
+          !prevNeume!.keepWithNext &&
+          prevNeume.bounds.right >= rightNotationBoundary;
 
       forceBreak =
           forceBreak ||
@@ -856,7 +856,7 @@ class ChantLine extends ChantLayoutElement {
           positionNotationElement(
             ctxt,
             lastLyrics,
-            prevNeume,
+            prevNeume!,
             curr,
             actualRightBoundary,
             condensableSpaces,
@@ -979,7 +979,7 @@ class ChantLine extends ChantLayoutElement {
             };
           }
 
-          if ((cne as dynamic).firstWithNoWidth) {
+          if (cne.firstWithNoWidth != null) {
             numNotationsOnLine--;
             continue;
           }
@@ -1040,11 +1040,10 @@ class ChantLine extends ChantLayoutElement {
           }
         }
 
-        dynamic next = (extraTextOnlyIndex == null)
+        final next = (extraTextOnlyIndex == null)
             ? notations[notationsStartIndex + numNotationsOnLine]
             : notations[extraTextOnlyIndex!];
-        if (next != null &&
-            next.hasLyrics() &&
+        if (next.hasLyrics &&
             (next.lyrics[0].lyricType == LyricType.beginningSyllable ||
                 next.lyrics[0].lyricType == LyricType.singleSyllable)) {
           toJustify.add(next);
@@ -1149,7 +1148,7 @@ class ChantLine extends ChantLayoutElement {
             );
           } else {
             custos!.bounds = custos!.bounds.copyWith(
-              x: prevNeume.bounds.right() + prevNeume.calculatedTrailingSpace,
+              x: prevNeume!.bounds.right + prevNeume.calculatedTrailingSpace,
             );
           }
           break;
@@ -1505,12 +1504,12 @@ class ChantLine extends ChantLayoutElement {
     if (startBrace == null) return;
 
     double y;
-    final k = (startBrace as dynamic).notationIndex;
+    final k = startBrace.notationIndex;
     final notations = score.notations;
     final dy = ctxt.intraNeumeSpacing / 2;
-    final startNote = (startBrace as dynamic).note;
+    final startNote = startBrace.note;
 
-    if ((startBrace as dynamic).isAbove) {
+    if (startBrace.isAbove) {
       y =
           (ctxt.calculateHeightFromStaffPosition(score.staffLineCount * 2) <
               [
@@ -1542,28 +1541,28 @@ class ChantLine extends ChantLayoutElement {
 
     bool addAcuteAccent = false;
 
-    if ((startBrace as dynamic).shape == BraceShape.roundBrace) {
+    if (startBrace.shape == BraceShape.roundBrace) {
       braces.add(
         RoundBraceVisualizer(
           ctxt,
-          (startBrace as dynamic).getAttachmentX(startNote),
+          startBrace.getAttachmentX(startNote as Note),
           note.braceEnd.getAttachmentX(note),
           y,
-          (startBrace as dynamic).isAbove,
+          startBrace.isAbove,
         ),
       );
     } else {
-      if ((startBrace as dynamic).shape == BraceShape.accentedCurlyBrace) {
+      if (startBrace.shape == BraceShape.accentedCurlyBrace) {
         addAcuteAccent = true;
       }
 
       braces.add(
         CurlyBraceVisualizer(
           ctxt,
-          (startBrace as dynamic).getAttachmentX(startNote),
+          startBrace.getAttachmentX(startNote as Note),
           note.braceEnd.getAttachmentX(note),
           y,
-          (startBrace as dynamic).isAbove,
+          startBrace.isAbove,
           addAcuteAccent,
         ),
       );
@@ -1613,11 +1612,7 @@ class ChantLine extends ChantLayoutElement {
         double finalX2 = x2;
         if (finalX2 > staffRight) finalX2 = staffRight;
 
-        ledgerLines.add({
-          'x1': x1,
-          'x2': finalX2,
-          'staffPosition': roundedStaffPosition,
-        });
+        ledgerLines.add(LedgerLinePos(x1, finalX2, roundedStaffPosition));
       }
     }
 
@@ -1906,7 +1901,7 @@ class ChantLine extends ChantLayoutElement {
       spaces.sum += space.condensable;
       return true;
     } else {
-      if ((curr as dynamic).firstOfSyllable != null &&
+      if (curr.firstOfSyllable != null &&
           prevLyrics.isNotEmpty &&
           !curr.hasLyrics) {
         curr.bounds = curr.bounds.copyWith(
@@ -2110,4 +2105,12 @@ class ChantLine extends ChantLayoutElement {
     }
     return notation;
   }
+}
+
+class LedgerLinePos {
+  double x1;
+  double x2;
+  int staffPosition;
+
+  LedgerLinePos(this.x1, this.x2, this.staffPosition);
 }

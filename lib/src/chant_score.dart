@@ -91,7 +91,7 @@ class ChantScore {
 
   /// A flattened array of all notes and notation elements in the score, for
   /// O(1) access by index.
-  late List<Note> notes;
+  late List<ChantLayoutElement> notes;
 
   /// A flattened array of all notations in the score.
   late List<ChantNotationElement> notations;
@@ -221,8 +221,8 @@ class ChantScore {
         if (insertionElement == null) {
           insertionLine = lines[0];
           insertionElement = insertionLine.startingClef;
-        } else if ((insertionElement as dynamic).neume != null) {
-          insertionElement = (insertionElement as dynamic).neume;
+        } else if (insertionElement case Note(:final neume)) {
+          insertionElement = neume;
         }
         insertionLine ??=
             (insertionElement as dynamic).line ?? lines[lines.length - 1];
@@ -274,19 +274,19 @@ class ChantScore {
         }
 
         // Update this.notes and find element indices:
-        final elements = (notation as dynamic).notes ?? [notation];
+        final elements = notation is Neume ? notation.notes : [notation];
         for (final element in elements) {
           final elementIndex = notes.length;
-          (element as dynamic).elementIndex = elementIndex;
+          if (element case ChantNotationElement e) {
+            e.elementIndex = elementIndex;
+          }
           notes.add(element);
           if (element is Note) {
             element.noteIndex = elementIndex - nonNoteElementCount;
           } else {
             ++nonNoteElementCount;
           }
-          (element as dynamic).selected = selectedIndices.contains(
-            elementIndex,
-          );
+          element.selected = selectedIndices.contains(elementIndex);
         }
       }
     }
@@ -337,7 +337,7 @@ class ChantScore {
     ctxt.currNotationIndex = 0;
     ctxt.staffLineCount = staffLineCount;
 
-    if (dropCap != null) (dropCap as dynamic).recalculateMetrics(ctxt);
+    if (dropCap != null) dropCap?.recalculateMetrics(ctxt);
 
     if (annotation != null) annotation!.recalculateMetrics(ctxt);
   }

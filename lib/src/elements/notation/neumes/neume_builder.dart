@@ -1,5 +1,6 @@
 import '../../../drawing.dart';
 import '../../../glyphs.dart';
+import '../../../trailing_space.dart';
 import '../../visualizers/linea_visualizer.dart';
 import '../../visualizers/neume_beam_visualizer.dart';
 import '../../visualizers/neume_line_visualizer.dart';
@@ -24,9 +25,9 @@ class NeumeBuilder {
         : null;
     if (x == 0 &&
         previousNotation != null &&
-        previousNotation.notes != null &&
-        previousNotation.trailingSpace == 0) {
-      lastNote = previousNotation.notes!.last;
+        previousNotation is Neume &&
+        previousNotation.trailingSpace == TrailingSpace.zero) {
+      lastNote = previousNotation.notes.last;
       minX = -ctxt.neumeLineWeight;
     } else {
       lastNote = note;
