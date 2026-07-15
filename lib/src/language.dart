@@ -24,6 +24,12 @@ abstract class Language {
   }
 
   List<String> syllabifyWord(String word);
+
+  VowelSegment findVowelSegment(
+    String s,
+    int startIndex, [
+    List<Map<String, int>>? ignore,
+  ]);
 }
 
 class English extends Language {
@@ -34,7 +40,12 @@ class English extends Language {
 
   const English() : super("English", centerNeume: true);
 
-  VowelSegment findVowelSegment(String s, int startIndex) {
+  @override
+  VowelSegment findVowelSegment(
+    String s,
+    int startIndex, [
+    List<Map<String, int>>? ignore,
+  ]) {
     final match = regexLetter.firstMatch(s.substring(startIndex));
     if (match != null) {
       return VowelSegment(
@@ -226,11 +237,12 @@ class Latin extends Language {
     return syllables;
   }
 
+  @override
   VowelSegment findVowelSegment(
     String s,
-    int startIndex,
+    int startIndex, [
     List<Map<String, int>>? ignore,
-  ) {
+  ]) {
     String stringSlice = s.substring(startIndex);
     var match = regexVowel.firstMatch(stringSlice);
 
@@ -445,7 +457,12 @@ class Spanish extends Language {
     return syllables;
   }
 
-  VowelSegment findVowelSegment(String s, int startIndex) {
+  @override
+  VowelSegment findVowelSegment(
+    String s,
+    int startIndex, [
+    List<Map<String, int>>? ignore,
+  ]) {
     String workingString = s.toLowerCase();
 
     for (var d in diphthongs) {

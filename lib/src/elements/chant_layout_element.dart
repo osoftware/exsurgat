@@ -1,8 +1,8 @@
 import 'package:xml/xml.dart';
 
-import '../../exsurgat.dart';
 import '../core.dart' as core;
 import '../drawing.dart';
+import '../quick_svg.dart';
 
 abstract class ChantLayoutElement {
   ChantLayoutElement() {

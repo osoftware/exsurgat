@@ -2,10 +2,10 @@ import 'dart:math' as math;
 
 import 'package:xml/xml.dart';
 
-import '../../exsurgat.dart';
 import '../chant_score.dart';
 import '../drawing.dart';
 import '../glyphs.dart';
+import '../quick_svg.dart';
 import 'brace_point.dart';
 import 'chant_layout_element.dart';
 import 'horizontal_episema.dart';

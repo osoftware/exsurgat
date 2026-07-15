@@ -127,18 +127,13 @@ abstract class TextElement extends ChantLayoutElement {
     return buffer.toString();
   }
 
-  dynamic measureSubstring(
-    ChantContext ctxt, [
-    int? length,
-    bool returnBBox = false,
-  ]) {
-    return ctxt.textMeasurer.measureSubstring(this, ctxt, length, returnBBox);
-  }
+  double measureSubstring(ChantContext ctxt, [int? length]) =>
+      ctxt.textMeasurer.measureSubstring(this, ctxt, length);
 
-  void recalculateMetrics(ChantContext ctxt, [bool resetNewLines = true]) {
-    ctxt.textMeasurer.recalculateMetrics(this, ctxt, resetNewLines);
-  }
+  void recalculateMetrics(ChantContext ctxt, [bool resetNewLines = true]) =>
+      ctxt.textMeasurer.recalculateMetrics(this, ctxt, resetNewLines);
 
+  // TODO: hallucination
   void setMaxWidth(
     ChantContext ctxt,
     double maxWidth, [
@@ -282,16 +277,17 @@ abstract class TextElement extends ChantLayoutElement {
         translateWidth = -xOffset;
       }
 
-      final properties = <String, dynamic>{};
-      properties.addAll(getExtraStyleProperties(ctxt));
-      properties.addAll(span.properties);
+      final properties = <String, dynamic>{
+        ...getExtraStyleProperties(ctxt),
+        'base-font-family': fontFamily(ctxt),
+        'base-font-size': fontSize(ctxt),
+      };
 
-      final paragraph = _buildParagraph(
+      final paragraph = span.buildParagraph(
         ctxt,
-        span.text,
         properties,
         textAlign,
-        _parseCssLength(span.properties['textLength']),
+        resize,
       );
 
       canvas.drawParagraph(paragraph, Offset(bounds.x, bounds.y));
@@ -302,26 +298,73 @@ abstract class TextElement extends ChantLayoutElement {
     }
     canvas.restore();
   }
+}
 
-  Paragraph _buildParagraph(
+class TextSpan {
+  TextSpan(
+    this.text,
+    this.propertyArray,
+    this.activeTags, [
+    this.index = 0,
+    Map<String, dynamic>? extraProps,
+  ]) {
+    if (extraProps != null) {
+      xOffset = extraProps['xOffset'] as double?;
+      newLine = extraProps['newLine'];
+    }
+  }
+
+  String text;
+  final List<Map<String, dynamic>> propertyArray;
+  final List<String> activeTags;
+  final int index;
+  double? xOffset;
+  int? newLine;
+
+  Map<String, dynamic> get properties {
+    final result = <String, dynamic>{};
+    for (final props in propertyArray) {
+      result.addAll(props);
+    }
+    if (xOffset != null) result['xOffset'] = xOffset;
+    if (newLine != null) result['newLine'] = newLine;
+    return result;
+  }
+
+  TextSpan clone() {
+    final result = TextSpan(
+      text,
+      List<Map<String, dynamic>>.from(propertyArray),
+      List<String>.from(activeTags),
+      index,
+    );
+    result.xOffset = xOffset;
+    result.newLine = newLine;
+    return result;
+  }
+
+  Paragraph buildParagraph(
     ChantContext ctxt,
-    String text,
-    Map<String, dynamic> properties,
-    TextAlign textAlign,
-    double maxWidth,
-  ) {
+    Map<String, dynamic> extraProps,
+    TextAlign textAlign, [
+    double? resize,
+  ]) {
+    final maxWidth = _parseCssLength(properties['textLength']);
     final fontSizeValue = _parseCssFontSize(
-      properties['font-size'],
-      fontSize(ctxt),
+      extraProps['font-size'],
+      extraProps['base-font-size'],
     );
     final textStyle = TextStyle(
-      color: _colorFromCss(properties['fill'], ctxt.textColor),
-      fontFamily: properties['font-family'] ?? fontFamily(ctxt),
+      color: _colorFromCss(extraProps['fill'], ctxt.textColor),
+      fontFamilyFallback:
+          (extraProps['font-family'] ?? extraProps['base-font-family'])
+              .toString()
+              .split(RegExp(", ?")),
       fontSize: fontSizeValue * (resize ?? 1),
-      fontStyle: properties['font-style'] == 'italic'
+      fontStyle: extraProps['font-style'] == 'italic'
           ? FontStyle.italic
           : FontStyle.normal,
-      fontWeight: properties['font-weight'] == 'bold'
+      fontWeight: extraProps['font-weight'] == 'bold'
           ? FontWeight.bold
           : FontWeight.normal,
     );
@@ -382,50 +425,6 @@ abstract class TextElement extends ChantLayoutElement {
       return double.tryParse(value) ?? double.infinity;
     }
     return double.infinity;
-  }
-}
-
-class TextSpan {
-  TextSpan(
-    this.text,
-    this.propertyArray,
-    this.activeTags, [
-    this.index = 0,
-    Map<String, dynamic>? extraProps,
-  ]) {
-    if (extraProps != null) {
-      xOffset = extraProps['xOffset'] as double?;
-      newLine = extraProps['newLine'];
-    }
-  }
-
-  String text;
-  final List<Map<String, dynamic>> propertyArray;
-  final List<String> activeTags;
-  final int index;
-  double? xOffset;
-  Object? newLine;
-
-  Map<String, dynamic> get properties {
-    final result = <String, dynamic>{};
-    for (final props in propertyArray) {
-      result.addAll(props);
-    }
-    if (xOffset != null) result['xOffset'] = xOffset;
-    if (newLine != null) result['newLine'] = newLine;
-    return result;
-  }
-
-  TextSpan clone() {
-    final result = TextSpan(
-      text,
-      List<Map<String, dynamic>>.from(propertyArray),
-      List<String>.from(activeTags),
-      index,
-    );
-    result.xOffset = xOffset;
-    result.newLine = newLine;
-    return result;
   }
 }
 

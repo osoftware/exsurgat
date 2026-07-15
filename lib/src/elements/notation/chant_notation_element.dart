@@ -1,12 +1,12 @@
 import 'dart:math' as math;
 
-import 'package:exsurgat/src/trailing_space.dart';
 import 'package:xml/xml.dart';
 
 import '../../chant_score.dart';
 import '../../core.dart' as core;
 import '../../drawing.dart';
 import '../../quick_svg.dart';
+import '../../trailing_space.dart';
 import '../chant_layout_element.dart';
 import '../chant_line.dart';
 import '../text/above_lines_text.dart';
@@ -98,7 +98,23 @@ class ChantNotationElement extends ChantLayoutElement {
   }
 
   void finishLayout(ChantContext ctxt) {
-    bounds = core.Rect.fromXYWH(0, 0, bounds.width, bounds.height);
+    bounds = bounds.copyWith(x: 0);
+
+    final language =
+        lyrics.elementAtOrNull(0)?.language ?? ctxt.defaultLanguage;
+
+    final calculateLyricX = language.centerNeume
+        ? (Lyric l) {
+            final offset = ctxt.staffInterval < l.vowelSegmentWidth
+                ? bounds.width / 2 - l.origin.x
+                : origin.x - l.origin.x;
+            l.bounds = l.bounds.copyWith(x: bounds.width + offset);
+          }
+        : (Lyric l) {
+            l.bounds = l.bounds.copyWith(x: origin.x - l.origin.x);
+          };
+    lyrics.forEach(calculateLyricX);
+
     needsLayout = false;
   }
 
@@ -116,41 +132,52 @@ class ChantNotationElement extends ChantLayoutElement {
 
   @override
   XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) =>
-      QuickSvg.createNode('g', getSvgProps(source), [
+      QuickSvg.createNode('g', getSvgProps(), [
         for (final l in lyrics) l.createSvgNode(ctxt),
         for (final t in translationText) t.createSvgNode(ctxt),
         for (final al in alText) al.createSvgNode(ctxt),
-        for (final v in visualizers) v.createSvgNode(ctxt, this),
+        QuickSvg.createNode(
+          'g',
+          {'class': 'Notation'},
+          [for (final v in visualizers) v.createSvgNode(ctxt, this)],
+        ),
       ]);
 
   @override
   SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) =>
-      QuickSvg.createSvgTree('g', getSvgProps(source), [
+      QuickSvg.createSvgTree('g', getSvgProps(), [
         for (final l in lyrics) l.createSvgTree(ctxt),
         for (final t in translationText) t.createSvgTree(ctxt),
         for (final al in alText) al.createSvgTree(ctxt),
-        for (final v in visualizers) v.createSvgTree(ctxt, this),
+        QuickSvg.createSvgTree(
+          'g',
+          {'class': 'Notation'},
+          [for (final v in visualizers) v.createSvgTree(ctxt, this)],
+        ),
       ]);
 
   @override
   String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
     return QuickSvg.createFragment(
       'g',
-      getSvgProps(source),
+      getSvgProps(),
       [
         for (final l in lyrics) l.createSvgFragment(ctxt),
         for (final t in translationText) t.createSvgFragment(ctxt),
         for (final al in alText) al.createSvgFragment(ctxt),
-        for (final v in visualizers) v.createSvgFragment(ctxt, this),
+        QuickSvg.createFragment(
+          'g',
+          {'class': 'Notation'},
+          [for (final v in visualizers) v.createSvgFragment(ctxt, this)].join(),
+        ),
       ].join(),
     );
   }
 
-  Map<String, dynamic> getSvgProps(ChantLayoutElement? source) {
+  Map<String, dynamic> getSvgProps() {
     return <String, dynamic>{
       'class': 'ChantNotationElement ${cssClass ?? runtimeType}',
       'transform': 'translate(${bounds.x},0)',
-      'source': ?source,
     };
   }
 }

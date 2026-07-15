@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import '../../core.dart' as core;
 import '../../drawing.dart';
+import '../../language.dart';
 import '../notation/chant_notation_element.dart';
 import 'drop_cap.dart';
 import 'text_element.dart';
@@ -129,7 +130,7 @@ class Lyric extends TextElement {
   double vowelSegmentWidth = 0;
   double? connectorWidth;
   double? defaultConnectorWidth;
-  dynamic language;
+  Language? language;
 
   double? lineWidth;
 
@@ -289,7 +290,7 @@ class Lyric extends TextElement {
       }
     }
 
-    bounds = core.Rect.fromXYWH(-offset, bounds.y, bounds.width, bounds.height);
+    bounds = core.Rect.fromXYWH(-offset, 0, bounds.width, bounds.height);
     origin = core.Point(offset, origin.y);
   }
 

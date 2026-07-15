@@ -56,7 +56,8 @@ class Point implements Geom {
 
   Point copyWith({double? x, double? y}) => Point(x ?? this.x, y ?? this.y);
 
-  bool equals(Point other) => x == other.x && y == other.y;
+  @override
+  String toString() => '($x,$y)';
 }
 
 class Rect implements Geom {
@@ -128,6 +129,9 @@ class Rect implements Geom {
     final double newBottom = math.max(bottom, other.bottom);
     return Rect.fromXYWH(newX, newY, newRight - newX, newBottom - newY);
   }
+
+  @override
+  String toString() => '($x,$y,$width,$height)';
 }
 
 class Margins {

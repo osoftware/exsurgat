@@ -2,9 +2,9 @@ import 'dart:math' as math;
 
 import 'package:xml/xml.dart';
 
-import '../../exsurgat.dart';
 import '../core.dart' as core;
 import '../drawing.dart';
+import '../quick_svg.dart';
 import 'chant_layout_element.dart';
 import 'text/annotation.dart';
 
