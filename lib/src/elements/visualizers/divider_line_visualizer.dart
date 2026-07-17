@@ -7,7 +7,6 @@ import '../../core.dart' as core;
 import '../../drawing.dart' hide Rect;
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
-import '../notation/chant_notation_element.dart';
 
 class DividerLineVisualizer extends ChantLayoutElement {
   DividerLineVisualizer(

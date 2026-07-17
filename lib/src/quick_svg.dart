@@ -33,31 +33,6 @@ class QuickSvg {
     return node;
   }
 
-  static XmlElement rect(String width, String height) =>
-      XmlElement(XmlName.parts('rect', namespaceUri: ns))
-        ..setAttribute('width', width)
-        ..setAttribute('height', height);
-
-  static XmlElement line(String x1, String y1, String x2, String y2) =>
-      XmlElement(XmlName.parts('line', namespaceUri: ns))
-        ..setAttribute('x1', x1)
-        ..setAttribute('y1', y1)
-        ..setAttribute('x2', x2)
-        ..setAttribute('y2', y2);
-
-  static XmlElement g() => XmlElement(XmlName.parts('g', namespaceUri: ns));
-
-  static XmlElement text() =>
-      XmlElement(XmlName.parts('text', namespaceUri: ns));
-
-  static XmlElement tspan(String? str) {
-    final node = XmlElement(XmlName.parts('tspan', namespaceUri: ns));
-    if (str != null) {
-      node.children.add(XmlText(str));
-    }
-    return node;
-  }
-
   static XmlElement use(String nodeRef) =>
       XmlElement(XmlName.parts('use', namespaceUri: ns))
         ..setAttribute('xlink:href', '#$nodeRef');

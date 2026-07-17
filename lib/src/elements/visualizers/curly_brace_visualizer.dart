@@ -7,7 +7,6 @@ import '../../drawing.dart';
 import '../../glyphs.dart';
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
-import '../notation/chant_notation_element.dart';
 import 'glyph_visualizer.dart';
 
 class CurlyBraceVisualizer extends ChantLayoutElement {

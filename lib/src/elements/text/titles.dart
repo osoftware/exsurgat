@@ -6,7 +6,6 @@ import '../../core.dart' as core;
 import '../../drawing.dart';
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
-import '../notation/chant_notation_element.dart';
 import '../text.dart';
 
 /// Lays out and renders the title elements of a [ChantScore]: the supertitle,
