@@ -47,7 +47,7 @@ abstract class TextElement extends ChantLayoutElement {
   TextSpan? connectorSpan;
   double? resize;
 
-  String getCssClasses() => '';
+  String getCssClasses() => textType.cssClass;
   Map<String, dynamic> getExtraStyleProperties(ChantContext ctxt) =>
       ctxt.baseTextStyle;
 
@@ -139,7 +139,7 @@ abstract class TextElement extends ChantLayoutElement {
     double maxWidth, [
     double firstLineMaxWidth = double.nan,
   ]) {
-    if (spans.where((s) => s.newLine == true).isNotEmpty) {
+    if (spans.any((s) => s.newLine != null)) {
       recalculateMetrics(ctxt);
     }
     if (bounds.width > maxWidth) {
@@ -209,7 +209,6 @@ abstract class TextElement extends ChantLayoutElement {
     if (extraStyleProperties['class'] != null) {
       options['class'] = '${extraStyleProperties['class']} ${options['class']}';
     }
-    options['source'] = this;
     return QuickSvg.createNode('text', options, spansXml);
   }
 
@@ -230,7 +229,6 @@ abstract class TextElement extends ChantLayoutElement {
     if (extraStyleProperties['class'] != null) {
       options['class'] = '${extraStyleProperties['class']} ${options['class']}';
     }
-    options['source'] = this;
     return QuickSvg.createSvgTree('text', options, spansTree);
   }
 

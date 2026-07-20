@@ -222,7 +222,6 @@ class ChantContext {
 
   late Canvas canvasCtxt;
 
-  @Deprecated('should be irrelevant')
   double pixelRatio = 1.0;
 
   BracePoint? lastStartBrace;
@@ -302,7 +301,7 @@ class ChantContext {
       final font = style['font'] ?? 'serif';
       final size = style['size'] ?? 16;
       buffer.writeln(
-        'svg.Exsurge .$cssClass{fill:$color;font-family:$font;font-size:${size}px;font-kerning:normal}',
+        '.$cssClass { fill:$color; font-family:$font; font-size:${size}px; font-kerning:normal; }',
       );
     }
     return buffer.toString();

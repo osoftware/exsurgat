@@ -56,8 +56,6 @@ class ChantDocumentLayout {
 }
 
 /// A document containing one or more chant scores, along with layout settings.
-///
-/// This is a port of the `ChantDocument` class from `Exsurge.Chant.js`.
 class ChantDocument {
   ChantDocument() {
     final defaults = ChantDocumentLayout();

@@ -10,8 +10,6 @@ import '../text.dart';
 
 /// Lays out and renders the title elements of a [ChantScore]: the supertitle,
 /// title, subtitle, and left/right text.
-///
-/// This is a port of the `Titles` class from `Exsurge.Titles.js`.
 class Titles extends ChantLayoutElement {
   Titles(
     ChantContext ctxt,

@@ -55,8 +55,6 @@ class NoteSelection {
 }
 
 /// A chant score, the main document type produced by parsing gabc source.
-///
-/// This is a port of the `ChantScore` class from `Exsurge.Chant.js`.
 class ChantScore {
   /// Creates a new [ChantScore] from the given [mappings].
   ///
@@ -65,14 +63,13 @@ class ChantScore {
   ChantScore({
     ChantContext? ctxt,
     List<ChantMapping> mappings = const [],
-    bool useDropCap = false,
+    this.useDropCap = false,
   }) : mappings = List.of(mappings) {
     lines = [];
     notes = [];
     staffLineCount = 4;
     if (ctxt != null) titles = Titles(ctxt, this);
     startingClef = null;
-    this.useDropCap = useDropCap;
     dropCap = null;
     annotation = null;
     compiled = false;
@@ -530,8 +527,7 @@ class ChantScore {
       'xmlns': QuickSvg.ns,
       'xmlns:xlink': QuickSvg.xlink,
       'version': '1.1',
-      'class':
-          'Exsurge ChantScore${ctxt.editable ? ' EditableChantScore' : ''}',
+      'class': 'ChantScore${ctxt.editable ? ' EditableChantScore' : ''}',
       'width': width,
       'height': height,
       'viewBox': [0, 0, bounds.width, bounds.height].join(' '),
@@ -627,7 +623,7 @@ class ChantScore {
       g = QuickSvg.createNode('svg', {
         'xmlns': QuickSvg.ns,
         'version': '1.1',
-        'class': 'Exsurge ChantScore',
+        'class': 'ChantScore',
         'width': bounds.width,
         'height': height,
         'viewBox': [0, 0, bounds.width, height].join(' '),
