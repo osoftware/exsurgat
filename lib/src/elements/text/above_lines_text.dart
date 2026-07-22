@@ -1,4 +1,5 @@
 import '../../drawing.dart';
+import '../chant_layout_element.dart';
 import 'text_element.dart';
 
 class AboveLinesText extends TextElement {
@@ -16,6 +17,6 @@ class AboveLinesText extends TextElement {
     textType = TextTypes['al']!;
   }
 
-  dynamic notation;
+  ChantLayoutElement notation;
   late double padding;
 }

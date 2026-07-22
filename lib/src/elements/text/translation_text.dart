@@ -23,7 +23,7 @@ class TranslationText extends TextElement {
     padding = ctxt.staffInterval / 2;
   }
 
-  final dynamic notation;
+  final ChantNotationElement notation;
   late double padding;
   ChantNotationElement? endNeume;
 }

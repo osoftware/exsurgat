@@ -18,7 +18,6 @@ class GlyphVisualizer extends ChantLayoutElement {
 
   GlyphCode? glyphCode;
   Glyph? glyph;
-  late dynamic glyphRef;
   String? align;
 
   void setGlyph(ChantContext ctxt, GlyphCode glyphCode) {

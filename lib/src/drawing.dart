@@ -139,8 +139,6 @@ class ChantContext {
 
     setGlyphScaling(1.0 / 16.0);
 
-    activeNotations = null;
-
     setMergeAnnotationWithTextLeft(true);
   }
 
@@ -204,7 +202,6 @@ class ChantContext {
   bool drawDebuggingBounds = false;
   bool setFontFamilyAttributes = false;
   List<ChantNotationElement> notations = [];
-  dynamic activeNotations;
   int currNotationIndex = -1;
   int minSyllablesLastLine = 0;
   int minNotesLastLine = 0;

@@ -1,5 +1,6 @@
 import '../../core.dart' as core;
 import '../../drawing.dart';
+import '../notation/neumes/note.dart';
 import 'text_element.dart';
 
 class ChoralSign extends TextElement {
@@ -18,7 +19,7 @@ class ChoralSign extends TextElement {
   }
 
   MarkingPositionHint positionHint = MarkingPositionHint.defaultHint;
-  dynamic note;
+  Note note;
 
   void performLayout(ChantContext ctxt) {
     recalculateMetrics(ctxt);

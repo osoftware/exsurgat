@@ -118,8 +118,8 @@ class Lyric extends TextElement {
     }
   }
 
-  final dynamic notation;
-  final dynamic notations;
+  final ChantNotationElement? notation;
+  final List<ChantNotationElement>? notations;
   late LyricType lyricType;
   late String originalText;
   int centerStartIndex = -1;
@@ -189,9 +189,9 @@ class Lyric extends TextElement {
 
   double getConnectorWidth() => connectorWidth ?? defaultConnectorWidth ?? 0;
 
-  double getLeft() => notation.bounds.x + bounds.x;
+  double getLeft() => notation!.bounds.x + bounds.x;
 
-  double getRight() => notation.bounds.x + bounds.x + bounds.width;
+  double getRight() => notation!.bounds.x + bounds.x + bounds.width;
 
   @override
   void recalculateMetrics(ChantContext ctxt, [bool resetNewLines = true]) {

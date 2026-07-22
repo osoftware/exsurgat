@@ -578,7 +578,7 @@ class Gabc {
           final elem = AboveLinesText(
             ctxt,
             m[1]!,
-            notationWithLyrics,
+            notationWithLyrics!,
             adjustedIndex + 4,
           );
           alText.add(elem);
@@ -586,7 +586,7 @@ class Gabc {
           final elem = AboveLinesText(
             ctxt,
             m[3]!,
-            notationWithLyrics,
+            notationWithLyrics!,
             adjustedIndex + m[2]!.length,
           );
           alText.add(elem);
@@ -594,7 +594,7 @@ class Gabc {
           final elem = TranslationText(
             ctxt,
             m[3]!,
-            notationWithLyrics,
+            notationWithLyrics!,
             adjustedIndex,
           );
           translationText.add(elem);
@@ -624,7 +624,7 @@ class Gabc {
             }
           }
         }
-        lastTranslationNeumes[0] = notationWithLyrics;
+        lastTranslationNeumes.add(notationWithLyrics);
       }
 
       if (lyricText.isEmpty) continue;

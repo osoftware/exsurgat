@@ -40,6 +40,7 @@ abstract class TextElement extends ChantLayoutElement {
   late String text;
   late List<TextSpan> spans;
   late TextStyleDefinition textType;
+  late int numLines;
   bool? rightAligned;
   bool needsLayout = false;
   DropCap? dropCap;

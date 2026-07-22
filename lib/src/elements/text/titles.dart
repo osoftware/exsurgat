@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:xml/xml.dart';
 
+import '../../chant_score.dart';
 import '../../core.dart' as core;
 import '../../drawing.dart';
 import '../../quick_svg.dart';
@@ -28,7 +29,7 @@ class Titles extends ChantLayoutElement {
   }
 
   /// The score that this [Titles] instance belongs to.
-  dynamic score;
+  ChantScore score;
 
   Supertitle? supertitle;
   Title? title;

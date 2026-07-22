@@ -6,25 +6,23 @@ import '../../core.dart' as core;
 import '../../drawing.dart' hide Rect;
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
+import '../notation/neumes/note.dart';
 
 class NeumeLineVisualizer extends ChantLayoutElement {
   NeumeLineVisualizer(
     ChantContext ctxt,
-    dynamic note0,
+    Note note0,
     dynamic note1,
     bool hanging,
   ) {
-    var staffPosition0 = note0.staffPosition as int;
-    var staffPosition1 = note1 is num
-        ? note1.toInt()
-        : note1 != null
-        ? (note1.staffPosition as int)
-        : note0.staffPosition + 4;
-
+    var staffPosition0 = note0.staffPosition;
+    var staffPosition1 = switch (note1) {
+      num p => p.toInt(),
+      Note n => n.staffPosition,
+      _ => note0.staffPosition + 4,
+    };
     if (staffPosition0 < staffPosition1) {
-      final temp = staffPosition0;
-      staffPosition0 = staffPosition1;
-      staffPosition1 = temp;
+      (staffPosition1, staffPosition0) = (staffPosition0, staffPosition1);
     }
 
     if (hanging && staffPosition0 - staffPosition1 > 4) {

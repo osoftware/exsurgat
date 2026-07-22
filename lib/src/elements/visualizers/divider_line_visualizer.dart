@@ -7,6 +7,7 @@ import '../../core.dart' as core;
 import '../../drawing.dart' hide Rect;
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
+import '../notation/dividers/divider.dart';
 
 class DividerLineVisualizer extends ChantLayoutElement {
   DividerLineVisualizer(
@@ -24,7 +25,7 @@ class DividerLineVisualizer extends ChantLayoutElement {
     origin = core.Point(bounds.width / 2, top);
   }
 
-  late final dynamic divider;
+  late final Divider? divider;
 
   @override
   void draw(ChantContext ctxt) {
@@ -63,11 +64,11 @@ class DividerLineVisualizer extends ChantLayoutElement {
       'class': 'dividerLine',
     };
     if (divider != null) {
-      if (divider.selected == true) {
+      if (divider!.selected == true) {
         props['class'] = '${props['class']} selected';
       }
-      props['source-index'] = divider.sourceIndex;
-      props['element-index'] = divider.elementIndex;
+      props['source-index'] = divider!.sourceIndex;
+      props['element-index'] = divider!.elementIndex;
       props['source'] = divider;
     }
     return props;

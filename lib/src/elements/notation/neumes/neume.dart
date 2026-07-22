@@ -1,4 +1,5 @@
 import '../../../drawing.dart';
+import '../../mora.dart';
 import '../chant_notation_element.dart';
 import 'neume_builder.dart';
 import 'note.dart';
@@ -193,7 +194,7 @@ class Neume extends ChantNotationElement {
   }
 
   void positionPodatusMorae(Note bottomNote, Note topNote) {
-    dynamic mark;
+    Mora? mark;
 
     // The mora on the first (lower) note should be below it,
     // if it is on a line.

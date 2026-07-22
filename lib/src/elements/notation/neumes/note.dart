@@ -1,4 +1,3 @@
-import 'package:exsurgat/src/elements/notation/chant_notation_element.dart';
 import 'package:xml/xml.dart';
 
 import '../../../drawing.dart';
@@ -6,10 +5,15 @@ import '../../../glyphs.dart';
 import '../../../quick_svg.dart';
 import '../../brace_point.dart';
 import '../../chant_layout_element.dart';
+import '../../chant_line.dart';
 import '../../horizontal_episema.dart';
 import '../../mora.dart';
 import '../../text/above_lines_text.dart';
+import '../../text/choral_sign.dart';
+import '../../visualizers/accent.dart';
 import '../../visualizers/glyph_visualizer.dart';
+import '../../visualizers/ictus.dart';
+import '../brace_end.dart';
 import 'neume.dart';
 
 enum LiquescentType with Flags {
@@ -43,7 +47,7 @@ enum NoteShapeModifiers with Flags {
   const NoteShapeModifiers(this.value);
 }
 
-class Note extends ChantLayoutElement {
+class Note extends ChantLayoutElement with BraceEnd {
   Pitch? pitch;
   GlyphVisualizer? glyphVisualizer;
 
@@ -66,23 +70,21 @@ class Note extends ChantLayoutElement {
   // indices used by ChantScore.updateNotations for selection tracking
   int? elementIndex;
   int? noteIndex;
-  dynamic line;
+  ChantLine? line;
 
   // various markings that can exist on a note, organized by type
   // for faster access and simpler code logic
   final List<HorizontalEpisema> episemata = [];
-  final List<Mora> morae =
-      []; // silly to have an array of these, but gabc allows multiple morae per note!
+  // silly to have an array of these, but gabc allows multiple morae per note!
+  final List<Mora> morae = [];
 
   // these are set on the note when they are needed, otherwise, they're undefined
-  dynamic ictus;
-  dynamic accuteAccent;
-  dynamic braceStart;
-  BracePoint? braceEnd;
-  dynamic svgNode;
-  dynamic accent;
-  dynamic choralSign;
-  dynamic inclinataFlags;
+  Ictus? ictus;
+  BracePoint? braceStart;
+  XmlElement? svgNode;
+  Accent? accent;
+  ChoralSign? choralSign;
+  int inclinataFlags = 0;
   AboveLinesText? alText;
 
   Note({this.pitch});
@@ -113,7 +115,7 @@ class Note extends ChantLayoutElement {
     // TODO: investigate if this is even needed
     glyphVisualizer!.bounds = bounds.clone();
     svgNode = glyphVisualizer!.createSvgNodeWithAttributes(ctxt, this);
-    return svgNode;
+    return svgNode!;
   }
 
   @override

@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:xml/xml.dart';
 
+import '../../chant_mapping.dart';
 import '../../chant_score.dart';
 import '../../core.dart' as core;
 import '../../drawing.dart';
@@ -28,7 +29,7 @@ class ChantNotationElement extends ChantLayoutElement {
   List<Lyric> lyrics = [];
   late ChantScore score;
   late ChantLine line;
-  dynamic mapping;
+  late ChantMapping mapping;
   int notationIndex = 0;
   int? elementIndex;
   final List<ChantLayoutElement> visualizers = [];

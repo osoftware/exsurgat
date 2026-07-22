@@ -20,11 +20,11 @@ class BracePoint extends ChantLayoutElement {
 
   BracePoint(this.note, this.isAbove, this.shape, this.attachment) : super();
 
-  double getAttachmentX(Note? noteArg) {
+  double getAttachmentX(ChantLayoutElement? noteArg) {
     final n = noteArg ?? note;
     final x = switch (n) {
       Note(:final neume) => neume!.bounds.x,
-      _ => 0,
+      _ => 0, // Custos
     };
     // TODO: verify null assumptions
     return attachment == BraceAttachment.left

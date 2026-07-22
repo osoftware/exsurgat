@@ -1,15 +1,13 @@
 import '../../drawing.dart';
 import '../../glyphs.dart';
-import '../brace_point.dart';
 import '../visualizers/glyph_visualizer.dart';
+import 'brace_end.dart';
 import 'chant_notation_element.dart';
 
-class Custos extends ChantNotationElement {
+class Custos extends ChantNotationElement with BraceEnd {
   bool auto;
   int staffPosition = 2;
   int? staffPositionOffset;
-
-  BracePoint? braceEnd;
 
   Custos({this.auto = false});
 
