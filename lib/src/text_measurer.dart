@@ -68,7 +68,10 @@ abstract class TextMeasurer {
     );
     textElement.origin = Point(-bbox.x, -bbox.y);
 
-    //TODO: WTF textElement.numLines = textElement.spans.reduce(
+    textElement.numLines = textElement.spans.fold(
+      1,
+      (acc, s) => acc + (s.newLine ?? 0),
+    );
   }
 }
 
@@ -125,14 +128,24 @@ final class CanvasTextMeasurerStrategy extends TextMeasurer {
         textElement.resize,
       );
 
-      final metrics = p.getLineMetricsAt(0)!;
-      final height = metrics.height + metrics.descent;
+      late final double width, height, baseline;
+      if (p.numberOfLines > 0) {
+        final metrics = p.getLineMetricsAt(0)!;
+        width = metrics.width;
+        height = metrics.height + metrics.descent;
+        baseline = metrics.baseline;
+      } else {
+        width = 0;
+        height = 0;
+        baseline = 0;
+      }
+
       cur = span.newLine != null
-          ? Rect.fromXYWH(0, prev.bottom, metrics.width, height)
+          ? Rect.fromXYWH(0, prev.bottom, width, height)
           : Rect.fromXYWH(
               prev.right,
-              prev.y > 0 ? prev.y : -metrics.baseline,
-              metrics.width,
+              prev.y > 0 ? prev.y : -baseline,
+              width,
               height,
             );
       if (box != null) {
