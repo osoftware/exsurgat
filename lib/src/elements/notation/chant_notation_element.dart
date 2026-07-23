@@ -16,7 +16,7 @@ import '../text/translation_text.dart';
 
 class ChantNotationElement extends ChantLayoutElement {
   double leadingSpace = 0.0;
-  TrailingSpace trailingSpace = TrailingSpace.zero;
+  TrailingSpace trailingSpace = TrailingSpace.defaultTrailingSpace;
   double calculatedTrailingSpace = 0;
   bool keepWithNext = false;
   bool needsLayout = true;
