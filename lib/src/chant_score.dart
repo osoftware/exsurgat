@@ -535,7 +535,7 @@ class ChantScore {
   XmlElement createSvgNode(ChantContext ctxt) {
     // create defs section
     final defs = ctxt.defsNode.copy();
-    defs.children.add(ctxt.createStyleNode());
+    if (ctxt.stylingMode == .css) defs.children.add(ctxt.createStyleNode());
 
     final svgNode = QuickSvg.createNode('svg', getSvgProps(ctxt), [
       defs,

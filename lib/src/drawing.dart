@@ -96,6 +96,7 @@ class ChantColors {
 class ChantContext {
   ChantContext({
     TextMeasuringStrategy textMeasuringStrategy = TextMeasuringStrategy.canvas,
+    this.stylingMode = StylingMode.attributes,
   }) {
     textMeasurer = TextMeasurer.create(textMeasuringStrategy);
     getFontFilenameForProperties = resolveFontFilenameForProperties;
@@ -142,6 +143,7 @@ class ChantContext {
     setMergeAnnotationWithTextLeft(true);
   }
 
+  StylingMode stylingMode;
   final Map<String, dynamic> fontDictionary = {};
   int staffLineCount = 4;
   late TextMeasurer textMeasurer;

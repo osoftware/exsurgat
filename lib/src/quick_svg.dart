@@ -13,6 +13,8 @@ class SvgTreeNode {
 typedef NodeMaker<T> =
     T Function(String name, Map<String, dynamic> attrs, [Object? children]);
 
+enum StylingMode { css, attributes }
+
 class QuickSvg {
   static const String ns = 'http://www.w3.org/2000/svg';
   static const String xmlns = 'https://www.w3.org/2000/xmlns/';

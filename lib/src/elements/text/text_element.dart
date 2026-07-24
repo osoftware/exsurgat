@@ -195,22 +195,27 @@ abstract class TextElement extends ChantLayoutElement {
 
   @override
   XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) {
-    final spansXml = spans
-        .map(
-          (span) => QuickSvg.createNode(
-            'tspan',
-            getSpanOptions(span, ctxt),
-            span.text,
-          ),
-        )
-        .toList();
     final options = getSvgProps();
     final extraStyleProperties = getExtraStyleProperties(ctxt);
     options['style'] = getCssForProperties(extraStyleProperties);
     if (extraStyleProperties['class'] != null) {
       options['class'] = '${extraStyleProperties['class']} ${options['class']}';
     }
-    return QuickSvg.createNode('text', options, spansXml);
+    if (ctxt.stylingMode == .attributes) {
+      final ts = ctxt.textStyles;
+      options.addAll({
+        for (final c in (options['class'] as String).split(" "))
+          if (ts.containsKey(c)) ...{
+            'fill': (ts[c]['color'] as Color? ?? ctxt.textColor).toSvgString(),
+            'font-family': ts[c]['font'] ?? 'serif',
+            'font-size': ts[c]['size'] ?? 16,
+          },
+      });
+    }
+    return QuickSvg.createNode('text', options, [
+      for (final span in spans)
+        QuickSvg.createNode('tspan', getSpanOptions(span, ctxt), span.text),
+    ]);
   }
 
   @override
