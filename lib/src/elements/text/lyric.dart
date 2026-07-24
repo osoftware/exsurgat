@@ -28,36 +28,36 @@ class LyricArray {
   }
 
   static double getRight(
-    List<dynamic> lyricArray, [
+    List<Lyric> lyricArray, [
     bool presumeConnectorNeeded = false,
   ]) {
     if (lyricArray.isEmpty) return double.nan;
     var x = -double.maxFinite;
     for (final lyric in lyricArray) {
-      if (lyric != null) {
-        x = math.max(
-          x,
-          lyric.notation.bounds.x +
-              lyric.bounds.x +
-              lyric.bounds.width +
-              (presumeConnectorNeeded &&
-                      lyric.allowsConnector() &&
-                      !lyric.needsConnector
-                  ? lyric.getConnectorWidth()
-                  : 0),
-        );
-      }
+      x = math.max(
+        x,
+        lyric.notation!.bounds.x +
+            lyric.bounds.x +
+            lyric.bounds.width +
+            (presumeConnectorNeeded &&
+                    lyric.allowsConnector &&
+                    !lyric.needsConnector
+                ? lyric.getConnectorWidth()
+                : 0),
+      );
     }
     return x;
   }
 
-  static bool hasOnlyOneLyric(List<dynamic> lyricArray) {
-    return lyricArray.where((l) => l.originalText != null).length == 1;
+  static bool hasOnlyOneLyric(List<Lyric> lyricArray) {
+    return lyricArray.where((l) => l.originalText.isNotEmpty).length == 1;
   }
 
-  static int indexOfLyric(List<dynamic> lyricArray) {
-    final filtered = lyricArray.where((l) => l.originalText != null).toList();
-    return lyricArray.indexOf(filtered.isNotEmpty ? filtered[0] : null);
+  static int indexOfLyric(List<Lyric> lyricArray) {
+    final filtered = lyricArray
+        .where((l) => l.originalText.isNotEmpty)
+        .toList();
+    return filtered.isNotEmpty ? lyricArray.indexOf(filtered[0]) : -1;
   }
 
   static void mergeIn(List<Lyric> lyricArray, List<Lyric> newLyrics) {
@@ -113,7 +113,7 @@ class Lyric extends TextElement {
     centerLength = text.length;
     needsConnector = false;
     language = null;
-    if (allowsConnector()) {
+    if (allowsConnector) {
       connectorSpan = TextSpan(ctxt.syllableConnector, [], []);
     }
   }
@@ -134,12 +134,12 @@ class Lyric extends TextElement {
 
   double? lineWidth;
 
-  bool allowsConnector() =>
+  bool get allowsConnector =>
       lyricType == LyricType.beginningSyllable ||
       lyricType == LyricType.middleSyllable;
 
   void setForceConnector(bool force) {
-    forceConnector = force && allowsConnector();
+    forceConnector = force && allowsConnector;
   }
 
   void setNeedsConnector([bool needs = false, double? width]) {

@@ -535,7 +535,6 @@ class ChantLine extends ChantLayoutElement {
       'class': 'chantLine',
       'transform': 'translate(${bounds.x},${bounds.y - top})',
       'element-index': elementIndex,
-      'source': this,
     }, inner);
   }
 
@@ -1162,7 +1161,7 @@ class ChantLine extends ChantLayoutElement {
       int iLyric = 0;
       while (lastLyrics.isNotEmpty && iLyric < lastLyrics.length) {
         final lyrics = lastLyrics[iLyric];
-        if (lyrics.allowsConnector()) {
+        if (lyrics.allowsConnector) {
           lyrics.setNeedsConnector(true, 0);
           if (width > 0 && ctxt.minLyricWordSpacing < ctxt.hyphenWidth) {
             double whitespaceLyric = rightEdge - lyrics.getRight();
@@ -1294,7 +1293,7 @@ class ChantLine extends ChantLayoutElement {
 
       if (curr is! Divider &&
           prevLyrics.isNotEmpty &&
-          prevLyrics[0].allowsConnector() &&
+          prevLyrics[0].allowsConnector &&
           hasLyrics) {
         continue;
       }
@@ -1377,7 +1376,7 @@ class ChantLine extends ChantLayoutElement {
       i = 0;
       while (lastLyrics.isNotEmpty && i < lastLyrics.length) {
         final lyrics = lastLyrics[i];
-        if (lyrics.allowsConnector()) {
+        if (lyrics.allowsConnector) {
           final connectorWidth = lyrics.getConnectorWidth();
           if (ctxt.minLyricWordSpacing < connectorWidth) {
             double minHyphenWidth = (lastLyrics.length > 1)
@@ -1853,7 +1852,7 @@ class ChantLine extends ChantLayoutElement {
       for (i = 0; i < curr.lyrics.length; i++) {
         final currLyric = curr.lyrics[i];
         bool needsConnector =
-            currLyric.allowsConnector() &&
+            currLyric.allowsConnector &&
             currLyric.dropCap != null &&
             currLyric.originalText.isNotEmpty &&
             currLyric.text.isEmpty;
@@ -1926,7 +1925,7 @@ class ChantLine extends ChantLayoutElement {
 
         curr.lyrics[i].setNeedsConnector(false);
         final currLyricLeft = curr.lyrics[i].getLeft();
-        if (prevLyrics[i].allowsConnector() == false) {
+        if (!prevLyrics[i].allowsConnector) {
           final extraSpace =
               currLyricLeft - prevLyricRight - ctxt.minLyricWordSpacing;
           if (extraSpace < 0) {
@@ -1939,10 +1938,12 @@ class ChantLine extends ChantLayoutElement {
             condensableSpaceSincePrevLyric = extraSpace;
           }
         } else {
-          if (prevLyricRight + 0.1 >
+          bool overlap =
+              prevLyricRight + 0.1 >
               currLyricLeft -
                   condensableSpaceSincePrevLyric -
-                  space.condensable) {
+                  space.condensable;
+          if (overlap) {
             final shift = prevLyricRight - currLyricLeft;
             if (shift < -0.1) {
               final multiplier =

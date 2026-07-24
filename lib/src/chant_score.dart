@@ -150,9 +150,6 @@ class ChantScore {
   /// this score.
   late List<dynamic> pages;
 
-  /// The SVG node for this score, set by [createSvgNode].
-  XmlElement? svg;
-
   /// Make a copy of the score, only including the specified lines.
   ///
   /// [startLine] is the starting index (inclusive) and [endLine] is the
@@ -534,25 +531,17 @@ class ChantScore {
     };
   }
 
-  /// Creates an [XmlElement] representing the score.
+  /// Creates an [XmlElement] rendering of the score.
   XmlElement createSvgNode(ChantContext ctxt) {
     // create defs section
-    final defsCopy = ctxt.defsNode.copy();
-    defsCopy.children.add(ctxt.createStyleNode());
-    var node = <XmlNode>[defsCopy];
+    final defs = ctxt.defsNode.copy();
+    defs.children.add(ctxt.createStyleNode());
 
-    if (titles != null) node.add(titles!.createSvgNode(ctxt, titles!));
-
-    for (var i = 0; i < lines.length; i++) {
-      node.add(lines[i].createSvgNode(ctxt));
-    }
-
-    node = [QuickSvg.createNode('g', {}, node)];
-
-    final svgNode = QuickSvg.createNode('svg', getSvgProps(ctxt), node);
-    // Note: in JS, node.source = this; we can't attach arbitrary objects to
-    // XmlElement, so we store it on the score's [svg] field instead.
-    svg = svgNode;
+    final svgNode = QuickSvg.createNode('svg', getSvgProps(ctxt), [
+      defs,
+      ?titles?.createSvgNode(ctxt, titles!),
+      for (final l in lines) l.createSvgNode(ctxt),
+    ]);
 
     return svgNode;
   }
