@@ -97,7 +97,7 @@ final class CanvasTextMeasurerStrategy extends TextMeasurer {
     if (length == 0) {
       return Rect.fromXYWH(0, 0, 0, 0);
     } else if (length == null) {
-      len = textElement.text.length;
+      len = kMaxInt;
       // } else if (length < 0) {
       //   len = textElement.text.length;
     } else {
@@ -110,23 +110,17 @@ final class CanvasTextMeasurerStrategy extends TextMeasurer {
 
     for (final span in textElement.spans) {
       prev = cur;
-      final myText = span.text.substring(0, len - consumed);
-      final textAlign = textElement.textAnchor == 'middle'
-          ? ui.TextAlign.center
-          : ui.TextAlign.start;
+      final myText = span.text.substring(
+        0,
+        len - consumed <= span.text.length ? len - consumed : null,
+      );
       final props = <String, dynamic>{
         ...textElement.getExtraStyleProperties(ctxt),
         ...span.properties,
         'base-font-family': textElement.fontFamily(ctxt),
         'base-font-size': textElement.fontSize(ctxt),
       };
-      final p = buildParagraph(
-        ctxt,
-        myText,
-        props,
-        textAlign,
-        textElement.resize,
-      );
+      final p = buildParagraph(ctxt, myText, props, textElement.resize);
 
       late final double width, height, baseline;
       if (p.numberOfLines > 0) {
@@ -164,8 +158,7 @@ final class CanvasTextMeasurerStrategy extends TextMeasurer {
   ui.Paragraph buildParagraph(
     ChantContext ctxt,
     String text,
-    Map<String, dynamic> extraProps,
-    ui.TextAlign textAlign, [
+    Map<String, dynamic> extraProps, [
     double? resize,
   ]) {
     final maxWidth = _parseCssLength(extraProps['textLength']);
@@ -188,15 +181,9 @@ final class CanvasTextMeasurerStrategy extends TextMeasurer {
           : ui.FontWeight.normal,
     );
 
-    final builder =
-        ui.ParagraphBuilder(
-            ui.ParagraphStyle(
-              textAlign: textAlign,
-              textDirection: ui.TextDirection.ltr,
-            ),
-          )
-          ..pushStyle(textStyle)
-          ..addText(text);
+    final builder = ui.ParagraphBuilder(ui.ParagraphStyle())
+      ..pushStyle(textStyle)
+      ..addText(text);
 
     final paragraph = builder.build();
     paragraph.layout(
