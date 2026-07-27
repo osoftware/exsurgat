@@ -219,7 +219,7 @@ class Titles extends ChantLayoutElement {
 
     return QuickSvg.createSvgTree('g', {
       'class': 'Titles',
-      'source': this,
+      'data-source': this,
     }, nodes);
   }
 

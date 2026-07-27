@@ -154,7 +154,7 @@ abstract class TextElement extends ChantLayoutElement {
 
   Map<String, dynamic> getSvgProps() {
     return {
-      'source-index': sourceIndex,
+      'data-source-index': sourceIndex,
       'x': bounds.x,
       'y': bounds.y,
       'class': getCssClasses().trim(),
@@ -168,7 +168,7 @@ abstract class TextElement extends ChantLayoutElement {
     bool useStyleObject = false,
   ]) {
     final options = <String, dynamic>{
-      'source-index': span.index,
+      'data-source-index': span.index,
       'class': span.properties['class'],
       'style': useStyleObject
           ? span.properties

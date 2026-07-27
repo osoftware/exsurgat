@@ -534,7 +534,7 @@ class ChantLine extends ChantLayoutElement {
     return QuickSvg.createNode('g', {
       'class': 'chantLine',
       'transform': 'translate(${bounds.x},${bounds.y - top})',
-      'element-index': elementIndex,
+      'data-element-index': elementIndex,
     }, inner);
   }
 
@@ -554,7 +554,7 @@ class ChantLine extends ChantLayoutElement {
     return QuickSvg.createSvgTree('g', {
       'class': 'chantLine',
       'transform': 'translate(${bounds.x},${bounds.y - top})',
-      'element-index': elementIndex,
+      'data-element-index': elementIndex,
     }, inner);
   }
 
@@ -633,7 +633,7 @@ class ChantLine extends ChantLayoutElement {
     return QuickSvg.createFragment('g', {
       'class': 'chantLine',
       'transform': 'translate(${bounds.x},${bounds.y - top})',
-      'element-index': elementIndex,
+      'data-element-index': elementIndex,
     }, inner);
   }
 

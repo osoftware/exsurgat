@@ -122,7 +122,7 @@ class GlyphVisualizer extends ChantLayoutElement {
   @override
   SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
     var attributes = getSvgAttributes(ctxt, source);
-    if (source != null) attributes['source'] = source;
+    if (source != null) attributes['data-source'] = source;
     return QuickSvg.createSvgTree("use", attributes);
   }
 
@@ -182,8 +182,10 @@ class GlyphVisualizer extends ChantLayoutElement {
       'xlink:href': '#$glyphCode',
       'class': className,
       'id': ?id,
-      if (source is ChantNotationElement) 'source-index': source.sourceIndex,
-      if (source is ChantNotationElement) 'element-index': source.elementIndex,
+      if (source is ChantNotationElement)
+        'data-source-index': source.sourceIndex,
+      if (source is ChantNotationElement)
+        'data-element-index': source.elementIndex,
       'x': ctxt.scaleDefs
           ? bounds.x + origin.x
           : (bounds.x + origin.x) / ctxt.glyphScaling,

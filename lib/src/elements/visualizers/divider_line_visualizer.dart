@@ -67,9 +67,9 @@ class DividerLineVisualizer extends ChantLayoutElement {
       if (divider!.selected == true) {
         props['class'] = '${props['class']} selected';
       }
-      props['source-index'] = divider!.sourceIndex;
-      props['element-index'] = divider!.elementIndex;
-      props['source'] = divider;
+      props['data-source-index'] = divider!.sourceIndex;
+      props['data-element-index'] = divider!.elementIndex;
+      props['data-source'] = divider;
     }
     return props;
   }

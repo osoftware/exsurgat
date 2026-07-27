@@ -566,7 +566,7 @@ class ChantScore {
 
     final g = QuickSvg.createSvgTree('g', {}, node);
     final svgProps = getSvgProps(ctxt, zoom);
-    svgProps['source'] = this;
+    svgProps['data-source'] = this;
     return QuickSvg.createSvgTree('svg', svgProps, g);
   }
 
