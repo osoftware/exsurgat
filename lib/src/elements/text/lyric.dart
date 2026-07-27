@@ -63,7 +63,11 @@ class LyricArray {
   static void mergeIn(List<Lyric> lyricArray, List<Lyric> newLyrics) {
     for (var i = 0; i < newLyrics.length; ++i) {
       if (newLyrics[i].originalText.isNotEmpty) {
-        lyricArray.add(newLyrics[i]);
+        if (lyricArray.length <= i) {
+          lyricArray.add(newLyrics[i]);
+        } else {
+          lyricArray[i] = newLyrics[i];
+        }
       }
     }
   }

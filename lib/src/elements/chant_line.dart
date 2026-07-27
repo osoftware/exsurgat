@@ -236,7 +236,7 @@ class ChantLine extends ChantLayoutElement {
           extraTextOnlyHeight = lyricLineHeight;
         }
       } else {
-        Lyric lastLyrics;
+        Lyric lastLyric;
         double xOffset = 0;
         double offset = (numLyricLines - 1) * lyricLineHeight;
         offset += numTranslationLines * translationLineHeight;
@@ -244,14 +244,14 @@ class ChantLine extends ChantLayoutElement {
         for (int i = extraTextOnlyIndex!; i < lastIndex; i++) {
           notation = notations[i];
           if (notation.lyrics.length <= extraTextOnlyLyricIndex) continue;
-          lastLyrics = notation.lyrics[extraTextOnlyLyricIndex];
-          if (lastLyrics.lineWidth != null) {
-            xOffset = staffRight - lastLyrics.lineWidth!;
+          lastLyric = notation.lyrics[extraTextOnlyLyricIndex];
+          if (lastLyric.lineWidth != null) {
+            xOffset = staffRight - lastLyric.lineWidth!;
             offset += lyricLineHeight;
             extraLines++;
           }
-          extraLines += lastLyrics.numLines - 1;
-          lastLyrics.bounds = lastLyrics.bounds.copyWith(
+          extraLines += lastLyric.numLines - 1;
+          lastLyric.bounds = lastLyric.bounds.copyWith(
             y: offset + lyricLineBaseline,
           );
           notation.bounds = notation.bounds.copyWith(
@@ -1152,29 +1152,29 @@ class ChantLine extends ChantLayoutElement {
       lastLyricsBeforeTextOnly = [];
     }
 
+    double rightEdge = staffRight;
     if (width > 0) {
       double whitespace = getWhitespaceOnRight(ctxt);
-      double rightEdge = staffRight;
       if (whitespace < 0) {
         rightEdge -= whitespace;
       }
-      int iLyric = 0;
-      while (lastLyrics.isNotEmpty && iLyric < lastLyrics.length) {
-        final lyrics = lastLyrics[iLyric];
-        if (lyrics.allowsConnector) {
-          lyrics.setNeedsConnector(true, 0);
-          if (width > 0 && ctxt.minLyricWordSpacing < ctxt.hyphenWidth) {
-            double whitespaceLyric = rightEdge - lyrics.getRight();
-            if (whitespaceLyric < 0) {
-              double minHyphenWidth = (lastLyrics.length > 1)
-                  ? ctxt.intraNeumeSpacing
-                  : ctxt.minLyricWordSpacing;
-              lyrics.setConnectorWidth(minHyphenWidth);
-            }
+    }
+    int iLyric = 0;
+    while (lastLyrics.isNotEmpty && iLyric < lastLyrics.length) {
+      final lyrics = lastLyrics[iLyric];
+      if (lyrics.allowsConnector) {
+        lyrics.setNeedsConnector(true, 0);
+        if (width > 0 && ctxt.minLyricWordSpacing < ctxt.hyphenWidth) {
+          double whitespaceLyric = rightEdge - lyrics.getRight();
+          if (whitespaceLyric < 0) {
+            double minHyphenWidth = (lastLyrics.length > 1)
+                ? ctxt.intraNeumeSpacing
+                : ctxt.minLyricWordSpacing;
+            lyrics.setConnectorWidth(minHyphenWidth);
           }
         }
-        iLyric++;
       }
+      iLyric++;
     }
 
     if (width <= 0) {
