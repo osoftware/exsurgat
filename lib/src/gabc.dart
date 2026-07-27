@@ -223,18 +223,18 @@ class Gabc {
     var startOld = 0, startNew = 0, subLength = 0;
 
     for (var inew = 0; inew < after.length; inew++) {
-      final _overlap = <int?>[];
+      final overlap2 = <int?>[];
       oldIndexMap.putIfAbsent(after[inew], () => []);
       for (var i = 0; i < oldIndexMap[after[inew]]!.length; i++) {
         final iold = oldIndexMap[after[inew]]![i];
-        _overlap.add(((iold > 0 ? overlap[iold - 1] : 0) ?? 0) + 1);
-        if ((_overlap[iold] ?? 0) > subLength) {
-          subLength = _overlap[iold]!;
+        overlap2.add(((iold > 0 ? overlap[iold - 1] : 0) ?? 0) + 1);
+        if (overlap2.length > iold && (overlap2[iold] ?? 0) > subLength) {
+          subLength = overlap2[iold]!;
           startOld = iold - subLength + 1;
           startNew = inew - subLength + 1;
         }
       }
-      overlap = _overlap;
+      overlap = overlap2;
     }
 
     if (subLength == 0) {
@@ -291,6 +291,7 @@ class Gabc {
   /// Performs and applies a rudimentary diff between a previously parsed set
   /// of mappings and a new gabc source text. The mappings array passed in is
   /// changed in place to be updated from the new source.
+  /// TODO: fix insertionIndex logic
   static int updateMappingsFromSource(
     ChantContext ctxt,
     List<ChantMapping> mappings,
@@ -303,8 +304,8 @@ class Gabc {
     // always remove the last old mapping since its spacing/trailingSpace is handled specially
     mappings.removeLast();
 
-    final insIdx = insertionIndex ?? double.nan.toInt();
-    final oldInsIdx = oldInsertionIndex ?? double.nan.toInt();
+    final insIdx = insertionIndex ?? -1;
+    final oldInsIdx = oldInsertionIndex ?? -1;
 
     final newWords = splitWords(source);
     final results = diffDescriptorsAndNewWords(mappings, newWords);
@@ -375,20 +376,21 @@ class Gabc {
             }
 
             if (curNotation is Accidental) {
-              (ctxt.activeClef as Clef).activeAccidental = curNotation;
-            } else if ((curNotation as Divider).resetsAccidentals ||
+              ctxt.activeClef?.activeAccidental = curNotation;
+            } else if (curNotation is Divider &&
+                    curNotation.resetsAccidentals ||
                 (!prevIsAccidental &&
                     curNotation.hasLyrics &&
                     curNotation.lyrics[0].lyricType.index <=
                         LyricType.beginningSyllable.index)) {
-              (ctxt.activeClef as Clef).resetAccidentals();
+              ctxt.activeClef?.resetAccidentals();
             }
 
             if (curNotation case Neume(:final notes)) {
               for (var l = 0; l < notes.length; ++l) {
                 final note = notes[l];
                 note.sourceIndex = (note.sourceIndex ?? 0) + sourceIndexDiff;
-                note.pitch = (ctxt.activeClef as Clef).staffPositionToPitch(
+                note.pitch = ctxt.activeClef!.staffPositionToPitch(
                   note.staffPosition,
                 );
                 if (note.braceEnd != null &&
@@ -1357,7 +1359,7 @@ class Gabc {
           break;
 
         case '|':
-          note.inclinataFlags = (note.inclinataFlags ?? 0) + 1;
+          note.inclinataFlags++;
           break;
 
         case 'r':
