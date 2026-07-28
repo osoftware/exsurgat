@@ -66,7 +66,7 @@ class NeumeBeamVisualizer extends ChantLayoutElement {
       )
       ..close();
     final paint = Paint()..color = ctxt.neumeLineColor;
-    ctxt.canvasCtxt.drawPath(path, paint);
+    ctxt.canvas.drawPath(path, paint);
   }
 
   @override

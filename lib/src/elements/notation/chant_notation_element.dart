@@ -121,14 +121,17 @@ class ChantNotationElement extends ChantLayoutElement {
 
   @override
   void draw(ChantContext ctxt) {
-    ctxt.canvasCtxt.save();
-    ctxt.canvasCtxt.translate(bounds.x, 0);
+    ctxt.canvas.save();
+    ctxt.canvas.translate(bounds.x, 0);
     for (final visualizer in visualizers) {
       visualizer.draw(ctxt);
     }
 
-    // TODO: draw text
-    ctxt.canvasCtxt.restore();
+    for (final text in [...lyrics, ...translationText, ...alText]) {
+      text.draw(ctxt);
+    }
+
+    ctxt.canvas.restore();
   }
 
   @override

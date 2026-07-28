@@ -51,7 +51,7 @@ class RoundBraceVisualizer extends ChantLayoutElement {
       ..color = ctxt.neumeLineColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = ctxt.staffLineWeight;
-    ctxt.canvasCtxt.drawPath(path, paint);
+    ctxt.canvas.drawPath(path, paint);
   }
 
   @override

@@ -313,6 +313,7 @@ class Lyric extends TextElement {
     if (dropCapSpan.activeTags.contains('sc')) {
       dropCapSpan.text = dropCapLowerCase;
     }
+    dropCapSpan.propertyArray.add({'line-height': 1.0});
 
     final generatedDropCap = DropCap(ctxt, '', sourceIndex);
     generatedDropCap.spans = [dropCapSpan];

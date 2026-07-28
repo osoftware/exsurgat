@@ -27,7 +27,7 @@ class LineaVisualizer extends ChantLayoutElement {
   @override
   void draw(ChantContext ctxt) {
     final paint = Paint()..color = ctxt.neumeLineColor;
-    ctxt.canvasCtxt.drawRect(
+    ctxt.canvas.drawRect(
       Rect.fromLTRB(
         bounds.x,
         bounds.y,
@@ -36,7 +36,7 @@ class LineaVisualizer extends ChantLayoutElement {
       ),
       paint,
     );
-    ctxt.canvasCtxt.drawRect(
+    ctxt.canvas.drawRect(
       Rect.fromLTRB(
         bounds.x + bounds.width - ctxt.neumeLineWeight,
         bounds.y,

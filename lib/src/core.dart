@@ -156,17 +156,6 @@ class Margins {
       bottom == other.bottom;
 }
 
-class Size {
-  final double width;
-  final double height;
-
-  Size([this.width = 0.0, this.height = 0.0]);
-
-  Size clone() => Size(width, height);
-
-  bool equals(Size other) => width == other.width && height == other.height;
-}
-
 enum Step {
   ut(0),
   du(1),

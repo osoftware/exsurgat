@@ -166,7 +166,7 @@ class HorizontalEpisema extends ChantLayoutElement {
 
   @override
   void draw(ChantContext ctxt) {
-    var canvasCtxt = ctxt.canvasCtxt;
+    var canvasCtxt = ctxt.canvas;
 
     canvasCtxt.drawRect(
       ui.Rect.fromLTWH(bounds.x, bounds.y, bounds.width, bounds.height),

@@ -67,7 +67,7 @@ class CurlyBraceVisualizer extends ChantLayoutElement {
       ..color = ctxt.neumeLineColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = ctxt.staffLineWeight;
-    ctxt.canvasCtxt.drawPath(path, paint);
+    ctxt.canvas.drawPath(path, paint);
     if (accent != null) {
       accent!.draw(ctxt);
     }

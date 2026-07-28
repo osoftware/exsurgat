@@ -36,7 +36,7 @@ class DividerLineVisualizer extends ChantLayoutElement {
       ctxt.dividerLineWeight,
       bounds.height,
     );
-    ctxt.canvasCtxt.drawRect(rect, paint);
+    ctxt.canvas.drawRect(rect, paint);
   }
 
   @override

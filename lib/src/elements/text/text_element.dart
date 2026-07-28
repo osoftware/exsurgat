@@ -197,7 +197,6 @@ abstract class TextElement extends ChantLayoutElement {
   XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) {
     final options = getSvgProps();
     final extraStyleProperties = getExtraStyleProperties(ctxt);
-    options['style'] = getCssForProperties(extraStyleProperties);
     if (extraStyleProperties['class'] != null) {
       options['class'] = '${extraStyleProperties['class']} ${options['class']}';
     }
@@ -210,7 +209,11 @@ abstract class TextElement extends ChantLayoutElement {
             'font-family': ts[c]['font'] ?? 'serif',
             'font-size': ts[c]['size'] ?? 16,
           },
+        for (final e in extraStyleProperties.entries)
+          e.key: e.value is Color ? (e.value as Color).toSvgString() : e.value,
       });
+    } else {
+      options['style'] = getCssForProperties(extraStyleProperties);
     }
     return QuickSvg.createNode('text', options, [
       for (final span in spans)
@@ -263,13 +266,20 @@ abstract class TextElement extends ChantLayoutElement {
 
   @override
   void draw(ChantContext ctxt) {
-    final canvas = ctxt.canvasCtxt;
+    final canvas = ctxt.canvas;
     final textAlign = textAnchor == 'middle'
         ? TextAlign.center
         : TextAlign.start;
-    var translateWidth = 0.0;
+    double translateWidth = 0.0;
+    final centerOffset = textAlign == .center ? bounds.width / 2 : 0;
 
     canvas.save();
+
+    final properties = <String, dynamic>{
+      ...getExtraStyleProperties(ctxt),
+      'base-font-family': fontFamily(ctxt),
+      'base-font-size': fontSize(ctxt),
+    };
     for (final span in spans) {
       final xOffset = span.xOffset ?? 0.0;
       if (span.newLine != null) {
@@ -281,22 +291,19 @@ abstract class TextElement extends ChantLayoutElement {
         translateWidth = -xOffset;
       }
 
-      final properties = <String, dynamic>{
-        ...getExtraStyleProperties(ctxt),
-        'base-font-family': fontFamily(ctxt),
-        'base-font-size': fontSize(ctxt),
-      };
-
       final paragraph = span.buildParagraph(
         ctxt,
         properties,
         textAlign,
         resize,
       );
+      paragraph.layout(ParagraphConstraints(width: bounds.width));
+      canvas.drawParagraph(
+        paragraph,
+        Offset(bounds.x - centerOffset, bounds.y),
+      );
 
-      canvas.drawParagraph(paragraph, Offset(bounds.x, bounds.y));
-
-      final metricsWidth = paragraph.width;
+      final metricsWidth = paragraph.maxIntrinsicWidth;
       translateWidth -= metricsWidth;
       canvas.translate(metricsWidth, 0);
     }
@@ -363,7 +370,9 @@ class TextSpan {
       fontFamilyFallback:
           (extraProps['font-family'] ?? extraProps['base-font-family'])
               .toString()
-              .split(RegExp(", ?")),
+              .split(RegExp(", ?"))
+              .map((f) => f.replaceAll(RegExp(r"^'|'$"), ''))
+              .toList(),
       fontSize: fontSizeValue * (resize ?? 1),
       fontStyle: extraProps['font-style'] == 'italic'
           ? FontStyle.italic
@@ -383,13 +392,13 @@ class TextSpan {
           ..pushStyle(textStyle)
           ..addText(text);
 
-    final paragraph = builder.build();
-    paragraph.layout(
-      ParagraphConstraints(
-        width: maxWidth.isFinite ? maxWidth : double.infinity,
-      ),
-    );
-    return paragraph;
+    final p = builder.build();
+    p.layout(ParagraphConstraints(width: maxWidth));
+    if (maxWidth.isInfinite) {
+      // now we can read intrinsic width
+      p.layout(ParagraphConstraints(width: p.maxIntrinsicWidth));
+    }
+    return p;
   }
 
   Color _colorFromCss(dynamic fill, Color defaultColor) {

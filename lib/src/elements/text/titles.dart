@@ -172,7 +172,7 @@ class Titles extends ChantLayoutElement {
 
   @override
   void draw(ChantContext ctxt, [double scale = 1]) {
-    final canvasCtxt = ctxt.canvasCtxt;
+    final canvasCtxt = ctxt.canvas;
     canvasCtxt.translate(bounds.x, bounds.y);
 
     for (final el in _elements()) {

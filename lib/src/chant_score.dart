@@ -496,7 +496,7 @@ class ChantScore {
   void draw(ChantContext ctxt, [double scale = 1]) {
     ctxt.setCanvasSize(bounds.width, bounds.height, scale);
 
-    final canvasCtxt = ctxt.canvasCtxt;
+    final canvasCtxt = ctxt.canvas;
 
     canvasCtxt.translate(bounds.x, bounds.y);
 

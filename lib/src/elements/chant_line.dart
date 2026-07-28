@@ -6,6 +6,7 @@ import '../chant_score.dart';
 import '../drawing.dart';
 import '../glyphs.dart';
 import '../quick_svg.dart';
+import '../text_measurer.dart';
 import 'brace_point.dart';
 import 'chant_layout_element.dart';
 import 'horizontal_episema.dart';
@@ -301,10 +302,12 @@ class ChantLine extends ChantLayoutElement {
       if (score.dropCap case DropCap dc) {
         dc.bounds = dc.bounds.copyWith(
           x: staffLeft / 2,
-          y: lyricLineBaseline - score.dropCap!.origin.y,
+          y: lyricLineBaseline - dc.origin.y + dc.baselineOffset(ctxt),
         );
-        notationBounds += score.dropCap!.bounds;
-        dc.bounds = dc.bounds.copyWith(y: lyricLineBaseline);
+        notationBounds += dc.bounds;
+        if (ctxt.textMeasurer is SvgTextMeasurerStrategy) {
+          dc.bounds = dc.bounds.copyWith(y: lyricLineBaseline);
+        }
       }
     }
 
@@ -365,9 +368,9 @@ class ChantLine extends ChantLayoutElement {
 
   @override
   void draw(ChantContext ctxt) {
-    final canvasCtxt = ctxt.canvasCtxt;
+    final canvas = ctxt.canvas;
 
-    canvasCtxt.translate(bounds.x, bounds.y);
+    canvas.translate(bounds.x, bounds.y);
 
     final x1 = staffLeft;
     final x2 = staffRight;
@@ -375,7 +378,7 @@ class ChantLine extends ChantLayoutElement {
     for (int i = score.staffLineCount * -2 + 1; i < 0; i += 2) {
       y = ctxt.staffInterval * i;
 
-      canvasCtxt.beginPath(
+      canvas.beginPath(
           strokeWidth: ctxt.staffLineWeight,
           color: ctxt.staffLineColor,
         )
@@ -392,7 +395,7 @@ class ChantLine extends ChantLayoutElement {
       final ledgerLine = ledgerLines[i];
       y = ctxt.calculateHeightFromStaffPosition(ledgerLine.staffPosition);
 
-      canvasCtxt.beginPath(
+      canvas.beginPath(
           strokeWidth: ctxt.staffLineWeight,
           color: ctxt.staffLineColor,
         )
@@ -421,7 +424,7 @@ class ChantLine extends ChantLayoutElement {
 
     if (custos != null) custos!.draw(ctxt);
 
-    canvasCtxt.translate(-bounds.x, -bounds.y);
+    canvas.translate(-bounds.x, -bounds.y);
   }
 
   List<T> getInnerNodes<T>(
@@ -1925,7 +1928,7 @@ class ChantLine extends ChantLayoutElement {
 
         curr.lyrics[i].setNeedsConnector(false);
         final currLyricLeft = curr.lyrics[i].getLeft();
-        if (!prevLyrics[i].allowsConnector) {
+        if (prevLyrics.length <= i || !prevLyrics[i].allowsConnector) {
           final extraSpace =
               currLyricLeft - prevLyricRight - ctxt.minLyricWordSpacing;
           if (extraSpace < 0) {

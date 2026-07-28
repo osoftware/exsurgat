@@ -5,6 +5,7 @@ import '../chant_mapping.dart';
 import '../chant_score.dart';
 import '../drawing.dart';
 import '../gabc.dart';
+import 'chant_painter.dart';
 
 class ChantScoreView extends StatefulWidget {
   const ChantScoreView({
@@ -12,21 +13,31 @@ class ChantScoreView extends StatefulWidget {
     required this.gabc,
     this.useDropCap = true,
     this.width = 300,
+    this.useNativeRendering = false,
   });
 
   final String gabc;
   final bool useDropCap;
   final double width;
+  final bool useNativeRendering;
 
   @override
   State<ChantScoreView> createState() => _ChantScoreViewState();
 }
 
 class _ChantScoreViewState extends State<ChantScoreView> {
-  final _chantContext = ChantContext(textMeasuringStrategy: .canvas);
+  late final ChantContext _chantContext;
   late ChantScore _score;
   late List<ChantMapping> _mappings;
   late String _xml;
+
+  @override
+  void initState() {
+    super.initState();
+    _chantContext = ChantContext(
+      textMeasuringStrategy: widget.useNativeRendering ? .canvas : .svg,
+    );
+  }
 
   String _makeScore(double width) {
     _mappings = Gabc.createMappingsFromSource(_chantContext, widget.gabc);
@@ -49,12 +60,19 @@ class _ChantScoreViewState extends State<ChantScoreView> {
   }
 
   String _renderScore() {
-    return _score.createSvgNode(_chantContext).toXmlString();
+    return widget.useNativeRendering
+        ? ''
+        : _score.createSvgNode(_chantContext).toXmlString();
   }
 
   @override
   void didUpdateWidget(covariant ChantScoreView oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.useNativeRendering != oldWidget.useNativeRendering) {
+      _chantContext.textMeasuringStrategy = widget.useNativeRendering
+          ? .canvas
+          : .svg;
+    }
     if (widget.gabc != oldWidget.gabc) {
       _xml = _makeScore(widget.width);
     } else if (widget.useDropCap != oldWidget.useDropCap) {
@@ -73,8 +91,14 @@ class _ChantScoreViewState extends State<ChantScoreView> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: SvgPicture.string(_xml),
+      padding: const EdgeInsets.all(0.0),
+      // child: ,
+      child: widget.useNativeRendering
+          ? SizedBox(
+              width: widget.width,
+              child: CustomPaint(painter: ChantPainter(_score, _chantContext)),
+            )
+          : SvgPicture.string(_xml),
     );
   }
 }

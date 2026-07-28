@@ -219,7 +219,7 @@ class ChantContext {
   bool editable = false;
   bool startExtraTextOnlyFromFirst = false;
 
-  late Canvas canvasCtxt;
+  late Canvas canvas;
 
   double pixelRatio = 1.0;
 
@@ -265,7 +265,6 @@ class ChantContext {
 
     if (fontDictionary != null) {
       this.fontDictionary.addAll(fontDictionary);
-      textMeasuringStrategy = TextMeasuringStrategy.openTypeJS;
     }
   }
 
@@ -371,11 +370,11 @@ class ChantContext {
   }
 
   void makeCanvas(PictureRecorder pictureRecorder) {
-    canvasCtxt = Canvas(pictureRecorder);
+    canvas = Canvas(pictureRecorder);
   }
 
   void attachCanvas(Canvas canvas) {
-    canvasCtxt = canvas;
+    this.canvas = canvas;
   }
 
   void setCanvasSize(double width, double height, [double scale = 1]) {}

@@ -90,21 +90,21 @@ class GlyphVisualizer extends ChantLayoutElement {
     if (glyph == null) return;
     final x = bounds.x + origin.x;
     final y = bounds.y + origin.y;
-    ctxt.canvasCtxt.save();
-    ctxt.canvasCtxt.translate(x, y);
-    ctxt.canvasCtxt.scale(ctxt.glyphScaling, ctxt.glyphScaling);
+    ctxt.canvas.save();
+    ctxt.canvas.translate(x, y);
+    ctxt.canvas.scale(ctxt.glyphScaling, ctxt.glyphScaling);
 
     for (final path in glyph!.paths) {
       final paint = Paint()
         ..color = path.type == 'negative'
             ? const Color(0xFFFFFFFF)
             : ctxt.neumeLineColor;
-      ctxt.canvasCtxt.drawPath(_parseSvgPath(path.data), paint);
+      ctxt.canvas.drawPath(_parseSvgPath(path.data), paint);
     }
 
-    ctxt.canvasCtxt.scale(1.0 / ctxt.glyphScaling, 1.0 / ctxt.glyphScaling);
-    ctxt.canvasCtxt.translate(-x, -y);
-    ctxt.canvasCtxt.restore();
+    ctxt.canvas.scale(1.0 / ctxt.glyphScaling, 1.0 / ctxt.glyphScaling);
+    ctxt.canvas.translate(-x, -y);
+    ctxt.canvas.restore();
   }
 
   @override
