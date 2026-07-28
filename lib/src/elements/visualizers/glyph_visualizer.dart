@@ -203,8 +203,10 @@ Path _parseSvgPath(String data) {
     return path;
   }
 
+  // Match either a single command letter or a number (incl. scientific
+  // notation, leading sign, and leading dot like ".5").
   final tokenPattern = RegExp(
-    r'[MmLlCcQqZzAaHhVv-]?\d*\.?\d+(?:[eE][+-]?\d+)?',
+    r'[MmLlCcQqSsTtAaHhVvZz]|-?\d*\.?\d+(?:[eE][+-]?\d+)?',
   );
   final tokens = tokenPattern
       .allMatches(data)
@@ -215,112 +217,188 @@ Path _parseSvgPath(String data) {
   }
 
   var index = 0;
-  String? command;
+  // Current command. Empty means none seen yet.
+  var command = '';
   double currentX = 0;
   double currentY = 0;
   double subpathX = 0;
   double subpathY = 0;
+  // Last control point of a C/S/Q/T command, for smooth-curve reflection.
+  double prevCtrlX = 0;
+  double prevCtrlY = 0;
 
-  void nextCommand() {
-    if (index >= tokens.length) {
-      return;
-    }
-    final token = tokens[index++];
-    if (token.length == 1 && RegExp(r'[MmLlCcQqZzAaHhVv]').hasMatch(token)) {
-      command = token;
-      return;
-    }
-    if (token.startsWith(RegExp(r'[MmLlCcQqZzAaHhVv]'))) {
-      command = token.substring(0, 1);
-      final value = token.substring(1);
-      if (value.isNotEmpty) {
-        tokens.insert(index, value);
-      }
-      return;
-    }
-    command = null;
+  bool isCommand(String t) =>
+      t.length == 1 && RegExp(r'[MmLlCcQqSsTtAaHhVvZz]').hasMatch(t);
+
+  double nextNum() => double.parse(tokens[index++]);
+
+  void resetControl() {
+    prevCtrlX = currentX;
+    prevCtrlY = currentY;
   }
 
   while (index < tokens.length) {
-    if (command == null) {
-      nextCommand();
-      if (command == null) {
-        break;
-      }
+    final t = tokens[index];
+    if (isCommand(t)) {
+      command = t;
+      index++;
     }
-    switch (command) {
+    // Otherwise: implicit repeat of the previous command.
+
+    final upper = command.toUpperCase();
+    final absolute = upper == command;
+
+    switch (upper) {
       case 'M':
-      case 'm':
-        final x = double.parse(tokens[index++]);
-        final y = double.parse(tokens[index++]);
-        final absolute = command == 'M';
-        final dx = absolute ? x : x;
-        final dy = absolute ? y : y;
-        currentX = absolute ? dx : currentX + dx;
-        currentY = absolute ? dy : currentY + dy;
-        subpathX = currentX;
-        subpathY = currentY;
-        path.moveTo(currentX, currentY);
-        command = null;
-        break;
+        {
+          final x = nextNum();
+          final y = nextNum();
+          currentX = absolute ? x : currentX + x;
+          currentY = absolute ? y : currentY + y;
+          subpathX = currentX;
+          subpathY = currentY;
+          path.moveTo(currentX, currentY);
+          resetControl();
+          // Subsequent coordinate pairs after M are implicit lineto.
+          command = absolute ? 'L' : 'l';
+          break;
+        }
       case 'L':
-      case 'l':
-        final x = double.parse(tokens[index++]);
-        final y = double.parse(tokens[index++]);
-        final absolute = command == 'L';
-        final nextX = absolute ? x : currentX + x;
-        final nextY = absolute ? y : currentY + y;
-        path.lineTo(nextX, nextY);
-        currentX = nextX;
-        currentY = nextY;
-        command = null;
-        break;
+        {
+          final x = nextNum();
+          final y = nextNum();
+          final nx = absolute ? x : currentX + x;
+          final ny = absolute ? y : currentY + y;
+          path.lineTo(nx, ny);
+          currentX = nx;
+          currentY = ny;
+          resetControl();
+          break;
+        }
+      case 'H':
+        {
+          final x = nextNum();
+          final nx = absolute ? x : currentX + x;
+          path.lineTo(nx, currentY);
+          currentX = nx;
+          resetControl();
+          break;
+        }
+      case 'V':
+        {
+          final y = nextNum();
+          final ny = absolute ? y : currentY + y;
+          path.lineTo(currentX, ny);
+          currentY = ny;
+          resetControl();
+          break;
+        }
       case 'C':
-      case 'c':
-        final c1x = double.parse(tokens[index++]);
-        final c1y = double.parse(tokens[index++]);
-        final c2x = double.parse(tokens[index++]);
-        final c2y = double.parse(tokens[index++]);
-        final endX = double.parse(tokens[index++]);
-        final endY = double.parse(tokens[index++]);
-        final absolute = command == 'C';
-        final x1 = absolute ? c1x : currentX + c1x;
-        final y1 = absolute ? c1y : currentY + c1y;
-        final x2 = absolute ? c2x : currentX + c2x;
-        final y2 = absolute ? c2y : currentY + c2y;
-        final nextX = absolute ? endX : currentX + endX;
-        final nextY = absolute ? endY : currentY + endY;
-        path.cubicTo(x1, y1, x2, y2, nextX, nextY);
-        currentX = nextX;
-        currentY = nextY;
-        command = null;
-        break;
+        {
+          final c1x = nextNum();
+          final c1y = nextNum();
+          final c2x = nextNum();
+          final c2y = nextNum();
+          final ex = nextNum();
+          final ey = nextNum();
+          final x1 = absolute ? c1x : currentX + c1x;
+          final y1 = absolute ? c1y : currentY + c1y;
+          final x2 = absolute ? c2x : currentX + c2x;
+          final y2 = absolute ? c2y : currentY + c2y;
+          final nx = absolute ? ex : currentX + ex;
+          final ny = absolute ? ey : currentY + ey;
+          path.cubicTo(x1, y1, x2, y2, nx, ny);
+          prevCtrlX = x2;
+          prevCtrlY = y2;
+          currentX = nx;
+          currentY = ny;
+          break;
+        }
+      case 'S':
+        {
+          final c2x = nextNum();
+          final c2y = nextNum();
+          final ex = nextNum();
+          final ey = nextNum();
+          // Reflected control point (equals current point if prev was not
+          // a C/S command, since resetControl set prevCtrl = current).
+          final x1 = 2 * currentX - prevCtrlX;
+          final y1 = 2 * currentY - prevCtrlY;
+          final x2 = absolute ? c2x : currentX + c2x;
+          final y2 = absolute ? c2y : currentY + c2y;
+          final nx = absolute ? ex : currentX + ex;
+          final ny = absolute ? ey : currentY + ey;
+          path.cubicTo(x1, y1, x2, y2, nx, ny);
+          prevCtrlX = x2;
+          prevCtrlY = y2;
+          currentX = nx;
+          currentY = ny;
+          break;
+        }
       case 'Q':
-      case 'q':
-        final qx = double.parse(tokens[index++]);
-        final qy = double.parse(tokens[index++]);
-        final endX = double.parse(tokens[index++]);
-        final endY = double.parse(tokens[index++]);
-        final absolute = command == 'Q';
-        final controlX = absolute ? qx : currentX + qx;
-        final controlY = absolute ? qy : currentY + qy;
-        final nextX = absolute ? endX : currentX + endX;
-        final nextY = absolute ? endY : currentY + endY;
-        path.quadraticBezierTo(controlX, controlY, nextX, nextY);
-        currentX = nextX;
-        currentY = nextY;
-        command = null;
-        break;
+        {
+          final cx = nextNum();
+          final cy = nextNum();
+          final ex = nextNum();
+          final ey = nextNum();
+          final controlX = absolute ? cx : currentX + cx;
+          final controlY = absolute ? cy : currentY + cy;
+          final nx = absolute ? ex : currentX + ex;
+          final ny = absolute ? ey : currentY + ey;
+          path.quadraticBezierTo(controlX, controlY, nx, ny);
+          prevCtrlX = controlX;
+          prevCtrlY = controlY;
+          currentX = nx;
+          currentY = ny;
+          break;
+        }
+      case 'T':
+        {
+          final ex = nextNum();
+          final ey = nextNum();
+          final controlX = 2 * currentX - prevCtrlX;
+          final controlY = 2 * currentY - prevCtrlY;
+          final nx = absolute ? ex : currentX + ex;
+          final ny = absolute ? ey : currentY + ey;
+          path.quadraticBezierTo(controlX, controlY, nx, ny);
+          prevCtrlX = controlX;
+          prevCtrlY = controlY;
+          currentX = nx;
+          currentY = ny;
+          break;
+        }
+      case 'A':
+        {
+          final rx = nextNum();
+          final ry = nextNum();
+          final xAxisRotation = nextNum();
+          final largeArcFlag = nextNum();
+          final sweepFlag = nextNum();
+          final ex = nextNum();
+          final ey = nextNum();
+          final nx = absolute ? ex : currentX + ex;
+          final ny = absolute ? ey : currentY + ey;
+          path.arcToPoint(
+            Offset(nx, ny),
+            radius: Radius.elliptical(rx, ry),
+            rotation: xAxisRotation,
+            largeArc: largeArcFlag != 0,
+            clockwise: sweepFlag != 0,
+          );
+          currentX = nx;
+          currentY = ny;
+          resetControl();
+          break;
+        }
       case 'Z':
-      case 'z':
         path.close();
         currentX = subpathX;
         currentY = subpathY;
-        command = null;
+        resetControl();
         break;
       default:
-        command = null;
-        break;
+        // Unknown command: bail out to avoid desync.
+        return path;
     }
   }
 
