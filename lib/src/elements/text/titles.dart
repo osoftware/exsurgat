@@ -38,7 +38,7 @@ class Titles extends ChantLayoutElement {
   TextLeftRight? textRight;
 
   void setBoundsX(ChantContext ctxt, String elementName, double width) {
-    final element = this[elementName] as TextElement?;
+    final element = this[elementName];
     if (element == null) return;
     final style = ctxt.textStyles[elementName];
     final alignment = style?['alignment'];
@@ -160,13 +160,13 @@ class Titles extends ChantLayoutElement {
   bool hasTextRight(ChantContext ctxt, String? textRight) =>
       this.textRight != null;
 
-  List<dynamic> _elements() {
+  List<TitleTextElement> _elements() {
     return [
-      supertitle,
-      title,
-      subtitle,
-      score.overrideTextLeft ?? textLeft,
-      textRight,
+      ?supertitle,
+      ?title,
+      ?subtitle,
+      ?score.overrideTextLeft ?? textLeft,
+      ?textRight,
     ];
   }
 
@@ -176,51 +176,26 @@ class Titles extends ChantLayoutElement {
     canvasCtxt.translate(bounds.x, bounds.y);
 
     for (final el in _elements()) {
-      if (el != null) (el as dynamic).draw(ctxt);
+      el.draw(ctxt);
     }
 
     canvasCtxt.translate(-bounds.x, -bounds.y);
   }
 
-  List<XmlNode> getInnerNodes(
-    ChantContext ctxt, [
-    String functionName = 'createSvgNode',
-  ]) {
-    final nodes = <XmlNode>[];
-
-    for (final el in _elements()) {
-      if (el != null) {
-        if (functionName == 'createSvgNode') {
-          nodes.add((el as dynamic).createSvgNode(ctxt) as XmlNode);
-        } else if (functionName == 'createSvgTree') {
-          nodes.add((el as dynamic).createSvgTree(ctxt: ctxt) as XmlNode);
-        }
-      }
-    }
-    return nodes;
+  List<T> getInnerNodes<T>(ChantContext ctxt, ElementNodeMaker<T> create) {
+    return [for (final el in _elements()) create(el, ctxt)];
   }
 
   @override
   XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) {
-    final nodes = getInnerNodes(ctxt, 'createSvgNode');
-
-    final node = QuickSvg.createNode('g', {'class': 'Titles'}, nodes);
-    return node;
+    final titles = getInnerNodes(ctxt, (e, c) => e.createSvgNode(c, source));
+    return QuickSvg.createNode('g', {'class': 'Titles'}, titles);
   }
 
   @override
   SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
-    final nodes = <dynamic>[];
-    for (final el in _elements()) {
-      if (el != null) {
-        nodes.add((el as dynamic).createSvgTree(ctxt: ctxt));
-      }
-    }
-
-    return QuickSvg.createSvgTree('g', {
-      'class': 'Titles',
-      'data-source': this,
-    }, nodes);
+    final titles = getInnerNodes(ctxt, (e, c) => e.createSvgTree(c, source));
+    return QuickSvg.createSvgTree('g', {'class': 'Titles'}, titles);
   }
 
   @override
@@ -228,9 +203,7 @@ class Titles extends ChantLayoutElement {
     var fragment = '';
 
     for (final el in _elements()) {
-      if (el != null) {
-        fragment += (el as dynamic).createSvgFragment(ctxt) as String;
-      }
+      fragment += el.createSvgFragment(ctxt);
     }
 
     fragment = QuickSvg.createFragment('g', {'class': 'Titles'}, fragment);
@@ -239,7 +212,7 @@ class Titles extends ChantLayoutElement {
 
   /// Indexer that allows accessing the title elements by name, mirroring the
   /// JavaScript implementation which uses `this[elementName]`.
-  dynamic operator [](String elementName) {
+  TitleTextElement? operator [](String elementName) {
     switch (elementName) {
       case 'supertitle':
         return supertitle;
