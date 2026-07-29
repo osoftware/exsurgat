@@ -203,7 +203,6 @@ ui.Paragraph _buildParagraph(
     extraProps['base-font-size'],
   );
   final textStyle = ui.TextStyle(
-    color: _colorFromCss(extraProps['fill'], ctxt.textColor),
     fontFamilyFallback:
         (extraProps['font-family'] ?? extraProps['base-font-family'])
             .toString()

@@ -228,7 +228,7 @@ class NeumeBuilder {
 
       Note? beamsNote;
       for (var j = i; j < notes.length; j++) {
-        if (notes[j].inclinataFlags != null) {
+        if (notes[j].inclinataFlags > 0) {
           beamsNote = notes[j];
           break;
         }

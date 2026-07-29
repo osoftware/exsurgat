@@ -1,9 +1,9 @@
 import 'dart:ui';
 
-import 'package:exsurgat/src/elements/notation/chant_notation_element.dart';
 import 'package:xml/xml.dart';
 
 import 'elements/brace_point.dart';
+import 'elements/notation/chant_notation_element.dart';
 import 'elements/notation/clefs/clef.dart';
 import 'elements/notation/neumes/neume.dart';
 import 'elements/text/lyric.dart';
@@ -185,7 +185,7 @@ class ChantContext {
   double maxExtraSpaceInStaffIntervals = 0.5;
   Clef? activeClef;
   Color neumeLineColor = ChantColors.nigric;
-  Color staffLineColor = ChantColors.nigric;
+  Color staffLineColor = ChantColors.rubric;
   Color dividerLineColor = ChantColors.nigric;
   Language defaultLanguage = Latin();
   String syllableConnector = '-';
@@ -448,6 +448,7 @@ class CanvasPathBuilder {
 
 extension Svg on Color {
   String toSvgString() {
-    return "rgb(${r * 100}% ${g * 100}% ${b * 100}% / $a)";
+    final hex = toARGB32().toRadixString(16);
+    return "#${hex.substring(2)}${hex.substring(0, 2)}";
   }
 }
