@@ -60,7 +60,7 @@ class DividerLineVisualizer extends ChantLayoutElement {
       'y': bounds.y,
       'width': ctxt.dividerLineWeight,
       'height': bounds.height,
-      'fill': ctxt.dividerLineColor,
+      'fill': ctxt.dividerLineColor.toSvgString(),
       'class': 'dividerLine',
     };
     if (divider != null) {
@@ -69,7 +69,6 @@ class DividerLineVisualizer extends ChantLayoutElement {
       }
       props['data-source-index'] = divider!.sourceIndex;
       props['data-element-index'] = divider!.elementIndex;
-      props['data-source'] = divider;
     }
     return props;
   }
