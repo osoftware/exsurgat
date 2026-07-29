@@ -82,7 +82,7 @@ class NeumeLineVisualizer extends ChantLayoutElement {
       'y': bounds.y,
       'width': ctxt.neumeLineWeight,
       'height': bounds.height,
-      'fill': ctxt.neumeLineColor,
+      'fill': ctxt.neumeLineColor.toSvgString(),
       'class': 'neumeLine',
     };
   }

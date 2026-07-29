@@ -92,7 +92,7 @@ class NeumeBeamVisualizer extends ChantLayoutElement {
           '${points['x0']},${points['y0'] - points['height'] / 2} '
           '${points['x1']},${points['y1'] - points['height'] / 2} '
           '${points['x1']},${points['y1'] + points['height'] / 2}',
-      'fill': ctxt.neumeLineColor,
+      'fill': ctxt.neumeLineColor.toSvgString(),
       'class': 'neumeBeam',
     };
   }

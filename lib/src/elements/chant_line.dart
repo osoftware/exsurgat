@@ -484,7 +484,7 @@ class ChantLine extends ChantLayoutElement {
           'y1': y,
           'x2': ledgerLine.x2,
           'y2': y,
-          'stroke': ctxt.staffLineColor,
+          'stroke': ctxt.staffLineColor.toSvgString(),
           'stroke-width': ctxt.staffLineWeight,
           'class': 'ledgerLine',
         }),
@@ -673,7 +673,7 @@ class ChantLine extends ChantLayoutElement {
 
     return QuickSvg.createFragment('path', {
       'd': d,
-      'stroke': ctxt.neumeLineColor,
+      'stroke': ctxt.neumeLineColor.toSvgString(),
       'stroke-width': '${ctxt.neumeLineWeight}px',
       'fill': 'none',
     });

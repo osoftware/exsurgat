@@ -140,7 +140,7 @@ class CurlyBraceVisualizer extends ChantLayoutElement {
   Map<String, dynamic> getSvgPathProps(ChantContext ctxt) {
     return <String, dynamic>{
       'd': generatePathString(),
-      'stroke': ctxt.neumeLineColor,
+      'stroke': ctxt.neumeLineColor.toSvgString(),
       'stroke-width': '${ctxt.staffLineWeight}px',
       'fill': 'none',
       'class': 'brace',
