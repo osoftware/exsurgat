@@ -117,10 +117,7 @@ final class CanvasTextMeasurerStrategy extends TextMeasurer {
 
     for (final span in textElement.spans) {
       prev = cur;
-      final t = span.text.substring(
-        0,
-        length == null ? null : length - consumed,
-      );
+      final t = span.text.slice(0, length == null ? null : length - consumed);
       final props = {
         ...textElement.getExtraStyleProperties(ctxt),
         ...span.properties,
@@ -171,10 +168,7 @@ final class SvgTextMeasurerStrategy extends TextMeasurer {
 
     for (final span in textElement.spans) {
       prev = cur;
-      final t = span.text.substring(
-        0,
-        length == null ? null : length - consumed,
-      );
+      final t = span.text.slice(0, length == null ? null : length - consumed);
       final props = {
         ...textElement.getExtraStyleProperties(ctxt),
         ...span.properties,
@@ -269,4 +263,9 @@ double _parseCssLength(dynamic value) {
     return double.tryParse(value) ?? double.infinity;
   }
   return double.infinity;
+}
+
+extension on String {
+  String slice(int start, [int? end]) =>
+      substring(start, (end ?? 0) > length ? null : end);
 }

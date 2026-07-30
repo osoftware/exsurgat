@@ -6,6 +6,8 @@ import '../../chant_context.dart';
 import '../../chant_theme.dart';
 import '../../core.dart' as core;
 import '../../drawing.dart';
+import '../../glyphs.dart' as glyphs;
+import '../../language.dart' show addAccent, makeLigature;
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
 import 'drop_cap.dart';
@@ -60,11 +62,12 @@ abstract class TextElement extends ChantLayoutElement {
     spans = [];
 
     if (text == '*' || text == '+' || text == '†') {
-      final properties = text == '*'
-          ? [ctxt.asteriskProperties]
-          : text == '+'
-          ? [ctxt.plusProperties]
-          : <Map<String, dynamic>>[];
+      final List<Map<String, dynamic>> properties = switch (text) {
+        '*' => [ctxt.asteriskProperties],
+        '+' => [ctxt.plusProperties],
+        _ => [],
+      };
+
       final mapped = ctxt.specialCharText(text);
       spans.add(TextSpan(mapped, properties, []));
       return;
@@ -73,6 +76,9 @@ abstract class TextElement extends ChantLayoutElement {
     final markupStack = <MarkupStackFrame>[];
     var spanStartIndex = 0;
     var newLineInNextSpan = 0;
+
+    bool filterFrames(MarkupStackFrame frame, String? symbol) =>
+        frame.symbol == symbol;
 
     void closeSpan(
       String spanText,
@@ -96,15 +102,266 @@ abstract class TextElement extends ChantLayoutElement {
         markupStack.map((frame) => frame.tagName).toList(),
         index,
       );
+      spans.add(span);
       if (newLineInNextSpan != 0) {
         span.newLine = newLineInNextSpan;
         newLineInNextSpan = 0;
       }
-      spans.add(span);
     }
 
-    // Text markup parser stubbed for Dart port.
-    closeSpan(text.substring(spanStartIndex), spanStartIndex);
+    final markupRegex = RegExp(
+      r'(<br/?>)|<v>([\s\S]*?)(?:<\/v>|$)|(\*)(?=\s*\*|[^*]*(?:$|<v>))|(\+)|<sp>(?:(~)|('
+      "'"
+      r')?([ao]e|[æœaeiouy])|([arv])\/)<\/sp>|([arv])\/\.|([℣℟])\.?|(?:([*_^%])|<(\/)?([bceiuv]|ul|sc|font)(?:\s+(?:family="([^"]+)"|fill="([^"]+)"|class="([^"]+)"))*>)(?=(?:(.+?)(?:\11|<\/\13>))?)',
+      caseSensitive: false,
+    );
+    final vTagRegex = RegExp(
+      r"(\\grecross)|\{greextra\}\{([^}]*)\}|\{?(\\?')?(?:\\([ao]e|æœaeiouy))\}?",
+      caseSensitive: false,
+    );
+
+    var openedAsterisk = false;
+
+    void closeCurrentSpan(RegExpMatch match) {
+      closeSpan(text.substring(spanStartIndex, match.start), spanStartIndex);
+    }
+
+    for (final match in markupRegex.allMatches(text)) {
+      final newLine = match.group(1);
+      final vTag = match.group(2);
+      final asterisk = match.group(3);
+      final plus = match.group(4);
+      final tilde = match.group(5);
+      final accent = match.group(6);
+      final vowelLigature = match.group(7);
+      final specialCharSp = match.group(8);
+      final specialCharSlash = match.group(9);
+      final specialCharVbar = match.group(10);
+      final markupSymbol = match.group(11);
+      final closingTag = match.group(12);
+      var tagName = match.group(13);
+      final family = match.group(14);
+      final fill = match.group(15);
+      final cssClass = match.group(16);
+      final enclosedText = match.group(17);
+
+      final specialChar = specialCharSp ?? specialCharSlash ?? specialCharVbar;
+
+      if (newLine != null) {
+        if (match.start > spanStartIndex) {
+          closeCurrentSpan(match);
+        }
+        newLineInNextSpan++;
+      } else if (vTag != null) {
+        closeCurrentSpan(match);
+        var lastIndex = 0;
+        var iOffset = 0;
+        for (final vMatch in vTagRegex.allMatches(vTag)) {
+          if (lastIndex < vMatch.start) {
+            closeSpan(
+              vTag.substring(lastIndex, vMatch.start),
+              match.start + lastIndex + iOffset,
+            );
+            iOffset = 3; // length of '<v>'
+          }
+          final grecross = vMatch.group(1);
+          var greextra = vMatch.group(2);
+          final vAccent = vMatch.group(3);
+          final diphthong = vMatch.group(4);
+          var char = '';
+          if (diphthong != null) {
+            char = makeLigature(diphthong);
+            if (vAccent != null) char = addAccent(char);
+            closeSpan(char, match.start + vMatch.start + iOffset);
+          } else {
+            if (grecross != null) {
+              // grecross is just the command for the Cross:
+              // set up greextra so it will get handled with it below:
+              greextra = 'Cross';
+            }
+            char = glyphs.greextraGlyphs[greextra] ?? '';
+            if (char.isNotEmpty) {
+              closeSpan(char, match.start + vMatch.start + iOffset, {
+                'font-family': 'greextra',
+              });
+            }
+          }
+          lastIndex = vMatch.end;
+          iOffset = 3; // length of '<v>'
+        }
+        if (lastIndex < vTag.length) {
+          closeSpan(
+            vTag.substring(lastIndex),
+            match.start + lastIndex + iOffset,
+          );
+        }
+      } else if (asterisk != null) {
+        closeCurrentSpan(match);
+        // first check if it is just a symbol to close:
+        if (markupStack.isNotEmpty && markupStack.last.symbol == asterisk) {
+          markupStack.removeLast();
+        } else {
+          closeSpan(
+            ctxt.specialCharText(asterisk),
+            match.start,
+            ctxt.asteriskProperties,
+          );
+        }
+      } else if (plus != null) {
+        closeCurrentSpan(match);
+        closeSpan(ctxt.specialCharText(plus), match.start, ctxt.plusProperties);
+      } else if (tilde != null) {
+        closeCurrentSpan(match);
+        closeSpan('∼', match.start);
+      } else if (vowelLigature != null) {
+        var vowel = makeLigature(vowelLigature);
+        if (accent != null) vowel = addAccent(vowel);
+        closeCurrentSpan(match);
+        closeSpan(vowel, match.start);
+      } else if (specialChar != null) {
+        closeCurrentSpan(match);
+        closeSpan(
+          ctxt.textBeforeSpecialChar +
+              ctxt.specialCharText(specialChar) +
+              ctxt.textAfterSpecialChar,
+          match.start,
+          ctxt.specialCharProperties,
+        );
+      } else {
+        // otherwise we're dealing with matching markup delimeters
+        if (markupSymbol == '*') {
+          // we are only strict with the asterisk, because there are cases
+          // when it needs to be displayed rather than count as a markup
+          // symbol
+          if (enclosedText != null &&
+              RegExp(r'[^\s*]').hasMatch(enclosedText)) {
+            openedAsterisk = true;
+          } else if (openedAsterisk) {
+            openedAsterisk = false;
+          } else {
+            // actually use the asterisk, since it doesn't have a matching
+            // closing asterisk
+            continue;
+          }
+        }
+        if (markupSymbol != null) {
+          tagName = ctxt.markupSymbolDictionary[markupSymbol];
+          if (markupStack.isNotEmpty &&
+              markupStack.last.tagName == tagName &&
+              markupStack.last.symbol == markupSymbol) {
+            if (closingTag != null) {
+              closeCurrentSpan(match);
+              markupStack.removeLast();
+            }
+            // otherwise: matching symbol on top of stack but not a closing
+            // tag — fall through to group open below
+            else {
+              closeCurrentSpan(match);
+              final extraProperties = <String, dynamic>{};
+              if (family != null) extraProperties['font-family'] = family;
+              if (fill != null) extraProperties['fill'] = fill;
+              if (cssClass != null) extraProperties['class'] = cssClass;
+              markupStack.add(
+                MarkupStackFrame.createStackFrame(
+                  ctxt,
+                  tagName!,
+                  match.start,
+                  extraProperties,
+                  markupSymbol,
+                ),
+              );
+            }
+          } else if (markupStack.isNotEmpty &&
+              markupStack.last.tagName == tagName) {
+            if (closingTag != null) {
+              closeCurrentSpan(match);
+              markupStack.removeLast();
+            }
+          } else if (markupStack
+              .where((f) => filterFrames(f, markupSymbol))
+              .isNotEmpty) {
+            // trying to open a recursive group (or forgot to close a previous
+            // group). In either case, we just unwind to the previous stack
+            // frame
+            spanStartIndex = markupStack.last.startIndex;
+            markupStack.removeLast();
+            continue;
+          } else {
+            closeCurrentSpan(match);
+            if (closingTag != null) {
+              // out of order group close:
+              final index = markupStack.indexWhere(
+                (frame) => frame.tagName == tagName,
+              );
+              if (index >= 0) {
+                markupStack.removeRange(index, index + 1);
+              }
+            } else {
+              // group open
+              final extraProperties = <String, dynamic>{};
+              if (family != null) extraProperties['font-family'] = family;
+              if (fill != null) extraProperties['fill'] = fill;
+              if (cssClass != null) extraProperties['class'] = cssClass;
+              markupStack.add(
+                MarkupStackFrame.createStackFrame(
+                  ctxt,
+                  tagName!,
+                  match.start,
+                  extraProperties,
+                  markupSymbol,
+                ),
+              );
+            }
+          }
+        } else if (tagName != null) {
+          if (markupStack.isNotEmpty && markupStack.last.tagName == tagName) {
+            if (closingTag != null) {
+              closeCurrentSpan(match);
+              markupStack.removeLast();
+            }
+          } else if (markupStack
+              .where((f) => filterFrames(f, null))
+              .isNotEmpty) {
+            spanStartIndex = markupStack.last.startIndex;
+            markupStack.removeLast();
+            continue;
+          } else {
+            closeCurrentSpan(match);
+            if (closingTag != null) {
+              final index = markupStack.indexWhere(
+                (frame) => frame.tagName == tagName,
+              );
+              if (index >= 0) {
+                markupStack.removeRange(index, index + 1);
+              }
+            } else {
+              final extraProperties = <String, dynamic>{};
+              if (family != null) extraProperties['font-family'] = family;
+              if (fill != null) extraProperties['fill'] = fill;
+              if (cssClass != null) extraProperties['class'] = cssClass;
+              markupStack.add(
+                MarkupStackFrame.createStackFrame(
+                  ctxt,
+                  tagName,
+                  match.start,
+                  extraProperties,
+                  '',
+                ),
+              );
+            }
+          }
+        }
+      }
+
+      // advance the start index past the current markup
+      spanStartIndex = match.end;
+    }
+
+    // if we finished matches, and there is still some text left,
+    // or if we haven't generated any spans yet, create one final run
+    if (spanStartIndex < text.length || spans.isEmpty) {
+      closeSpan(text.substring(spanStartIndex), spanStartIndex);
+    }
   }
 
   String getCanvasFontForProperties(
@@ -295,7 +552,7 @@ abstract class TextElement extends ChantLayoutElement {
 
       final paragraph = span.buildParagraph(
         ctxt,
-        properties,
+        {...properties, ...span.properties},
         textAlign,
         resize,
       );
