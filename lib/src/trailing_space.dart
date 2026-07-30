@@ -1,10 +1,7 @@
-import 'package:exsurgat/src/drawing.dart';
+import 'chant_context.dart';
 
 /// A trailing space value that may be either a fixed double or a function
 /// computed from the [ChantContext].
-///
-/// This mirrors the JavaScript `DefaultTrailingSpace` which is a function with
-/// an `isDefault` flag set to `true`.
 class TrailingSpace {
   TrailingSpace(this._value, {this.isDefault = false});
 

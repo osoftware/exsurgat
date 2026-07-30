@@ -1,6 +1,6 @@
 import 'package:xml/xml.dart';
 
-import '../drawing.dart';
+import '../chant_context.dart';
 import '../quick_svg.dart';
 import 'chant_layout_element.dart';
 import 'notation/neumes/note.dart';

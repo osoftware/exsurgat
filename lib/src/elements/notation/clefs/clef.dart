@@ -1,4 +1,5 @@
-import '../../../drawing.dart';
+import '../../../chant_context.dart';
+import '../../../core.dart';
 import '../accidental.dart';
 import '../chant_notation_element.dart';
 import 'do_clef.dart';

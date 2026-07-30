@@ -2,17 +2,17 @@ import 'dart:math' as math;
 
 import 'package:xml/xml.dart';
 
+import '../../chant_context.dart';
 import '../../chant_score.dart';
 import '../../core.dart' as core;
-import '../../drawing.dart';
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
 import '../text.dart';
 
-export '../text/supertitle.dart';
-export '../text/title.dart';
 export '../text/subtitle.dart';
+export '../text/supertitle.dart';
 export '../text/text_left_right.dart';
+export '../text/title.dart';
 
 /// Lays out and renders the title elements of a [ChantScore]: the supertitle,
 /// title, subtitle, and left/right text.

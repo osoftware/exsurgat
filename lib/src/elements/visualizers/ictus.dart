@@ -1,4 +1,4 @@
-import '../../drawing.dart';
+import '../../chant_context.dart';
 import '../../glyphs.dart';
 import '../notation/neumes/note.dart';
 import 'glyph_visualizer.dart';

@@ -2,7 +2,9 @@ import 'dart:math' as math;
 
 import 'package:xml/xml.dart';
 
+import '../chant_context.dart';
 import '../chant_score.dart';
+import '../core.dart';
 import '../drawing.dart';
 import '../glyphs.dart';
 import '../quick_svg.dart';

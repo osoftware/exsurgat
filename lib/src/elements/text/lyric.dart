@@ -1,7 +1,8 @@
 import 'dart:math' as math;
 
-import '../../core.dart' as core;
-import '../../drawing.dart';
+import '../../chant_context.dart';
+import '../../chant_theme.dart';
+import '../../core.dart';
 import '../../language.dart';
 import '../notation/chant_notation_element.dart';
 import 'drop_cap.dart';
@@ -111,7 +112,7 @@ class Lyric extends TextElement {
          sourceIndex,
          text,
        ) {
-    textType = TextTypes['lyric']!;
+    textType = defaultChantTheme['lyric']!;
     originalText = text;
     centerStartIndex = -1;
     centerLength = text.length;
@@ -152,7 +153,7 @@ class Lyric extends TextElement {
       if (width != null) {
         setConnectorWidth(width);
       } else {
-        bounds = core.Rect.fromXYWH(
+        bounds = Rect.fromXYWH(
           bounds.x,
           bounds.y,
           widthWithoutConnector + getConnectorWidth(),
@@ -165,7 +166,7 @@ class Lyric extends TextElement {
     } else {
       connectorWidth = 0;
       needsConnector = false;
-      bounds = core.Rect.fromXYWH(
+      bounds = Rect.fromXYWH(
         bounds.x,
         bounds.y,
         widthWithoutConnector,
@@ -182,7 +183,7 @@ class Lyric extends TextElement {
     connectorWidth = width;
     connectorSpan?.properties['textLength'] = width;
     if (needsConnector) {
-      bounds = core.Rect.fromXYWH(
+      bounds = Rect.fromXYWH(
         bounds.x,
         bounds.y,
         widthWithoutConnector + getConnectorWidth(),
@@ -294,8 +295,8 @@ class Lyric extends TextElement {
       }
     }
 
-    bounds = core.Rect.fromXYWH(-offset, 0, bounds.width, bounds.height);
-    origin = core.Point(offset, origin.y);
+    bounds = Rect.fromXYWH(-offset, 0, bounds.width, bounds.height);
+    origin = Point(offset, origin.y);
   }
 
   DropCap? generateDropCap(ChantContext ctxt) {

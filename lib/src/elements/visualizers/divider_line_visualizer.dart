@@ -3,8 +3,9 @@ import 'dart:ui';
 
 import 'package:xml/xml.dart';
 
+import '../../chant_context.dart';
 import '../../core.dart' as core;
-import '../../drawing.dart' hide Rect;
+import '../../drawing.dart';
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
 import '../notation/dividers/divider.dart';

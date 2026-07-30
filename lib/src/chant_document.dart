@@ -1,5 +1,5 @@
+import 'chant_context.dart';
 import 'chant_score.dart';
-import 'drawing.dart';
 
 /// The layout settings for a [ChantDocument].
 class ChantDocumentLayout {

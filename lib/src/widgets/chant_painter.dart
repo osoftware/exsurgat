@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
+import '../chant_context.dart';
 import '../chant_score.dart';
-import '../drawing.dart' show ChantContext;
 
 class ChantPainter extends CustomPainter {
   final ChantScore score;

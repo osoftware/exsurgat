@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:xml/xml.dart';
 
+import '../../chant_context.dart';
+import '../../chant_theme.dart';
 import '../../core.dart' as core;
 import '../../drawing.dart';
 import '../../quick_svg.dart';

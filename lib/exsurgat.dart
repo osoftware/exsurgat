@@ -1,3 +1,4 @@
+export 'src/chant_context.dart';
 export 'src/chant_score.dart';
 export 'src/drawing.dart';
 export 'src/elements/annotations.dart';

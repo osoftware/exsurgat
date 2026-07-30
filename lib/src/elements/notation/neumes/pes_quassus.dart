@@ -1,4 +1,5 @@
-import '../../../drawing.dart';
+import '../../../chant_context.dart';
+import '../../../core.dart';
 import '../../../glyphs.dart';
 import 'neume.dart';
 import 'note.dart';
@@ -26,8 +27,10 @@ class PesQuassus extends Neume {
 
     if (upperStaffPos - lowerStaffPos == 1) {
       builder.virgaAt(upper);
-    } else if (hasAnyFlag(lower.liquescent,
-        LiquescentType.large.value | LiquescentType.descending.value)) {
+    } else if (hasAnyFlag(
+      lower.liquescent,
+      LiquescentType.large.value | LiquescentType.descending.value,
+    )) {
       builder
         ..noteAt(upper, GlyphCode.punctumQuadratumDesLiquescent)
         ..withLineEndingAt(lower);

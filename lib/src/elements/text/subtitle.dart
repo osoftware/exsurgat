@@ -1,4 +1,5 @@
-import '../../drawing.dart';
+import '../../chant_context.dart';
+import '../../chant_theme.dart';
 import 'title_text_element.dart';
 
 class Subtitle extends TitleTextElement {
@@ -12,7 +13,7 @@ class Subtitle extends TitleTextElement {
         sourceIndex,
         text,
       ) {
-    textType = TextTypes['subtitle']!;
+    textType = defaultChantTheme['subtitle']!;
 
     padding = (ctxt) =>
         ((ctxt.textStyles['subtitle']?['padding'] as num? ?? 1).toDouble() *

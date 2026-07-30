@@ -1,6 +1,6 @@
-import 'package:exsurgat/src/glyphs.dart'; // Assuming Step is defined here
-
-import '../../drawing.dart';
+import '../../chant_context.dart';
+import '../../core.dart';
+import '../../glyphs.dart';
 import '../visualizers/glyph_visualizer.dart';
 import 'chant_notation_element.dart';
 

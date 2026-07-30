@@ -1,4 +1,5 @@
-import '../../drawing.dart';
+import '../../chant_context.dart';
+import '../../chant_theme.dart';
 import 'lyric.dart';
 import 'text_element.dart';
 
@@ -13,7 +14,7 @@ class DropCap extends TextElement {
         sourceIndex,
         text,
       ) {
-    textType = TextTypes['dropCap']!;
+    textType = defaultChantTheme['dropCap']!;
     padding =
         ctxt.staffInterval * (ctxt.textStyles['dropCap']?['padding'] ?? 1);
   }

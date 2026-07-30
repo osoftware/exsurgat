@@ -1,6 +1,7 @@
 import 'dart:ui' as ui;
 
-import 'drawing.dart';
+import 'chant_context.dart';
+import 'core.dart';
 import 'elements/text/text_element.dart';
 
 enum TextMeasuringStrategy { svg, canvas }

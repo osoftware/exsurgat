@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../chant_context.dart';
 import '../chant_document.dart';
 import '../chant_mapping.dart';
 import '../chant_score.dart';
-import '../drawing.dart';
 import '../gabc.dart';
 import 'chant_painter.dart';
 
@@ -13,8 +13,8 @@ class ChantScoreView extends StatefulWidget {
     super.key,
     required this.gabc,
     this.useDropCap = true,
-    this.width = 300,
-    this.useNativeRendering = false,
+    this.width = 600,
+    this.useNativeRendering = true,
   });
 
   final String gabc;

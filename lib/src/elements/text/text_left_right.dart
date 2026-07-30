@@ -1,4 +1,5 @@
-import '../../drawing.dart';
+import '../../chant_context.dart';
+import '../../chant_theme.dart';
 import 'title_text_element.dart';
 
 class TextLeftRight extends TitleTextElement {
@@ -16,7 +17,7 @@ class TextLeftRight extends TitleTextElement {
          sourceIndex,
          text,
        ) {
-    textType = TextTypes['leftRight']!;
+    textType = defaultChantTheme['leftRight']!;
     extraClass = type == 'textLeft' ? 'textLeft' : 'textRight';
     headerKey = type == 'textLeft' ? 'text-left' : 'text-right';
     padding = (ctxt) =>

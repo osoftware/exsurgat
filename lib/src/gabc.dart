@@ -1,5 +1,6 @@
+import 'chant_context.dart';
 import 'chant_mapping.dart';
-import 'drawing.dart';
+import 'core.dart';
 import 'elements/brace_point.dart';
 import 'elements/horizontal_episema.dart';
 import 'elements/mora.dart';

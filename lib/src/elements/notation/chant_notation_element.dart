@@ -2,10 +2,10 @@ import 'dart:math' as math;
 
 import 'package:xml/xml.dart';
 
+import '../../chant_context.dart';
 import '../../chant_mapping.dart';
 import '../../chant_score.dart';
-import '../../core.dart' as core;
-import '../../drawing.dart';
+import '../../core.dart';
 import '../../quick_svg.dart';
 import '../../trailing_space.dart';
 import '../chant_layout_element.dart';
@@ -86,7 +86,7 @@ class ChantNotationElement extends ChantLayoutElement {
     calculatedTrailingSpace = trailingSpace(ctxt);
 
     visualizers.clear();
-    bounds = const core.Rect();
+    bounds = const Rect();
     for (final l in lyrics) {
       l.recalculateMetrics(ctxt);
     }

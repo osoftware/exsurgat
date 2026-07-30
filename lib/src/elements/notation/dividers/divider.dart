@@ -1,4 +1,4 @@
-import '../../../drawing.dart';
+import '../../../chant_context.dart';
 import '../../visualizers/round_brace_visualizer.dart';
 import '../chant_notation_element.dart';
 

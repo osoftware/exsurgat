@@ -1,8 +1,9 @@
 import 'dart:ui' as ui;
 
-import 'package:flutter/material.dart';
 import 'package:xml/xml.dart';
 
+import '../chant_context.dart';
+import '../core.dart';
 import '../drawing.dart';
 import '../glyphs.dart';
 import '../quick_svg.dart';
@@ -172,7 +173,7 @@ class HorizontalEpisema extends ChantLayoutElement {
       ui.Rect.fromLTWH(bounds.x, bounds.y, bounds.width, bounds.height),
       ui.Paint()
         ..color = ctxt.neumeLineColor
-        ..style = PaintingStyle.fill,
+        ..style = ui.PaintingStyle.fill,
     );
   }
 

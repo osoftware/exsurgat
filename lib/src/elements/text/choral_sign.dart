@@ -1,5 +1,6 @@
-import '../../core.dart' as core;
-import '../../drawing.dart';
+import '../../chant_context.dart';
+import '../../chant_theme.dart';
+import '../../core.dart';
 import '../notation/neumes/note.dart';
 import 'text_element.dart';
 
@@ -15,7 +16,7 @@ class ChoralSign extends TextElement {
         sourceIndex,
         text,
       ) {
-    textType = TextTypes['choralSign']!;
+    textType = defaultChantTheme['choralSign']!;
   }
 
   MarkingPositionHint positionHint = MarkingPositionHint.defaultHint;
@@ -23,7 +24,7 @@ class ChoralSign extends TextElement {
 
   void performLayout(ChantContext ctxt) {
     recalculateMetrics(ctxt);
-    bounds = core.Rect.fromXYWH(
+    bounds = Rect.fromXYWH(
       note.bounds.x +
           (ctxt.staffInterval - bounds.width).clamp(0.0, double.infinity),
       bounds.y,
@@ -43,7 +44,7 @@ class ChoralSign extends TextElement {
       staffPosition += (staffPosition % 2 == 0) ? 0.3 : -0.4;
     }
 
-    bounds = core.Rect.fromXYWH(
+    bounds = Rect.fromXYWH(
       bounds.x,
       ctxt.calculateHeightFromStaffPosition(staffPosition.toInt()) + origin.y,
       bounds.width,

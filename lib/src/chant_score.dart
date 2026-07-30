@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:xml/xml.dart';
 
+import 'chant_context.dart';
 import 'chant_mapping.dart';
 import 'core.dart' as core;
-import 'drawing.dart';
 import 'elements/annotations.dart';
 import 'elements/chant_layout_element.dart';
 import 'elements/chant_line.dart';

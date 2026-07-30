@@ -1,7 +1,6 @@
-import 'package:exsurgat/src/elements/notation/neumes/neume.dart';
-
-import '../drawing.dart';
+import '../chant_context.dart';
 import '../glyphs.dart';
+import 'notation/neumes/neume.dart';
 import 'notation/neumes/note.dart';
 import 'visualizers/glyph_visualizer.dart';
 

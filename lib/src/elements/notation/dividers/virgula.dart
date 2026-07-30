@@ -1,4 +1,5 @@
-import '../../../drawing.dart';
+import '../../../chant_context.dart';
+import '../../../core.dart';
 import '../../../glyphs.dart';
 import '../../visualizers/glyph_visualizer.dart';
 import 'divider.dart';

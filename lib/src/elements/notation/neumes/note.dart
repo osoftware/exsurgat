@@ -1,6 +1,7 @@
 import 'package:xml/xml.dart';
 
-import '../../../drawing.dart';
+import '../../../chant_context.dart';
+import '../../../core.dart';
 import '../../../glyphs.dart';
 import '../../../quick_svg.dart';
 import '../../brace_point.dart';

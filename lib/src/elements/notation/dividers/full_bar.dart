@@ -1,4 +1,5 @@
-import '../../../drawing.dart';
+import '../../../chant_context.dart';
+import '../../../core.dart';
 import '../../visualizers/divider_line_visualizer.dart';
 import 'divider.dart';
 

@@ -2,8 +2,8 @@ import 'dart:math' as math;
 
 import 'package:xml/xml.dart';
 
-import '../core.dart' as core;
-import '../drawing.dart';
+import '../chant_context.dart';
+import '../core.dart';
 import '../quick_svg.dart';
 import 'chant_layout_element.dart';
 import 'text/annotation.dart';
@@ -20,7 +20,7 @@ class Annotations extends ChantLayoutElement {
 
   void updateBounds([double multiplier = 1.0]) {
     for (var annotation in annotations) {
-      annotation.bounds = core.Rect.fromXYWH(
+      annotation.bounds = Rect.fromXYWH(
         annotation.bounds.x + bounds.x * multiplier,
         annotation.bounds.y + bounds.y * multiplier,
         annotation.bounds.width,
@@ -30,13 +30,13 @@ class Annotations extends ChantLayoutElement {
   }
 
   void recalculateMetrics(ChantContext ctxt, [bool resetNewLines = true]) {
-    bounds = core.Rect.fromXYWH(0, 0, 0, 0);
-    origin = core.Point(0, 0);
+    bounds = Rect.fromXYWH(0, 0, 0, 0);
+    origin = Point(0, 0);
 
     double y = 0;
     for (var a in annotations) {
       a.recalculateMetrics(ctxt, resetNewLines);
-      bounds += core.Rect.fromXYWH(0, y, a.bounds.width, a.bounds.height);
+      bounds += Rect.fromXYWH(0, y, a.bounds.width, a.bounds.height);
       a.bounds = a.bounds.copyWith(y: a.bounds.y + y);
       origin = origin.copyWith(y: origin.y == 0 ? a.origin.y : origin.y);
       y += a.fontSize(ctxt) * (a.resize ?? 1) * lineHeight;

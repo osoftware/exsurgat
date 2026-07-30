@@ -1,4 +1,4 @@
-import '../../../drawing.dart';
+import '../../../chant_context.dart';
 import 'neume.dart';
 
 class Trivirga extends Neume {
