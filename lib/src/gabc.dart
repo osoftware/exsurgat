@@ -571,7 +571,9 @@ class Gabc {
 
       // process alt/translation text from lyricText
       var indexOffset = 0;
-      for (final m in _altTranslationRegex.allMatches(lyricText)) {
+      RegExpMatch? vMatch;
+      while ((vMatch = _altTranslationRegex.firstMatch(lyricText)) != null) {
+        final m = vMatch!;
         final index = m.start;
         lyricText =
             lyricText.substring(0, index) +
