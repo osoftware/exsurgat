@@ -438,7 +438,7 @@ class ChantScore {
       overrideTextLeft = null;
     }
 
-    var y = width > 0 ? titles!.layoutTitles(ctxt, width) : 0.0;
+    var y = width > 0 ? titles?.layoutTitles(ctxt, width) ?? 0 : 0.0;
     var currIndex = 0;
 
     ctxt.activeClef = startingClef;
