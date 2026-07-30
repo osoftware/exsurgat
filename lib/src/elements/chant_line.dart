@@ -6,7 +6,7 @@ import '../chant_score.dart';
 import '../drawing.dart';
 import '../glyphs.dart';
 import '../quick_svg.dart';
-import '../text_measurer.dart';
+import 'annotations.dart';
 import 'brace_point.dart';
 import 'chant_layout_element.dart';
 import 'horizontal_episema.dart';
@@ -19,7 +19,6 @@ import 'notation/custos.dart';
 import 'notation/dividers.dart';
 import 'notation/neumes.dart';
 import 'notation/text_only.dart';
-import 'text/annotation.dart';
 import 'text/drop_cap.dart';
 import 'text/lyric.dart';
 import 'text/text_element.dart';
@@ -273,21 +272,26 @@ class ChantLine extends ChantLayoutElement {
     }
 
     if (notationsStartIndex == 0) {
-      if (score.annotation case Annotation a) {
+      if (score.annotation case Annotations a) {
         a.bounds = a.bounds.copyWith(
           x: staffLeft / 2,
           y: -ctxt.staffInterval * (staffLineCount * 2 - 1),
         );
         if (score.dropCap case DropCap dc) {
-          double lowestPossibleAnnotationY =
+          final dcHeight = ctxt.textMeasurer.measureBaseline(dc, ctxt);
+          final lOffset = ctxt.textMeasurer.align == .baseline
+              ? 0
+              : lyricLineHeight;
+          final highestNonCollidingY =
               lyricLineBaseline -
-              a.bounds.height -
-              ctxt.staffInterval * ctxt.textStyles['annotation']['padding'] -
-              dc.origin.y;
+              a.bounds.height +
+              lOffset -
+              a.padding -
+              dcHeight;
           a.bounds = a.bounds.copyWith(
-            y: lowestPossibleAnnotationY < a.bounds.y
-                ? lowestPossibleAnnotationY
-                : (a.bounds.y + lowestPossibleAnnotationY) / 2,
+            y: highestNonCollidingY < a.bounds.y
+                ? highestNonCollidingY
+                : (a.bounds.y + highestNonCollidingY) / 2,
           );
           if (a.bounds.y < notationBounds.y) {
             notationBounds = notationBounds.copyWith(
@@ -305,7 +309,7 @@ class ChantLine extends ChantLayoutElement {
           y: lyricLineBaseline - dc.origin.y + dc.baselineOffset(ctxt),
         );
         notationBounds += dc.bounds;
-        if (ctxt.textMeasurer is SvgTextMeasurerStrategy) {
+        if (ctxt.textMeasurer.align == .baseline) {
           dc.bounds = dc.bounds.copyWith(y: lyricLineBaseline);
         }
       }

@@ -9,6 +9,11 @@ import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
 import '../text.dart';
 
+export '../text/supertitle.dart';
+export '../text/title.dart';
+export '../text/subtitle.dart';
+export '../text/text_left_right.dart';
+
 /// Lays out and renders the title elements of a [ChantScore]: the supertitle,
 /// title, subtitle, and left/right text.
 class Titles extends ChantLayoutElement {

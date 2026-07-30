@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../chant_document.dart';
 import '../chant_mapping.dart';
 import '../chant_score.dart';
 import '../drawing.dart';
@@ -41,20 +42,18 @@ class _ChantScoreViewState extends State<ChantScoreView> {
 
   String _makeScore(double width) {
     _mappings = Gabc.createMappingsFromSource(_chantContext, widget.gabc);
-    return _setupScore(width);
-  }
-
-  String _setupScore(double width) {
     _score = ChantScore(
       ctxt: _chantContext,
       mappings: _mappings,
+      header: GabcHeader(widget.gabc),
       useDropCap: widget.useDropCap,
     );
-    _score.performLayout(_chantContext);
+    ChantDocument();
     return _layoutScore(width);
   }
 
   String _layoutScore(double width) {
+    _score.performLayout(_chantContext);
     _score.layoutChantLines(_chantContext, width);
     return _renderScore();
   }
@@ -73,10 +72,9 @@ class _ChantScoreViewState extends State<ChantScoreView> {
           ? .canvas
           : .svg;
     }
-    if (widget.gabc != oldWidget.gabc) {
+    if (widget.gabc != oldWidget.gabc ||
+        widget.useDropCap != oldWidget.useDropCap) {
       _xml = _makeScore(widget.width);
-    } else if (widget.useDropCap != oldWidget.useDropCap) {
-      _xml = _setupScore(widget.width);
     } else if (widget.width != oldWidget.width) {
       _xml = _layoutScore(widget.width);
     }
@@ -96,7 +94,12 @@ class _ChantScoreViewState extends State<ChantScoreView> {
       child: widget.useNativeRendering
           ? SizedBox(
               width: widget.width,
-              child: CustomPaint(painter: ChantPainter(_score, _chantContext)),
+              child: FittedBox(
+                child: CustomPaint(
+                  size: Size(widget.width, _score.bounds.height),
+                  painter: ChantPainter(_score, _chantContext),
+                ),
+              ),
             )
           : SvgPicture.string(_xml),
     );

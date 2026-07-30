@@ -233,13 +233,6 @@ class Pitch {
   }
 }
 
-String getCssForProperties(Map<String, dynamic> properties) {
-  return properties.entries
-      .where((entry) => entry.key != 'class' && entry.value != null)
-      .map((entry) => '${entry.key}: ${entry.value};')
-      .join();
-}
-
 mixin Flags on Enum {
   int get value;
 

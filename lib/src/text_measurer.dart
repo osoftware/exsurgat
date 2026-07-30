@@ -5,6 +5,8 @@ import 'elements/text/text_element.dart';
 
 enum TextMeasuringStrategy { svg, canvas }
 
+enum TextBoundsAlign { top, baseline }
+
 abstract class TextMeasurer {
   const TextMeasurer();
 
@@ -14,6 +16,8 @@ abstract class TextMeasurer {
       TextMeasuringStrategy.svg => SvgTextMeasurerStrategy(),
     };
   }
+
+  TextBoundsAlign get align;
 
   double measureSubstring(
     TextElement textElement,
@@ -29,6 +33,18 @@ abstract class TextMeasurer {
     ChantContext ctxt, [
     int? length,
   ]);
+
+  double measureBaseline(TextElement textElement, ChantContext ctxt) {
+    final span = textElement.spans.first;
+    final props = {
+      ...textElement.getExtraStyleProperties(ctxt),
+      ...span.properties,
+      'base-font-family': textElement.fontFamily(ctxt),
+      'base-font-size': textElement.fontSize(ctxt),
+    };
+    final p = _buildParagraph(ctxt, span.text, props, textElement.resize);
+    return p.alphabeticBaseline;
+  }
 
   double getSubstringWidth(
     TextElement textElement,
@@ -83,6 +99,9 @@ abstract class TextMeasurer {
 
 final class CanvasTextMeasurerStrategy extends TextMeasurer {
   @override
+  TextBoundsAlign get align => .top;
+
+  @override
   Rect measureTextBounds(
     TextElement textElement,
     ChantContext ctxt, [
@@ -133,6 +152,9 @@ final class CanvasTextMeasurerStrategy extends TextMeasurer {
 }
 
 final class SvgTextMeasurerStrategy extends TextMeasurer {
+  @override
+  TextBoundsAlign get align => .baseline;
+
   @override
   Rect measureTextBounds(
     TextElement textElement,
@@ -190,7 +212,6 @@ final class SvgTextMeasurerStrategy extends TextMeasurer {
   }
 }
 
-/// TODO: Unify this with [TextSpan.buildParagraph]
 ui.Paragraph _buildParagraph(
   ChantContext ctxt,
   String text,
@@ -232,27 +253,6 @@ ui.Paragraph _buildParagraph(
   return paragraph;
 }
 
-ui.Color _colorFromCss(dynamic fill, ui.Color defaultColor) {
-  if (fill is ui.Color) return fill;
-  if (fill is String) {
-    final value = fill.trim();
-    if (value.startsWith('#')) {
-      if (value.length == 7) {
-        return ui.Color(int.parse('ff${value.substring(1)}', radix: 16));
-      }
-      if (value.length == 4) {
-        final r = value[1];
-        final g = value[2];
-        final b = value[3];
-        return ui.Color(int.parse('ff$r$r$g$g$b$b', radix: 16));
-      }
-    }
-    if (value.toLowerCase() == 'black') return ChantColors.nigric;
-    if (value.toLowerCase() == 'red') return ChantColors.rubric;
-  }
-  return defaultColor;
-}
-
 double _parseCssFontSize(dynamic fontSizeValue, double baseFontSize) {
   if (fontSizeValue is String && fontSizeValue.endsWith('%')) {
     final percent = double.tryParse(fontSizeValue.replaceAll('%', '')) ?? 100.0;
@@ -269,5 +269,3 @@ double _parseCssLength(dynamic value) {
   }
   return double.infinity;
 }
-
-const kMaxInt = -1 >>> 1;

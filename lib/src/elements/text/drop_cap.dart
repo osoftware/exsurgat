@@ -1,5 +1,4 @@
 import '../../drawing.dart';
-import '../../text_measurer.dart';
 import 'lyric.dart';
 import 'text_element.dart';
 
@@ -22,7 +21,7 @@ class DropCap extends TextElement {
   late double padding;
 
   double baselineOffset(ChantContext ctxt) {
-    if (ctxt.textMeasurer is SvgTextMeasurerStrategy) return 0;
+    if (ctxt.textMeasurer.align == .baseline) return 0;
     final dcProps = <String, dynamic>{
       ...getExtraStyleProperties(ctxt),
       'base-font-family': fontFamily(ctxt),

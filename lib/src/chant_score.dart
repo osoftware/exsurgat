@@ -14,10 +14,7 @@ import 'elements/notation/dividers/insertion_cursor.dart';
 import 'elements/notation/neumes/neume.dart';
 import 'elements/notation/neumes/note.dart';
 import 'elements/notation/text_only.dart';
-import 'elements/text/annotation.dart';
 import 'elements/text/drop_cap.dart';
-import 'elements/text/text_element.dart';
-import 'elements/text/text_left_right.dart';
 import 'elements/text/titles.dart';
 import 'gabc.dart';
 import 'quick_svg.dart';
@@ -64,14 +61,30 @@ class ChantScore {
     ChantContext? ctxt,
     List<ChantMapping> mappings = const [],
     this.useDropCap = false,
+    GabcHeader? header,
   }) : mappings = List.of(mappings) {
     lines = [];
     notes = [];
     staffLineCount = 4;
-    if (ctxt != null) titles = Titles(ctxt, this);
+    if (ctxt != null && header != null) {
+      titles = Titles(
+        ctxt,
+        this,
+        title: header['title'],
+        subtitle: header['subtitle'],
+        supertitle: header['supertitle'],
+        textLeft: header['textLeft'],
+        textRight: header['textRight'],
+      );
+      if (header['annotation'] != null || header['mode'] != null) {
+        annotation = Annotations(ctxt, [
+          ...header['annotationArray'] ?? [?header['annotation']],
+          ?header['mode'],
+        ]);
+      }
+    }
     startingClef = null;
     dropCap = null;
-    annotation = null;
     compiled = false;
     autoColoring = true;
     needsLayout = true;
@@ -109,7 +122,7 @@ class ChantScore {
   DropCap? dropCap;
 
   /// The annotation element, if any.
-  Annotation? annotation;
+  Annotations? annotation;
 
   /// Whether the score has been compiled (laid out).
   bool compiled = false;
@@ -415,19 +428,10 @@ class ChantScore {
     if (ctxt.mergeAnnotationWithTextLeft != null &&
         annotation != null &&
         dropCap == null) {
-      final annotation = this.annotation!;
-      // In the JavaScript implementation, the annotation may be either an
-      // `Annotations` (with multiple sub-annotations) or a single `Annotation`.
-      // Here we normalize to a list of span-lists for merging.
-      final List<List<TextSpan>> annotationSpans = switch (annotation) {
-        Annotations(:final annotations) =>
-          annotations.map((a) => a.spans).toList(),
-        Annotation(:final spans) => [spans],
-      };
       overrideTextLeft = TextLeftRight(ctxt, '', 'textLeft');
       final mergedSpans = ctxt.mergeAnnotationWithTextLeft!([
-        ...annotationSpans,
-        if (titles?.textLeft != null) titles!.textLeft!.spans,
+        ...annotation!.annotations.map((a) => a.spans),
+        ?titles?.textLeft?.spans,
       ]);
       overrideTextLeft!.spans = mergedSpans.cast();
     } else {
@@ -500,7 +504,7 @@ class ChantScore {
 
     canvasCtxt.translate(bounds.x, bounds.y);
 
-    if (titles != null) titles!.draw(ctxt);
+    titles?.draw(ctxt);
 
     for (var i = 0; i < lines.length; i++) {
       lines[i].draw(ctxt);
@@ -661,7 +665,7 @@ class ChantScore {
 
     if (data['annotation'] != null && data['annotation'] != '') {
       // create the annotation
-      annotation = Annotation(ctxt, data['annotation'] as String);
+      annotation = Annotations(ctxt, data['annotation'] as List<String>);
     } else {
       annotation = null;
     }
@@ -679,9 +683,11 @@ class ChantScore {
     data['auto-coloring'] = true;
 
     if (annotation != null) {
-      data['annotation'] = annotation!.unsanitizedText;
+      data['annotation'] = annotation!.annotations
+          .map((a) => a.unsanitizedText)
+          .toList();
     } else {
-      data['annotation'] = '';
+      data['annotation'] = [];
     }
 
     return data;

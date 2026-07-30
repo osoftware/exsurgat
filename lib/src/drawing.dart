@@ -384,10 +384,10 @@ enum MarkingPositionHint { defaultHint, above, below }
 
 final TextSpan __connectorSpan = TextSpan(' • ', [], []);
 
-List<dynamic> __mergeAnnotationWithTextLeft(
+List<TextSpan> __mergeAnnotationWithTextLeft(
   List<List<TextSpan>> annotationSpans,
 ) {
-  var result = <dynamic>[];
+  var result = <TextSpan>[];
   for (final spans in annotationSpans) {
     if (result.isNotEmpty) {
       if (spans.isNotEmpty) {

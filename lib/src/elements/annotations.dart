@@ -10,11 +10,8 @@ import 'text/annotation.dart';
 
 class Annotations extends ChantLayoutElement {
   Annotations(ChantContext ctxt, List<String> texts)
-    : lineHeight = 1.1,
-      annotations = texts.map((text) => Annotation(ctxt, text, 0)).toList() {
-    padding = annotations.isNotEmpty
-        ? annotations.map((a) => a.padding).reduce(math.max)
-        : 0;
+    : annotations = texts.map((text) => Annotation(ctxt, text, 0)).toList() {
+    padding = annotations.map((a) => a.padding).fold(0, math.max);
   }
 
   double lineHeight = 1.1;
@@ -37,22 +34,12 @@ class Annotations extends ChantLayoutElement {
     origin = core.Point(0, 0);
 
     double y = 0;
-    for (var annotation in annotations) {
-      annotation.recalculateMetrics(ctxt, resetNewLines);
-      bounds += core.Rect.fromXYWH(
-        0,
-        y,
-        annotation.bounds.width,
-        annotation.bounds.height,
-      );
-      annotation.bounds = core.Rect.fromXYWH(
-        annotation.bounds.x,
-        annotation.bounds.y + y,
-        annotation.bounds.width,
-        annotation.bounds.height,
-      );
-      origin = origin.y == 0 ? annotation.origin : origin;
-      y += annotation.fontSize(ctxt) * (annotation.resize ?? 1) * lineHeight;
+    for (var a in annotations) {
+      a.recalculateMetrics(ctxt, resetNewLines);
+      bounds += core.Rect.fromXYWH(0, y, a.bounds.width, a.bounds.height);
+      a.bounds = a.bounds.copyWith(y: a.bounds.y + y);
+      origin = origin.copyWith(y: origin.y == 0 ? a.origin.y : origin.y);
+      y += a.fontSize(ctxt) * (a.resize ?? 1) * lineHeight;
     }
   }
 
