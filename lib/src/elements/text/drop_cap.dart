@@ -1,3 +1,5 @@
+import 'dart:ui' as ui;
+
 import '../../chant_context.dart';
 import '../../chant_theme.dart';
 import 'lyric.dart';
@@ -28,14 +30,16 @@ class DropCap extends TextElement {
       'base-font-family': fontFamily(ctxt),
       'base-font-size': fontSize(ctxt),
     };
-    final dc = spans.first.buildParagraph(ctxt, dcProps, .start);
+    final dc = spans.first.buildParagraph(ctxt, dcProps, .start)
+      ..layout(ui.ParagraphConstraints(width: double.infinity));
     final lyric = Lyric(ctxt, 'M', .directive);
     final lProps = <String, dynamic>{
       ...lyric.getExtraStyleProperties(ctxt),
       'base-font-family': lyric.fontFamily(ctxt),
       'base-font-size': lyric.fontSize(ctxt),
     };
-    final l = lyric.spans.first.buildParagraph(ctxt, lProps, .start);
+    final l = lyric.spans.first.buildParagraph(ctxt, lProps, .start)
+      ..layout(ui.ParagraphConstraints(width: double.infinity));
     return l.alphabeticBaseline - dc.alphabeticBaseline;
   }
 }

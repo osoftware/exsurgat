@@ -135,12 +135,12 @@ final class CanvasTextMeasurerStrategy extends TextMeasurer {
     final maxWidth = _parseCssLength(
       textElement.getExtraStyleProperties(ctxt)['textLength'],
     );
-    final p = builder.build()
-      ..layout(
-        ui.ParagraphConstraints(
-          width: maxWidth.isFinite ? maxWidth : double.infinity,
-        ),
-      );
+    final p = builder.build();
+    p.layout(ui.ParagraphConstraints(width: maxWidth));
+    if (maxWidth.isInfinite) {
+      // now we can read intrinsic width
+      p.layout(ui.ParagraphConstraints(width: p.maxIntrinsicWidth));
+    }
     late final double width, height;
     width = p.maxIntrinsicWidth;
     height = p.height;
@@ -215,43 +215,13 @@ extension on ui.ParagraphBuilder {
   void addTextSpan(
     ChantContext ctxt,
     String text,
-    Map<String, dynamic> extraProps, [
+    Map<String, dynamic> props, [
     double? resize,
   ]) {
-    final fontSizeValue = _parseCssFontSize(
-      extraProps['font-size'],
-      extraProps['base-font-size'],
-    );
-    final textStyle = ui.TextStyle(
-      fontFamilyFallback:
-          (extraProps['font-family'] ?? extraProps['base-font-family'])
-              .toString()
-              .split(RegExp(", ?"))
-              .map((f) => f.replaceAll(RegExp(r"^'|'$"), ''))
-              .toList(),
-      fontSize: fontSizeValue * (resize ?? 1) / ctxt.pixelRatio,
-      height: extraProps['line-height'] ?? 0.0,
-      fontStyle: extraProps['font-style'] == 'italic'
-          ? ui.FontStyle.italic
-          : ui.FontStyle.normal,
-      fontWeight: extraProps['font-weight'] == 'bold'
-          ? ui.FontWeight.bold
-          : ui.FontWeight.normal,
-    );
-
-    pushStyle(textStyle);
+    pushStyle(TextSpan.getTextStyle(props, ctxt, resize));
     addText(text);
     pop();
   }
-}
-
-double _parseCssFontSize(dynamic fontSizeValue, double baseFontSize) {
-  if (fontSizeValue is String && fontSizeValue.endsWith('%')) {
-    final percent = double.tryParse(fontSizeValue.replaceAll('%', '')) ?? 100.0;
-    return baseFontSize * percent / 100.0;
-  }
-  if (fontSizeValue is num) return fontSizeValue.toDouble();
-  return baseFontSize;
 }
 
 double _parseCssLength(dynamic value) {

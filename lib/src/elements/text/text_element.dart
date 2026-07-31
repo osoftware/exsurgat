@@ -597,28 +597,6 @@ class TextSpan {
     TextAlign textAlign, [
     double? resize,
   ]) {
-    final maxWidth = _parseCssLength(properties['textLength']);
-    final fontSizeValue = _parseCssFontSize(
-      extraProps['font-size'],
-      extraProps['base-font-size'],
-    );
-    final textStyle = TextStyle(
-      color: _colorFromCss(extraProps['fill'], ctxt.textColor),
-      fontFamilyFallback:
-          (extraProps['font-family'] ?? extraProps['base-font-family'])
-              .toString()
-              .split(RegExp(", ?"))
-              .map((f) => f.replaceAll(RegExp(r"^'|'$"), ''))
-              .toList(),
-      fontSize: fontSizeValue * (resize ?? 1),
-      fontStyle: extraProps['font-style'] == 'italic'
-          ? FontStyle.italic
-          : FontStyle.normal,
-      fontWeight: extraProps['font-weight'] == 'bold'
-          ? FontWeight.bold
-          : FontWeight.normal,
-    );
-
     final builder =
         ParagraphBuilder(
             ParagraphStyle(
@@ -626,19 +604,43 @@ class TextSpan {
               textDirection: TextDirection.ltr,
             ),
           )
-          ..pushStyle(textStyle)
+          ..pushStyle(getTextStyle(extraProps, ctxt, resize))
           ..addText(text);
 
-    final p = builder.build();
-    p.layout(ParagraphConstraints(width: maxWidth));
-    if (maxWidth.isInfinite) {
-      // now we can read intrinsic width
-      p.layout(ParagraphConstraints(width: p.maxIntrinsicWidth));
-    }
-    return p;
+    return builder.build();
   }
 
-  Color _colorFromCss(dynamic fill, Color defaultColor) {
+  static TextStyle getTextStyle(
+    Map<String, dynamic> props,
+    ChantContext ctxt,
+    double? resize,
+  ) {
+    final fontSize = _parseCssFontSize(
+      props['font-size'],
+      props['base-font-size'],
+    );
+    final fontFamily = (props['font-family'] ?? props['base-font-family'])
+        .toString()
+        .split(RegExp(", ?"))
+        .map((f) => f.replaceAll(RegExp(r"^'|'$"), ''))
+        .toList();
+    return TextStyle(
+      color: _colorFromCss(props['fill'], ctxt.textColor),
+      fontFamilyFallback: fontFamily,
+      fontSize: fontSize * (resize ?? 1),
+      fontStyle: props['font-style'] == 'italic'
+          ? FontStyle.italic
+          : FontStyle.normal,
+      fontWeight: props['font-weight'] == 'bold'
+          ? FontWeight.bold
+          : FontWeight.normal,
+      fontFeatures: [
+        if (props['font-variant'] == 'small-caps') FontFeature.enable('smcp'),
+      ],
+    );
+  }
+
+  static Color _colorFromCss(dynamic fill, Color defaultColor) {
     if (fill is Color) return fill;
     if (fill is String) {
       final value = fill.trim();
@@ -659,7 +661,7 @@ class TextSpan {
     return defaultColor;
   }
 
-  double _parseCssFontSize(dynamic fontSizeValue, double baseFontSize) {
+  static double _parseCssFontSize(dynamic fontSizeValue, double baseFontSize) {
     if (fontSizeValue is String && fontSizeValue.endsWith('%')) {
       final percent =
           double.tryParse(fontSizeValue.replaceAll('%', '')) ?? 100.0;
@@ -667,14 +669,6 @@ class TextSpan {
     }
     if (fontSizeValue is num) return fontSizeValue.toDouble();
     return baseFontSize;
-  }
-
-  double _parseCssLength(dynamic value) {
-    if (value is num) return value.toDouble();
-    if (value is String) {
-      return double.tryParse(value) ?? double.infinity;
-    }
-    return double.infinity;
   }
 }
 
