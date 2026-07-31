@@ -1951,12 +1951,12 @@ class ChantLine extends ChantLayoutElement {
           }
         } else {
           bool overlap =
-              prevLyricRight + 0.1 >
+              prevLyricRight + 2.0 >
               currLyricLeft -
                   condensableSpaceSincePrevLyric -
                   space.condensable;
           if (overlap) {
-            final shift = prevLyricRight - currLyricLeft;
+            final shift = prevLyricRight + 2.0 - currLyricLeft;
             if (shift < -0.1) {
               final multiplier =
                   shift / (condensableSpaceSincePrevLyric + space.condensable);

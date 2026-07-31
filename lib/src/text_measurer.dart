@@ -36,15 +36,18 @@ abstract class TextMeasurer {
   ]);
 
   double measureBaseline(TextElement textElement, ChantContext ctxt) {
-    final span = textElement.spans.first;
-    final props = {
-      ...textElement.getExtraStyleProperties(ctxt),
-      ...span.properties,
-      'base-font-family': textElement.fontFamily(ctxt),
-      'base-font-size': textElement.fontSize(ctxt),
-    };
-    final p = _buildParagraph(ctxt, span.text, props, textElement.resize);
-    return p.alphabeticBaseline;
+    final paragraph = textElement.spans.first.buildParagraph(
+      ctxt,
+      {
+        ...textElement.getExtraStyleProperties(ctxt),
+        ...textElement.spans.first.properties,
+        'base-font-family': textElement.fontFamily(ctxt),
+        'base-font-size': textElement.fontSize(ctxt),
+      },
+      textElement.textAnchor,
+      textElement.resize,
+    );
+    return paragraph.alphabeticBaseline;
   }
 
   double getSubstringWidth(
@@ -111,12 +114,10 @@ final class CanvasTextMeasurerStrategy extends TextMeasurer {
     if (length == 0) return Rect.fromXYWH(0, 0, 0, 0);
 
     int consumed = 0;
-    Rect? box;
-    Rect cur = Rect.fromXYWH(0, 0, 0, 0);
-    Rect prev;
+
+    final builder = ui.ParagraphBuilder(ui.ParagraphStyle());
 
     for (final span in textElement.spans) {
-      prev = cur;
       final t = span.text.slice(0, length == null ? null : length - consumed);
       final props = {
         ...textElement.getExtraStyleProperties(ctxt),
@@ -124,28 +125,27 @@ final class CanvasTextMeasurerStrategy extends TextMeasurer {
         'base-font-family': textElement.fontFamily(ctxt),
         'base-font-size': textElement.fontSize(ctxt),
       };
-      final p = _buildParagraph(ctxt, t, props, textElement.resize);
-
-      late final double width, height;
-      if (p.numberOfLines > 0) {
-        final metrics = p.getLineMetricsAt(0)!;
-        width = metrics.width;
-        height = metrics.height + metrics.descent;
-      } else {
-        width = p.maxIntrinsicWidth;
-        height = p.height;
-      }
-
-      cur = span.newLine != null
-          ? Rect.fromXYWH(0, prev.bottom, width, height)
-          : Rect.fromXYWH(prev.right, prev.y > 0 ? prev.y : 0, width, height);
-      box = box != null ? box + cur : cur;
+      if (span.newLine != null) builder.addText('\n');
+      builder.addTextSpan(ctxt, t, props, textElement.resize);
 
       consumed += t.length;
       if (consumed == length) break;
     }
 
-    return box ?? cur;
+    final maxWidth = _parseCssLength(
+      textElement.getExtraStyleProperties(ctxt)['textLength'],
+    );
+    final p = builder.build()
+      ..layout(
+        ui.ParagraphConstraints(
+          width: maxWidth.isFinite ? maxWidth : double.infinity,
+        ),
+      );
+    late final double width, height;
+    width = p.maxIntrinsicWidth;
+    height = p.height;
+
+    return Rect.fromXYWH(0, 0, width, height);
   }
 }
 
@@ -169,13 +169,17 @@ final class SvgTextMeasurerStrategy extends TextMeasurer {
     for (final span in textElement.spans) {
       prev = cur;
       final t = span.text.slice(0, length == null ? null : length - consumed);
-      final props = {
-        ...textElement.getExtraStyleProperties(ctxt),
-        ...span.properties,
-        'base-font-family': textElement.fontFamily(ctxt),
-        'base-font-size': textElement.fontSize(ctxt),
-      };
-      final p = _buildParagraph(ctxt, t, props, textElement.resize);
+      final p = span.buildParagraph(
+        ctxt,
+        {
+          ...textElement.getExtraStyleProperties(ctxt),
+          ...span.properties,
+          'base-font-family': textElement.fontFamily(ctxt),
+          'base-font-size': textElement.fontSize(ctxt),
+        },
+        textElement.textAnchor,
+        textElement.resize,
+      );
 
       late final double width, height, baseline;
       if (p.numberOfLines > 0) {
@@ -207,45 +211,38 @@ final class SvgTextMeasurerStrategy extends TextMeasurer {
   }
 }
 
-ui.Paragraph _buildParagraph(
-  ChantContext ctxt,
-  String text,
-  Map<String, dynamic> extraProps, [
-  double? resize,
-]) {
-  final maxWidth = _parseCssLength(extraProps['textLength']);
-  final fontSizeValue = _parseCssFontSize(
-    extraProps['font-size'],
-    extraProps['base-font-size'],
-  );
-  final textStyle = ui.TextStyle(
-    fontFamilyFallback:
-        (extraProps['font-family'] ?? extraProps['base-font-family'])
-            .toString()
-            .split(RegExp(", ?"))
-            .map((f) => f.replaceAll(RegExp(r"^'|'$"), ''))
-            .toList(),
-    fontSize: fontSizeValue * (resize ?? 1) / ctxt.pixelRatio,
-    height: extraProps['line-height'] ?? 0.0,
-    fontStyle: extraProps['font-style'] == 'italic'
-        ? ui.FontStyle.italic
-        : ui.FontStyle.normal,
-    fontWeight: extraProps['font-weight'] == 'bold'
-        ? ui.FontWeight.bold
-        : ui.FontWeight.normal,
-  );
+extension on ui.ParagraphBuilder {
+  void addTextSpan(
+    ChantContext ctxt,
+    String text,
+    Map<String, dynamic> extraProps, [
+    double? resize,
+  ]) {
+    final fontSizeValue = _parseCssFontSize(
+      extraProps['font-size'],
+      extraProps['base-font-size'],
+    );
+    final textStyle = ui.TextStyle(
+      fontFamilyFallback:
+          (extraProps['font-family'] ?? extraProps['base-font-family'])
+              .toString()
+              .split(RegExp(", ?"))
+              .map((f) => f.replaceAll(RegExp(r"^'|'$"), ''))
+              .toList(),
+      fontSize: fontSizeValue * (resize ?? 1) / ctxt.pixelRatio,
+      height: extraProps['line-height'] ?? 0.0,
+      fontStyle: extraProps['font-style'] == 'italic'
+          ? ui.FontStyle.italic
+          : ui.FontStyle.normal,
+      fontWeight: extraProps['font-weight'] == 'bold'
+          ? ui.FontWeight.bold
+          : ui.FontWeight.normal,
+    );
 
-  final builder = ui.ParagraphBuilder(ui.ParagraphStyle())
-    ..pushStyle(textStyle)
-    ..addText(text);
-
-  final paragraph = builder.build();
-  paragraph.layout(
-    ui.ParagraphConstraints(
-      width: maxWidth.isFinite ? maxWidth : double.infinity,
-    ),
-  );
-  return paragraph;
+    pushStyle(textStyle);
+    addText(text);
+    pop();
+  }
 }
 
 double _parseCssFontSize(dynamic fontSizeValue, double baseFontSize) {

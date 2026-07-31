@@ -32,12 +32,12 @@ class ChantScoreBody extends LeafRenderObjectWidget {
 class _ChantScoreRenderBox extends RenderBox {
   _ChantScoreRenderBox({required String gabc, required bool useDropCap})
     : _gabc = gabc,
+      _chantContext = ChantContext(),
       _useDropCap = useDropCap {
-    _chantContext = ChantContext();
     _rebuildScore();
   }
 
-  late final ChantContext _chantContext;
+  final ChantContext _chantContext;
   late ChantScore _score;
   String _gabc;
   bool _useDropCap;
