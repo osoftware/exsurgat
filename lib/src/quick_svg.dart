@@ -20,8 +20,6 @@ class QuickSvg {
   static const String xmlns = 'https://www.w3.org/2000/xmlns/';
   static const String xlink = 'http://www.w3.org/1999/xlink';
 
-  static bool hasDOMAccess() => true;
-
   static XmlElement svg(String width, String height) {
     final node = XmlElement(XmlName.parts('svg', namespaceUri: ns))
       ..setAttribute('xmlns', ns)
@@ -34,10 +32,6 @@ class QuickSvg {
     node.children.add(defs);
     return node;
   }
-
-  static XmlElement use(String nodeRef) =>
-      XmlElement(XmlName.parts('use', namespaceUri: ns))
-        ..setAttribute('xlink:href', '#$nodeRef');
 
   static String svgFragmentForGlyph(Glyph glyph) {
     final buffer = StringBuffer();
@@ -170,16 +164,6 @@ class QuickSvg {
     }
 
     return container;
-  }
-
-  static XmlElement translate(XmlElement node, String x, String y) {
-    node.setAttribute('transform', 'translate($x,$y)');
-    return node;
-  }
-
-  static XmlElement scale(XmlElement node, String sx, String sy) {
-    node.setAttribute('transform', 'scale($sx,$sy)');
-    return node;
   }
 
   static void clearNotations(XmlElement node) {
