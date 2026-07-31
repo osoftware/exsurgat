@@ -1043,12 +1043,15 @@ class ChantLine extends ChantLayoutElement {
           }
         }
 
-        final next = (extraTextOnlyIndex == null)
-            ? notations[notationsStartIndex + numNotationsOnLine]
-            : notations[extraTextOnlyIndex!];
-        if (next.hasLyrics &&
-            (next.lyrics[0].lyricType == LyricType.beginningSyllable ||
-                next.lyrics[0].lyricType == LyricType.singleSyllable)) {
+        final nextIndex =
+            extraTextOnlyIndex ?? notationsStartIndex + numNotationsOnLine;
+        final next = nextIndex < notations.length ? notations[nextIndex] : null;
+        if (next != null &&
+            next.hasLyrics &&
+            [
+              LyricType.beginningSyllable,
+              LyricType.singleSyllable,
+            ].contains(next.lyrics[0].lyricType)) {
           toJustify.add(next);
         }
 
