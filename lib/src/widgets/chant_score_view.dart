@@ -1,27 +1,31 @@
-import 'package:exsurgat/exsurgat.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
-/// Scrollable chant score with configurable width.
+import '../../exsurgat.dart';
+
+/// Scrollable chant score with configurable width and padding.
 class ChantScoreView extends StatelessWidget {
   const ChantScoreView({
     super.key,
     required this.gabc,
     this.useDropCap = true,
-    this.width = 600,
-    this.useNativeRendering = true,
+    this.width,
+    this.padding = const EdgeInsets.all(12),
   });
 
   final String gabc;
   final bool useDropCap;
-  final double width;
-  final bool useNativeRendering;
+  final double? width;
+  final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       child: SizedBox(
         width: width,
-        child: ChantScoreBody(gabc: gabc, useDropCap: useDropCap),
+        child: Padding(
+          padding: padding,
+          child: ChantScoreBody(gabc: gabc, useDropCap: useDropCap),
+        ),
       ),
     );
   }

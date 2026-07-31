@@ -1,3 +1,6 @@
+/// @docImport 'chant_score_view.dart';
+library;
+
 import 'package:flutter/widgets.dart';
 
 import '../chant_context.dart';
@@ -6,6 +9,7 @@ import '../chant_score.dart';
 import '../gabc.dart';
 
 /// Chant score fitting the width constrint of the parent widget.
+/// For scrollable widget see [ChantScoreView]
 class ChantScoreBody extends LeafRenderObjectWidget {
   const ChantScoreBody({super.key, required this.gabc, this.useDropCap = true});
 
@@ -66,13 +70,13 @@ class _ChantScoreRenderBox extends RenderBox {
       header: GabcHeader(_gabc),
       useDropCap: _useDropCap,
     );
+    _score.performLayout(_chantContext);
     _needsRebuild = false;
   }
 
   @override
   void performLayout() {
     if (_needsRebuild) _rebuildScore();
-    _score.performLayout(_chantContext);
     _score.layoutChantLines(_chantContext, constraints.maxWidth);
     size = constraints.constrain(
       Size(_score.bounds.width, _score.bounds.height),
