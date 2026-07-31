@@ -11,7 +11,7 @@ class AboveLinesText extends TextElement {
         (ctxt.textStyles['al']?['prefix'] ?? '') + text,
         (ctxt) => ctxt.textStyles['al']?['font'],
         (ctxt) => ctxt.textStyles['al']?['size'],
-        'start',
+        .start,
         sourceIndex,
         text,
       ) {

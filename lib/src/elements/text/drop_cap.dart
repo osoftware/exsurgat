@@ -10,7 +10,7 @@ class DropCap extends TextElement {
         (ctxt.textStyles['dropCap']?['prefix'] ?? '') + text,
         (ctxt) => ctxt.textStyles['dropCap']?['font'],
         (ctxt) => ctxt.textStyles['dropCap']?['size'],
-        'middle',
+        .center,
         sourceIndex,
         text,
       ) {

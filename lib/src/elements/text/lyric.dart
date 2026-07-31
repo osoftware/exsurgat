@@ -108,7 +108,7 @@ class Lyric extends TextElement {
          (ctxt.textStyles['lyric']?['prefix'] ?? '') + text,
          (ctxt) => ctxt.textStyles['lyric']?['font'],
          (ctxt) => ctxt.textStyles['lyric']?['size'],
-         'start',
+         .start,
          sourceIndex,
          text,
        ) {

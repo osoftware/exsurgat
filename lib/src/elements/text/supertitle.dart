@@ -9,7 +9,7 @@ class Supertitle extends TitleTextElement {
         (ctxt.textStyles['supertitle']?['prefix'] ?? '') + text,
         (ctxt) => ctxt.textStyles['supertitle']?['font'],
         (ctxt) => ctxt.textStyles['supertitle']?['size'],
-        'middle',
+        .center,
         sourceIndex,
         text,
       ) {

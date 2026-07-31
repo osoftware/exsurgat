@@ -8,18 +8,19 @@ class TextLeftRight extends TitleTextElement {
     String text,
     String type, [
     int sourceIndex = 0,
-  ]) : super(
+  ]) : extraClass = type == 'textLeft' ? 'textLeft' : 'textRight',
+       headerKey = type == 'textLeft' ? 'text-left' : 'text-right',
+       super(
          ctxt,
          (ctxt.textStyles['leftRight']?['prefix'] ?? '') + text,
          (ctxt) => ctxt.textStyles['leftRight']?['font'],
          (ctxt) => ctxt.textStyles['leftRight']?['size'],
-         type == 'textLeft' ? 'start' : 'end',
+         type == 'textLeft' ? .start : .end,
          sourceIndex,
          text,
        ) {
     textType = defaultChantTheme['leftRight']!;
-    extraClass = type == 'textLeft' ? 'textLeft' : 'textRight';
-    headerKey = type == 'textLeft' ? 'text-left' : 'text-right';
+
     padding = (ctxt) =>
         ((ctxt.textStyles['leftRight']?['padding'] as num? ?? 1).toDouble() *
             (ctxt.textStyles['leftRight']?['size'] as num? ?? 16).toDouble()) /

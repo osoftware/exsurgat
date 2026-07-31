@@ -36,7 +36,7 @@ abstract class TextElement extends ChantLayoutElement {
 
   final String Function(ChantContext ctxt) fontFamily;
   final double Function(ChantContext ctxt) fontSize;
-  String textAnchor;
+  TextAlign textAnchor;
   int sourceIndex;
   String sourceGabc;
   String dominantBaseline = 'baseline';
@@ -364,29 +364,6 @@ abstract class TextElement extends ChantLayoutElement {
     }
   }
 
-  String getCanvasFontForProperties(
-    ChantContext ctxt, [
-    Map<String, dynamic> properties = const {},
-  ]) {
-    final buffer = StringBuffer();
-    if (properties['font-style'] == 'italic') buffer.write('italic ');
-    if (properties['font-variant'] == 'small-caps') buffer.write('small-caps ');
-    if (properties['font-weight'] == 'bold') buffer.write('bold ');
-
-    var computedFontSize = fontSize(ctxt);
-    final fontSizeValue = properties['font-size'];
-    if (fontSizeValue is String && fontSizeValue.endsWith('%')) {
-      final percent = double.tryParse(fontSizeValue.replaceAll('%', '')) ?? 100;
-      computedFontSize = computedFontSize * percent / 100;
-    } else if (fontSizeValue is num) {
-      computedFontSize = fontSizeValue.toDouble();
-    }
-
-    buffer.write('${computedFontSize * (resize ?? 1)}px ');
-    buffer.write(properties['font-family'] ?? fontFamily(ctxt));
-    return buffer.toString();
-  }
-
   double measureSubstring(ChantContext ctxt, [int? length]) =>
       ctxt.textMeasurer.measureSubstring(this, ctxt, length);
 
@@ -417,7 +394,10 @@ abstract class TextElement extends ChantLayoutElement {
       'x': bounds.x,
       'y': bounds.y,
       'class': getCssClasses().trim(),
-      'text-anchor': textAnchor,
+      'text-anchor': switch (textAnchor) {
+        .center => 'middle',
+        _ => textAnchor.name,
+      },
     };
   }
 
@@ -526,11 +506,12 @@ abstract class TextElement extends ChantLayoutElement {
   @override
   void draw(ChantContext ctxt) {
     final canvas = ctxt.canvas;
-    final textAlign = textAnchor == 'middle'
-        ? TextAlign.center
-        : TextAlign.start;
     double translateWidth = 0.0;
-    final centerOffset = textAlign == .center ? bounds.width / 2 : 0;
+    final alignOffset = switch (textAnchor) {
+      .center => bounds.width / 2,
+      .right || .end => bounds.width,
+      _ => 0,
+    };
 
     canvas.save();
 
@@ -553,14 +534,11 @@ abstract class TextElement extends ChantLayoutElement {
       final paragraph = span.buildParagraph(
         ctxt,
         {...properties, ...span.properties},
-        textAlign,
+        textAnchor,
         resize,
       );
       paragraph.layout(ParagraphConstraints(width: bounds.width));
-      canvas.drawParagraph(
-        paragraph,
-        Offset(bounds.x - centerOffset, bounds.y),
-      );
+      canvas.drawParagraph(paragraph, Offset(bounds.x - alignOffset, bounds.y));
 
       final metricsWidth = paragraph.maxIntrinsicWidth;
       translateWidth -= metricsWidth;

@@ -13,7 +13,7 @@ class Annotation extends TextElement {
         (ctxt.textStyles['annotation']?['prefix'] ?? '') + text,
         (ctxt) => ctxt.textStyles['annotation']?['font'],
         (ctxt) => ctxt.textStyles['annotation']?['size'],
-        'middle',
+        .center,
         0, // sourceIndex not provided in JS constructor
         text,
       ) {

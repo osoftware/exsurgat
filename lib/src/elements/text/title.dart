@@ -9,7 +9,7 @@ class Title extends TitleTextElement {
         (ctxt.textStyles['title']?['prefix'] ?? '') + text,
         (ctxt) => ctxt.textStyles['title']?['font'],
         (ctxt) => ctxt.textStyles['title']?['size'],
-        'middle',
+        .center,
         sourceIndex,
         text,
       ) {

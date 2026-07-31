@@ -49,16 +49,16 @@ class Titles extends ChantLayoutElement {
     final alignment = style?['alignment'];
     switch (alignment) {
       case 'left':
-        element.textAnchor = 'start';
+        element.textAnchor = .start;
         element.bounds = element.bounds.copyWith(x: 0);
         break;
       case 'right':
-        element.textAnchor = 'end';
+        element.textAnchor = .end;
         element.bounds = element.bounds.copyWith(x: width);
         break;
       case 'center':
       default:
-        element.textAnchor = 'middle';
+        element.textAnchor = .center;
         element.bounds = element.bounds.copyWith(x: width / 2);
     }
   }

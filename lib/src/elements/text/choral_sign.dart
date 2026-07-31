@@ -12,7 +12,7 @@ class ChoralSign extends TextElement {
         (ctxt.textStyles['choralSign']?['prefix'] ?? '') + text,
         (ctxt) => ctxt.textStyles['choralSign']?['font'],
         (ctxt) => ctxt.textStyles['choralSign']?['size'],
-        'start',
+        .start,
         sourceIndex,
         text,
       ) {

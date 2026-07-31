@@ -9,7 +9,7 @@ class Subtitle extends TitleTextElement {
         (ctxt.textStyles['subtitle']?['prefix'] ?? '') + text,
         (ctxt) => ctxt.textStyles['subtitle']?['font'],
         (ctxt) => ctxt.textStyles['subtitle']?['size'],
-        'middle',
+        .center,
         sourceIndex,
         text,
       ) {

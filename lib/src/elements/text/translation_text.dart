@@ -16,7 +16,7 @@ class TranslationText extends TextElement {
             : (ctxt.textStyles['translation']?['prefix'] ?? '') + text,
         (ctxt) => ctxt.textStyles['translation']?['font'],
         (ctxt) => ctxt.textStyles['translation']?['size'],
-        text == '/' ? 'end' : 'start',
+        text == '/' ? .end : .start,
         sourceIndex,
         text,
       ) {
