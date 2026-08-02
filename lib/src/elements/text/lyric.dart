@@ -300,9 +300,7 @@ class Lyric extends TextElement {
 
   DropCap? generateDropCap(ChantContext ctxt) {
     if (dropCap != null) return dropCap;
-    if (spans.isEmpty ||
-        spans[0].properties['font-family'] ==
-            ctxt.specialCharProperties['font-family']) {
+    if (spans.isEmpty || ctxt.specialCharMap.containsKey(spans[0].text)) {
       return null;
     }
 
