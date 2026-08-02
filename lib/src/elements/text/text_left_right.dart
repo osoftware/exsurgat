@@ -1,5 +1,4 @@
 import '../../chant_context.dart';
-import '../../chant_theme.dart';
 import 'title_text_element.dart';
 
 class TextLeftRight extends TitleTextElement {
@@ -19,7 +18,7 @@ class TextLeftRight extends TitleTextElement {
          sourceIndex,
          text,
        ) {
-    textType = defaultChantTheme['leftRight']!;
+    textType = ctxt.theme.leftRight;
 
     padding = (ctxt) =>
         ((ctxt.textStyles['leftRight']?['padding'] as num? ?? 1).toDouble() *

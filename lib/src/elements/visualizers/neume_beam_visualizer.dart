@@ -66,7 +66,7 @@ class NeumeBeamVisualizer extends ChantLayoutElement {
         (points['y1'] as double) + ((points['height'] as double) / 2),
       )
       ..close();
-    final paint = Paint()..color = ctxt.neumeLineColor;
+    final paint = Paint()..color = ctxt.theme.neumeLineColor;
     ctxt.canvas.drawPath(path, paint);
   }
 
@@ -93,7 +93,7 @@ class NeumeBeamVisualizer extends ChantLayoutElement {
           '${points['x0']},${points['y0'] - points['height'] / 2} '
           '${points['x1']},${points['y1'] - points['height'] / 2} '
           '${points['x1']},${points['y1'] + points['height'] / 2}',
-      'fill': ctxt.neumeLineColor.toSvgString(),
+      'fill': ctxt.theme.neumeLineColor.toSvgString(),
       'class': 'neumeBeam',
     };
   }

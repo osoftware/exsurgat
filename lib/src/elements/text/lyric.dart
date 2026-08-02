@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 
 import '../../chant_context.dart';
-import '../../chant_theme.dart';
 import '../../core.dart';
 import '../../language.dart';
 import '../notation/chant_notation_element.dart';
@@ -112,7 +111,7 @@ class Lyric extends TextElement {
          sourceIndex,
          text,
        ) {
-    textType = defaultChantTheme['lyric']!;
+    textType = ctxt.theme.lyric;
     originalText = text;
     centerStartIndex = -1;
     centerLength = text.length;
@@ -348,7 +347,7 @@ class Lyric extends TextElement {
       super.getExtraStyleProperties(ctxt),
     );
     if (lyricType == LyricType.directive && ctxt.autoColor) {
-      props['fill'] = ctxt.rubricColor;
+      props['fill'] = ctxt.theme.rubricColor;
     }
     return props;
   }

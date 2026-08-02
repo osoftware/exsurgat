@@ -1,5 +1,4 @@
 import '../../chant_context.dart';
-import '../../chant_theme.dart';
 import '../../core.dart';
 import '../notation/neumes/note.dart';
 import 'text_element.dart';
@@ -16,7 +15,7 @@ class ChoralSign extends TextElement {
         sourceIndex,
         text,
       ) {
-    textType = defaultChantTheme['choralSign']!;
+    textType = ctxt.theme.choralSign;
   }
 
   MarkingPositionHint positionHint = MarkingPositionHint.defaultHint;

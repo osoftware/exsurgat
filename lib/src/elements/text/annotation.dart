@@ -1,5 +1,4 @@
 import '../../chant_context.dart';
-import '../../chant_theme.dart';
 import 'text_element.dart';
 
 class Annotation extends TextElement {
@@ -17,7 +16,7 @@ class Annotation extends TextElement {
         0, // sourceIndex not provided in JS constructor
         text,
       ) {
-    textType = defaultChantTheme['annotation']!;
+    textType = ctxt.theme.annotation;
     dominantBaseline = 'hanging';
   }
 

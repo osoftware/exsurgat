@@ -102,15 +102,16 @@ class ChantLine extends ChantLayoutElement {
   void performLayout(ChantContext ctxt) {
     final staffSpaces = this.staffSpaces;
     final staffLineCount = score.staffLineCount;
+    final theme = ctxt.theme;
     notationBounds = Rect.fromXYWH(
       staffLeft,
       -(ctxt.staffLineWeight / 2 +
               staffLineCount * 2 -
               1 +
-              ctxt.minSpaceAboveStaff) *
+              theme.minSpaceAboveStaff) *
           ctxt.staffInterval,
       staffRight - staffLeft,
-      (ctxt.staffLineWeight + (staffSpaces * 2) + ctxt.minSpaceAboveStaff) *
+      (ctxt.staffLineWeight + (staffSpaces * 2) + theme.minSpaceAboveStaff) *
           ctxt.staffInterval,
     );
 
@@ -189,7 +190,7 @@ class ChantLine extends ChantLayoutElement {
     }
 
     final notationBoundsOffset =
-        notationBounds.bottom + ctxt.minSpaceBelowStaff * ctxt.staffInterval;
+        notationBounds.bottom + theme.minSpaceBelowStaff * ctxt.staffInterval;
     lyricLineBaseline += notationBoundsOffset;
     translationLineBaseline += notationBoundsOffset;
     altLineBaseline +=
@@ -344,7 +345,8 @@ class ChantLine extends ChantLayoutElement {
       0,
       -ctxt.staffInterval,
       0,
-      (ctxt.staffLineWeight / 2 + ctxt.minSpaceBelowStaff) * ctxt.staffInterval,
+      (ctxt.staffLineWeight / 2 + theme.minSpaceBelowStaff) *
+          ctxt.staffInterval,
     );
     double totalHeight = notationBounds.height;
 
@@ -386,7 +388,7 @@ class ChantLine extends ChantLayoutElement {
 
       canvas.beginPath(
           strokeWidth: ctxt.staffLineWeight,
-          color: ctxt.staffLineColor,
+          color: ctxt.theme.staffLineColor,
         )
         ..moveTo(x1, y)
         ..lineTo(x2, y)
@@ -403,7 +405,7 @@ class ChantLine extends ChantLayoutElement {
 
       canvas.beginPath(
           strokeWidth: ctxt.staffLineWeight,
-          color: ctxt.staffLineColor,
+          color: ctxt.theme.staffLineColor,
         )
         ..moveTo(ledgerLine.x1, y)
         ..lineTo(ledgerLine.x2, y)
@@ -465,7 +467,7 @@ class ChantLine extends ChantLayoutElement {
           'y1': ctxt.staffInterval * i,
           'x2': x2,
           'y2': ctxt.staffInterval * i,
-          'stroke': ctxt.staffLineColor.toSvgString(),
+          'stroke': ctxt.theme.staffLineColor.toSvgString(),
           'stroke-width': ctxt.staffLineWeight,
           'class': 'staffLine',
         }),
@@ -490,7 +492,7 @@ class ChantLine extends ChantLayoutElement {
           'y1': y,
           'x2': ledgerLine.x2,
           'y2': y,
-          'stroke': ctxt.staffLineColor.toSvgString(),
+          'stroke': ctxt.theme.staffLineColor.toSvgString(),
           'stroke-width': ctxt.staffLineWeight,
           'class': 'ledgerLine',
         }),
@@ -584,7 +586,7 @@ class ChantLine extends ChantLayoutElement {
         'y1': ctxt.staffInterval * i,
         'x2': x2,
         'y2': ctxt.staffInterval * i,
-        'stroke': ctxt.staffLineColor.toSvgString(),
+        'stroke': ctxt.theme.staffLineColor.toSvgString(),
         'stroke-width': ctxt.staffLineWeight,
         'class': 'staffLine',
       });
@@ -605,7 +607,7 @@ class ChantLine extends ChantLayoutElement {
         'y1': y,
         'x2': ledgerLine.x2,
         'y2': y,
-        'stroke': ctxt.staffLineColor.toSvgString(),
+        'stroke': ctxt.theme.staffLineColor.toSvgString(),
         'stroke-width': ctxt.staffLineWeight,
         'class': 'ledgerLine',
       });
@@ -679,7 +681,7 @@ class ChantLine extends ChantLayoutElement {
 
     return QuickSvg.createFragment('path', {
       'd': d,
-      'stroke': ctxt.neumeLineColor.toSvgString(),
+      'stroke': ctxt.theme.neumeLineColor.toSvgString(),
       'stroke-width': '${ctxt.neumeLineWeight}px',
       'fill': 'none',
     });
@@ -1560,6 +1562,7 @@ class ChantLine extends ChantLayoutElement {
   }
 
   void finishLayout(ChantContext ctxt) {
+    final theme = ctxt.theme;
     ledgerLines = [];
 
     final notations = score.notations;
@@ -1588,7 +1591,7 @@ class ChantLine extends ChantLayoutElement {
         }
 
         final minLedgerSeparation =
-            ctxt.staffInterval * ctxt.minLedgerSeparation;
+            ctxt.staffInterval * theme.minLedgerSeparation;
 
         if (ledgerLines.isNotEmpty &&
             ledgerLines.last.x2 + minLedgerSeparation >= x1) {

@@ -1,5 +1,4 @@
 import '../../chant_context.dart';
-import '../../chant_theme.dart';
 import 'title_text_element.dart';
 
 class Title extends TitleTextElement {
@@ -13,7 +12,7 @@ class Title extends TitleTextElement {
         sourceIndex,
         text,
       ) {
-    textType = defaultChantTheme['title']!;
+    textType = ctxt.theme.title;
     padding = (ctxt) =>
         ((ctxt.textStyles['title']?['padding'] as num? ?? 1).toDouble() *
             (ctxt.textStyles['title']?['size'] as num? ?? 16).toDouble()) /

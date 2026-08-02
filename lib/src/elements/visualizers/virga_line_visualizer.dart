@@ -23,7 +23,7 @@ class VirgaLineVisualizer extends ChantLayoutElement {
 
   @override
   void draw(ChantContext ctxt) {
-    final paint = Paint()..color = ctxt.neumeLineColor;
+    final paint = Paint()..color = ctxt.theme.neumeLineColor;
     ctxt.canvas.drawRect(
       Rect.fromLTRB(
         bounds.x,
@@ -56,7 +56,7 @@ class VirgaLineVisualizer extends ChantLayoutElement {
       'y': bounds.y,
       'width': ctxt.neumeLineWeight,
       'height': bounds.height,
-      'fill': ctxt.neumeLineColor.toSvgString(),
+      'fill': ctxt.theme.neumeLineColor.toSvgString(),
       'class': 'neumeLine',
     };
   }

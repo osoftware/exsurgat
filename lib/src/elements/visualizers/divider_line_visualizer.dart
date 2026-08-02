@@ -30,7 +30,7 @@ class DividerLineVisualizer extends ChantLayoutElement {
 
   @override
   void draw(ChantContext ctxt) {
-    final paint = Paint()..color = ctxt.dividerLineColor;
+    final paint = Paint()..color = ctxt.theme.dividerLineColor;
     final rect = Rect.fromLTWH(
       bounds.x,
       bounds.y,
@@ -61,7 +61,7 @@ class DividerLineVisualizer extends ChantLayoutElement {
       'y': bounds.y,
       'width': ctxt.dividerLineWeight,
       'height': bounds.height,
-      'fill': ctxt.dividerLineColor.toSvgString(),
+      'fill': ctxt.theme.dividerLineColor.toSvgString(),
       'class': 'dividerLine',
     };
     if (divider != null) {

@@ -444,7 +444,8 @@ abstract class TextElement extends ChantLayoutElement {
       options.addAll({
         for (final c in (options['class'] as String).split(" "))
           if (ts.containsKey(c)) ...{
-            'fill': (ts[c]['color'] as Color? ?? ctxt.textColor).toSvgString(),
+            'fill': (ts[c]['color'] as Color? ?? ctxt.theme.textColor)
+                .toSvgString(),
             'font-family': ts[c]['font'] ?? 'serif',
             'font-size': ts[c]['size'] ?? 16,
           },
@@ -625,7 +626,7 @@ class TextSpan {
         .map((f) => f.replaceAll(RegExp(r"^'|'$"), ''))
         .toList();
     return TextStyle(
-      color: _colorFromCss(props['fill'], ctxt.textColor),
+      color: _colorFromCss(props['fill'], ctxt.theme.textColor),
       fontFamilyFallback: fontFamily,
       fontSize: fontSize * (resize ?? 1),
       fontStyle: props['font-style'] == 'italic'

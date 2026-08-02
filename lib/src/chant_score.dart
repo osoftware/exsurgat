@@ -443,7 +443,8 @@ class ChantScore {
 
     ctxt.activeClef = startingClef;
 
-    final spaceBetweenSystems = ctxt.staffInterval * ctxt.spaceBetweenSystems;
+    final spaceBetweenSystems =
+        ctxt.staffInterval * ctxt.theme.spaceBetweenSystems;
 
     do {
       final line = ChantLine(this);

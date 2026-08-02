@@ -1,5 +1,4 @@
 import '../../chant_context.dart';
-import '../../chant_theme.dart';
 import '../chant_layout_element.dart';
 import 'text_element.dart';
 
@@ -15,7 +14,7 @@ class AboveLinesText extends TextElement {
         sourceIndex,
         text,
       ) {
-    textType = defaultChantTheme['al']!;
+    textType = ctxt.theme.aboveLine;
   }
 
   ChantLayoutElement notation;

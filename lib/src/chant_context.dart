@@ -19,27 +19,18 @@ class ChantContext {
   ChantContext({
     TextMeasuringStrategy textMeasuringStrategy = TextMeasuringStrategy.canvas,
     this.stylingMode = StylingMode.attributes,
-  }) {
-    textMeasurer = TextMeasurer.create(textMeasuringStrategy);
-    getFontFilenameForProperties = resolveFontFilenameForProperties;
-    specialCharText = (String char) => specialCharMap[char] ?? char;
-    defsNode = QuickSvg.createNode('defs');
-
-    setFont("'Palatino Linotype', 'Book Antiqua', Palatino, serif", 16);
-
-    specialCharProperties.addAll({
-      'font-family': "'Exsurge Characters'",
-      'fill': rubricColor,
-      'class': 'rubric',
-    });
-    specialCharText = (String char) => specialCharMap[char] ?? char;
+    ChantTheme? theme,
+  }) : textMeasurer = TextMeasurer.create(textMeasuringStrategy),
+       defsNode = QuickSvg.createNode('defs') {
+    specialCharProperties.addAll({'class': 'rubric'});
+    specialCharText = (c) => c;
 
     fontStyleDictionary.addAll({
       'b': {'font-weight': 'bold'},
       'i': {'font-style': 'italic'},
       'u': {'text-decoration': 'underline'},
       'ul': {'text-decoration': 'underline'},
-      'c': {'fill': rubricColor, 'class': 'rubric'},
+      'c': {'class': 'rubric'},
       'sc': {'font-variant': 'small-caps'},
       'v': {},
       'e': {'font-style': 'italic', 'font-size': '90%'},
@@ -60,24 +51,29 @@ class ChantContext {
 
     activeClef = null;
 
+    this.theme = theme ?? ChantTheme();
     setGlyphScaling(1.0 / 16.0);
 
     setMergeAnnotationWithTextLeft(true);
+  }
+
+  late ChantTheme _theme;
+  ChantTheme get theme => _theme;
+  set theme(ChantTheme value) {
+    _theme = value;
+    _setFont(_theme);
+    _setRubricColor(_theme.rubricColor);
   }
 
   StylingMode stylingMode;
   final Map<String, dynamic> fontDictionary = {};
   int staffLineCount = 4;
   late TextMeasurer textMeasurer;
-  late String Function(Map<String, dynamic> properties, [String? fontFamily])
-  getFontFilenameForProperties;
   final Map<String, dynamic> defs = {};
   final List<SvgTreeNode Function()> makeDefs = [];
   late final XmlElement defsNode;
 
   final Map<String, dynamic> textStyles = {};
-  Color textColor = ChantColors.nigric;
-  Color rubricColor = ChantColors.rubric;
   final Map<String, dynamic> specialCharProperties = {};
   String textBeforeSpecialChar = '';
   String textAfterSpecialChar = '.';
@@ -98,17 +94,11 @@ class ChantContext {
     '%': 'sc',
   };
 
-  double minLedgerSeparation = 2;
-  double minSpaceAboveStaff = 2;
-  double minSpaceBelowStaff = 1;
-  double spaceBetweenSystems = 1.5;
-  double glyphPunctumWidth = 0;
-  double glyphPunctumHeight = 0;
+  late double glyphPunctumWidth;
+  late double glyphPunctumHeight;
   double maxExtraSpaceInStaffIntervals = 0.5;
   Clef? activeClef;
-  Color neumeLineColor = ChantColors.nigric;
-  Color staffLineColor = ChantColors.rubric;
-  Color dividerLineColor = ChantColors.nigric;
+
   Language defaultLanguage = Latin();
   String syllableConnector = '-';
   bool scaleDefs = true;
@@ -143,8 +133,6 @@ class ChantContext {
 
   late Canvas canvas;
 
-  double pixelRatio = 1.0;
-
   BracePoint? lastStartBrace;
 
   int convertStaffPositionToSymmetric(int staffPosition) =>
@@ -153,49 +141,26 @@ class ChantContext {
   int convertSymmetricStaffPosition(int staffPositionSymmetric) =>
       staffPositionSymmetric + staffLineCount;
 
-  dynamic getFontForProperties([
-    Map<String, dynamic> properties = const <String, dynamic>{},
-    String? fontFamily,
-  ]) {
-    final keyWithFontFamily = getFontFilenameForProperties(
-      properties,
-      fontFamily,
-    );
-    return fontDictionary[keyWithFontFamily] ??
-        fontDictionary[fontFamily ?? ''] ??
-        fontDictionary['Regular'];
-  }
-
-  void setFont(
-    String font, [
-    double size = 16,
-    Map<String, dynamic> baseStyle = const {},
-    Map<String, dynamic>? fontDictionary,
-  ]) {
-    for (final entry in defaultChantTheme.entries) {
+  void _setFont(ChantTheme theme) {
+    for (final entry in theme.textStyles.entries) {
       final textStyle = textStyles[entry.key] ?? <String, dynamic>{};
       textStyles[entry.key] = textStyle;
       textStyle['size'] =
-          entry.value.defaultSize?.call(size) ??
+          entry.value.defaultSize?.call(theme.baseTextStyle.size) ??
           entry.value.size?.call(this) ??
-          size;
-      textStyle['font'] = font;
-      textStyle['color'] = textColor;
+          theme.baseTextStyle.size;
+      textStyle['font'] = theme.baseTextStyle.font;
+      textStyle['color'] = theme.textColor;
     }
 
-    baseTextStyle = baseStyle;
-
-    if (fontDictionary != null) {
-      this.fontDictionary.addAll(fontDictionary);
-    }
+    baseTextStyle = theme.baseTextStyle.baseStyle;
   }
 
   set textMeasuringStrategy(TextMeasuringStrategy strategy) {
     textMeasurer = TextMeasurer.create(strategy);
   }
 
-  void setRubricColor(Color color) {
-    rubricColor = color;
+  void _setRubricColor(Color color) {
     specialCharProperties['fill'] = color;
     fontStyleDictionary['c']?['fill'] = color;
   }
@@ -214,10 +179,10 @@ class ChantContext {
 
   String createStyleCss() {
     final buffer = StringBuffer();
-    for (final entry in defaultChantTheme.entries) {
+    for (final entry in theme.textStyles.entries) {
       final style = textStyles[entry.key] ?? {};
       final cssClass = entry.value.cssClass;
-      final color = (style['color'] as Color? ?? textColor).toSvgString();
+      final color = (style['color'] as Color? ?? theme.textColor).toSvgString();
       final font = style['font'] ?? 'serif';
       final size = style['size'] ?? 16;
       buffer.writeln(

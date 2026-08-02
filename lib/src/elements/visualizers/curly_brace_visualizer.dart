@@ -65,7 +65,7 @@ class CurlyBraceVisualizer extends ChantLayoutElement {
         points['y'] as double,
       );
     final paint = Paint()
-      ..color = ctxt.neumeLineColor
+      ..color = ctxt.theme.neumeLineColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = ctxt.staffLineWeight;
     ctxt.canvas.drawPath(path, paint);
@@ -141,7 +141,7 @@ class CurlyBraceVisualizer extends ChantLayoutElement {
   Map<String, dynamic> getSvgPathProps(ChantContext ctxt) {
     return <String, dynamic>{
       'd': generatePathString(),
-      'stroke': ctxt.neumeLineColor.toSvgString(),
+      'stroke': ctxt.theme.neumeLineColor.toSvgString(),
       'stroke-width': '${ctxt.staffLineWeight}px',
       'fill': 'none',
       'class': 'brace',

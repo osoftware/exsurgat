@@ -1,12 +1,5 @@
 import 'dart:ui';
 
-String resolveFontFilenameForProperties(
-  Map<String, dynamic> properties, [
-  String? fontFamily,
-]) {
-  return fontFamily ?? 'Regular';
-}
-
 extension CanvasPathBuilderExtension on Canvas {
   CanvasPathBuilder beginPath({
     required double strokeWidth,

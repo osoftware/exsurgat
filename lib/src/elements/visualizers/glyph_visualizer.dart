@@ -98,7 +98,7 @@ class GlyphVisualizer extends ChantLayoutElement {
       final paint = Paint()
         ..color = path.type == 'negative'
             ? const Color(0xFFFFFFFF)
-            : ctxt.neumeLineColor;
+            : ctxt.theme.neumeLineColor;
       ctxt.canvas.drawPath(_parseSvgPath(path.data), paint);
     }
 
