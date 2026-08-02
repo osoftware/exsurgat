@@ -21,3 +21,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: greextra
+      fonts:
+        - asset: packages/exsurgat/fonts/greextra.otf
