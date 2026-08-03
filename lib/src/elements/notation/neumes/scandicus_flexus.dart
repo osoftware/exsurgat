@@ -28,7 +28,7 @@ class ScandicusFlexus extends Neume {
 
     if (third.shape == NoteShape.virga) {
       build(ctxt)
-        ..withPodatus(upper: first, lower: second)
+        ..withPodatus(lower: first, upper: second)
         ..advanceBy(ctxt.intraNeumeSpacing)
         ..withClivis(upper: third, lower: fourth);
     } else {
