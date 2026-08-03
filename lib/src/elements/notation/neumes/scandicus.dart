@@ -24,7 +24,9 @@ class Scandicus extends Neume {
     final third = notes[2];
 
     if (third.shape == NoteShape.virga) {
-      build(ctxt).withPodatus(upper: first, lower: second).virgaAt(third);
+      build(ctxt)
+        ..withPodatus(upper: first, lower: second)
+        ..virgaAt(third);
     } else {
       build(ctxt)
         ..noteAt(

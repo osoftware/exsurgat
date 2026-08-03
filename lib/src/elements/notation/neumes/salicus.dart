@@ -20,7 +20,7 @@ class Salicus extends Neume {
     final second = notes[1];
     final third = notes[2];
 
-    final builder = build(ctxt).noteAt(first, GlyphCode.punctumQuadratum);
+    final builder = build(ctxt)..noteAt(first, GlyphCode.punctumQuadratum);
 
     if (!(hasFlag(second.shapeModifiers, NoteShapeModifiers.stemmed))) {
       builder.advanceBy(ctxt.intraNeumeSpacing);

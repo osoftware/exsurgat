@@ -20,7 +20,7 @@ class NeumeBuilder {
   NeumeBuilder(this.ctxt, this.neume, {this.x = 0});
 
   /// Used to start a hanging line on the left of the next note
-  NeumeBuilder lineFrom(Note note) {
+  void lineFrom(Note note) {
     final previousNotation = ctxt.currNotationIndex - 1 >= 0
         ? ctxt.notations[ctxt.currNotationIndex - 1]
         : null;
@@ -34,11 +34,10 @@ class NeumeBuilder {
       lastNote = note;
       lineIsHanging = true;
     }
-    return this;
   }
 
   /// Add a note, with a connecting line on the left if we have one
-  NeumeBuilder noteAt(Note note, GlyphCode glyph, {bool withLineTo = true}) {
+  void noteAt(Note note, GlyphCode glyph, {bool withLineTo = true}) {
     note.setGlyph(ctxt, glyph);
     final noteAlignsRight = note.glyphVisualizer!.align == 'right';
 
@@ -79,13 +78,11 @@ class NeumeBuilder {
 
     lastNote = note;
     lineIsHanging = false;
-
-    return this;
   }
 
   /// A special form of noteAt that creates a virga
   /// Uses a punctum cuadratum and a line rather than the virga glyphs
-  NeumeBuilder virgaAt(Note note, {bool withLineTo = true}) {
+  void virgaAt(Note note, {bool withLineTo = true}) {
     // Add the punctum for the virga
     noteAt(note, GlyphCode.punctumQuadratum);
 
@@ -101,20 +98,17 @@ class NeumeBuilder {
 
     lastNote = note;
     lineIsHanging = false;
-
-    return this;
   }
 
-  NeumeBuilder advanceBy(double xValue) {
+  void advanceBy(double xValue) {
     lastNote = null;
     lineIsHanging = false;
     x += xValue;
-    return this;
   }
 
   /// For terminating hanging lines with no lower notes
-  NeumeBuilder withLineEndingAt(Note note) {
-    if (lastNote == null) return this;
+  void withLineEndingAt(Note note) {
+    if (lastNote == null) return;
 
     final line = NeumeLineVisualizer(ctxt, lastNote!, note, true);
     neume.addVisualizer(line);
@@ -124,11 +118,9 @@ class NeumeBuilder {
     neume.addVisualizer(line);
 
     lastNote = note;
-
-    return this;
   }
 
-  NeumeBuilder withPodatus({required Note lower, required Note upper}) {
+  void withPodatus({required Note lower, required Note upper}) {
     GlyphCode upperGlyph;
     GlyphCode lowerGlyph;
 
@@ -162,14 +154,13 @@ class NeumeBuilder {
       lowerGlyph = GlyphCode.quilisma;
     }
 
-    noteAt(lower, lowerGlyph).noteAt(upper, upperGlyph);
+    noteAt(lower, lowerGlyph);
+    noteAt(upper, upperGlyph);
 
     lastNote = null;
-
-    return this;
   }
 
-  NeumeBuilder withClivisUpper({
+  void withClivisUpper({
     required Note upper,
     Note? lower,
     GlyphCode glyph = GlyphCode.punctumQuadratum,
@@ -186,10 +177,9 @@ class NeumeBuilder {
       }
       noteAt(upper, glyph);
     }
-    return this;
   }
 
-  NeumeBuilder withClivisLower(Note lower) {
+  void withClivisLower(Note lower) {
     GlyphCode lowerGlyph;
     if (hasFlag(lower.liquescent, LiquescentType.small)) {
       lowerGlyph = GlyphCode.terminatingDesLiquescent;
@@ -201,20 +191,18 @@ class NeumeBuilder {
       lowerGlyph = GlyphCode.punctumQuadratum;
     }
 
-    return noteAt(lower, lowerGlyph);
+    noteAt(lower, lowerGlyph);
   }
 
-  NeumeBuilder withClivis({required Note upper, required Note lower}) {
+  void withClivis({required Note upper, required Note lower}) {
     withClivisUpper(upper: upper, lower: lower);
     withClivisLower(lower);
 
     lastNote = null;
-
-    return this;
   }
 
   /// Lays out a sequence of notes that are inclinata (e.g., climacus, pes subpunctis)
-  NeumeBuilder withInclinata(List<Note> notes) {
+  void withInclinata(List<Note> notes) {
     double staffPosition = notes[0].staffPosition.toDouble();
     double prevStaffPosition = notes[0].staffPosition.toDouble();
 
@@ -306,11 +294,9 @@ class NeumeBuilder {
         neume.addVisualizer(beams);
       }
     }
-
-    return this;
   }
 
-  NeumeBuilder withPorrectusSwash({required Note start, required Note end}) {
+  void withPorrectusSwash({required Note start, required Note end}) {
     final needsLine =
         lastNote != null &&
         (lineIsHanging ||
@@ -358,7 +344,5 @@ class NeumeBuilder {
 
     lastNote = end;
     lineIsHanging = false;
-
-    return this;
   }
 }

@@ -27,7 +27,7 @@ class SalicusFlexus extends Neume {
     final third = notes[2];
     final fourth = notes[3];
 
-    final builder = build(ctxt).noteAt(first, GlyphCode.punctumQuadratum);
+    final builder = build(ctxt)..noteAt(first, GlyphCode.punctumQuadratum);
 
     if (!(hasFlag(second.shapeModifiers, NoteShapeModifiers.stemmed))) {
       builder.advanceBy(ctxt.intraNeumeSpacing);

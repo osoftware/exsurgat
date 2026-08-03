@@ -23,7 +23,7 @@ class PesQuassus extends Neume {
       lowerGlyph = GlyphCode.punctumQuadratum;
     }
 
-    final builder = build(ctxt).noteAt(lower, lowerGlyph);
+    final builder = build(ctxt)..noteAt(lower, lowerGlyph);
 
     if (upperStaffPos - lowerStaffPos == 1) {
       builder.virgaAt(upper);
