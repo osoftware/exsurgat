@@ -42,7 +42,7 @@ class ScandicusFlexus extends Neume {
 
       build(ctxt)
         ..noteAt(first, GlyphCode.punctumQuadratum)
-        ..withPodatus(upper: second, lower: third)
+        ..withPodatus(lower: second, upper: third)
         ..advanceBy(ctxt.intraNeumeSpacing)
         ..noteAt(fourth, fourthGlyph);
     }

@@ -33,7 +33,7 @@ class Scandicus extends Neume {
               ? GlyphCode.quilisma
               : GlyphCode.punctumQuadratum,
         )
-        ..withPodatus(upper: second, lower: third);
+        ..withPodatus(lower: second, upper: third);
     }
 
     finishLayout(ctxt);
