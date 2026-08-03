@@ -66,39 +66,6 @@ abstract class TextMeasurer {
     final to = measureSubstring(textElement, ctxt, startIndex ?? 0);
     return from - to;
   }
-
-  void recalculateMetrics(
-    TextElement textElement,
-    ChantContext ctxt, [
-    bool resetNewLines = true,
-  ]) {
-    if (resetNewLines) {
-      // TODO: inspect what to reset
-      textElement.setMaxWidth(ctxt, double.infinity);
-      for (final span in textElement.spans) {
-        span.xOffset = null;
-        if (span.newLine != null) {
-          span.newLine = null;
-          span.text = " ${span.text}"; // TODO: WTF
-        }
-      }
-    }
-
-    textElement.bounds = textElement.bounds.copyWith(x: 0, y: 0);
-    textElement.origin = Point(0, textElement.origin.y);
-
-    final bbox = measureTextBounds(textElement, ctxt);
-    textElement.bounds = textElement.bounds.copyWith(
-      width: bbox.width,
-      height: bbox.height,
-    );
-    textElement.origin = Point(-bbox.x, -bbox.y);
-
-    textElement.numLines = textElement.spans.fold(
-      1,
-      (acc, s) => acc + (s.newLine ?? 0),
-    );
-  }
 }
 
 final class CanvasTextMeasurerStrategy extends TextMeasurer {
@@ -125,7 +92,7 @@ final class CanvasTextMeasurerStrategy extends TextMeasurer {
         'base-font-family': textElement.fontFamily(ctxt),
         'base-font-size': textElement.fontSize(ctxt),
       };
-      if (span.newLine != null) builder.addText('\n');
+      builder.addText('\n' * span.newLine);
       builder.addTextSpan(ctxt, t, props, textElement.resize);
 
       consumed += t.length;
@@ -193,7 +160,7 @@ final class SvgTextMeasurerStrategy extends TextMeasurer {
         baseline = p.alphabeticBaseline;
       }
 
-      cur = span.newLine != null
+      cur = span.newLine > 0
           ? Rect.fromXYWH(0, prev.bottom, width, height)
           : Rect.fromXYWH(
               prev.right,

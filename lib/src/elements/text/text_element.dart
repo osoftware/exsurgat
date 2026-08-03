@@ -52,6 +52,8 @@ abstract class TextElement extends ChantLayoutElement {
   TextSpan? connectorSpan;
   double? resize;
 
+  late double firstLineMaxWidth;
+
   String getCssClasses() => textType.cssClass;
   Map<String, dynamic> getExtraStyleProperties(ChantContext ctxt) =>
       ctxt.baseTextStyle;
@@ -103,7 +105,7 @@ abstract class TextElement extends ChantLayoutElement {
         index,
       );
       spans.add(span);
-      if (newLineInNextSpan != 0) {
+      if (newLineInNextSpan > 0) {
         span.newLine = newLineInNextSpan;
         newLineInNextSpan = 0;
       }
@@ -367,22 +369,102 @@ abstract class TextElement extends ChantLayoutElement {
   double measureSubstring(ChantContext ctxt, [int? length]) =>
       ctxt.textMeasurer.measureSubstring(this, ctxt, length);
 
-  void recalculateMetrics(ChantContext ctxt, [bool resetNewLines = true]) =>
-      ctxt.textMeasurer.recalculateMetrics(this, ctxt, resetNewLines);
+  void recalculateMetrics(ChantContext ctxt, [bool resetNewLines = true]) {
+    if (resetNewLines) {
+      for (final span in spans) {
+        span.xOffset = null;
+        if (span.newLine > 0) {
+          span.newLine = 0;
+          span.text = " ${span.text}";
+        }
+      }
+    }
 
-  // TODO: hallucination
+    bounds = bounds.copyWith(x: 0, y: 0);
+    origin = core.Point(0, origin.y);
+
+    final bbox = ctxt.textMeasurer.measureTextBounds(this, ctxt);
+    bounds = bounds.copyWith(width: bbox.width, height: bbox.height);
+    origin = core.Point(-bbox.x, -bbox.y);
+
+    numLines = spans.fold(1, (acc, s) => acc + s.newLine);
+  }
+
   void setMaxWidth(
     ChantContext ctxt,
     double maxWidth, [
-    double firstLineMaxWidth = double.nan,
+    double firstLineMaxWidth = -1,
   ]) {
-    if (spans.any((s) => s.newLine != null)) {
+    if (spans.any((s) => s.newLine > 0)) {
       recalculateMetrics(ctxt);
     }
     if (bounds.width > maxWidth) {
       final percentage = maxWidth / bounds.width;
       if (this is Lyric && percentage >= 0.85) {
         resize = percentage;
+      } else {
+        if (firstLineMaxWidth < 0) firstLineMaxWidth = maxWidth;
+        this.firstLineMaxWidth = firstLineMaxWidth;
+        RegExpMatch? lastMatch;
+        final regex = RegExp(r'\s+|$', multiLine: true);
+        double max = firstLineMaxWidth;
+        for (final match in regex.allMatches(text)) {
+          if (lastMatch == null || match.start > lastMatch.start) {
+            var width = measureSubstring(ctxt, match.start);
+            if (width > max && lastMatch != null) {
+              var spanIndex = 0, length = 0;
+              while (length < lastMatch.start && spanIndex < spans.length) {
+                var span = spans[spanIndex++];
+                length += span.text.length + span.newLine;
+              }
+              if (length > lastMatch.start || spanIndex >= spans.length) {
+                var span = spans[--spanIndex];
+                length -= span.text.length;
+              }
+              var splitSpan = spans[spanIndex];
+              var textLeft = splitSpan.text.substring(
+                0,
+                lastMatch.start - length,
+              );
+
+              rightAligned =
+                  max == firstLineMaxWidth && firstLineMaxWidth != maxWidth;
+              final newSpans = [
+                TextSpan(
+                  textLeft,
+                  splitSpan.propertyArray,
+                  splitSpan.activeTags,
+                ),
+              ];
+              if (lastMatch.start + lastMatch[0]!.length - length <
+                  splitSpan.text.length) {
+                final textRight = splitSpan.text.substring(
+                  lastMatch.start + lastMatch[0]!.length - length,
+                );
+                newSpans.add(
+                  TextSpan(
+                    textRight,
+                    splitSpan.propertyArray,
+                    splitSpan.activeTags,
+                    0,
+                    {'newLine': 1},
+                  ),
+                );
+              } else if (spans.length > spanIndex + 1) {
+                spans[spanIndex + 1].newLine = 1;
+              }
+              spans.replaceRange(spanIndex, spanIndex + 1, newSpans);
+              needsLayout = true;
+              max = maxWidth;
+              if (match.start == text.length ||
+                  measureSubstring(ctxt) <= maxWidth) {
+                break;
+              }
+              width = 0;
+            }
+            lastMatch = match;
+          }
+        }
       }
       recalculateMetrics(ctxt, false);
     }
@@ -413,9 +495,9 @@ abstract class TextElement extends ChantLayoutElement {
           ? span.properties
           : getCssForProperties(span.properties),
     };
-    if (span.newLine != null) {
+    if (span.newLine > 0) {
       final xOffset = span.xOffset ?? 0.0;
-      options['dy'] = '${1.1 * (int.tryParse(span.newLine.toString()) ?? 1)}em';
+      options['dy'] = '${1.1 * span.newLine}em';
       options['x'] = bounds.x + xOffset;
     } else if (span.xOffset != null) {
       options['x'] = bounds.x + span.xOffset!;
@@ -523,9 +605,11 @@ abstract class TextElement extends ChantLayoutElement {
     };
     for (final span in spans) {
       final xOffset = span.xOffset ?? 0.0;
-      if (span.newLine != null) {
-        final count = int.tryParse(span.newLine.toString()) ?? 1;
-        canvas.translate(translateWidth + xOffset, fontSize(ctxt) * count);
+      if (span.newLine > 0) {
+        canvas.translate(
+          translateWidth + xOffset,
+          fontSize(ctxt) * span.newLine,
+        );
         translateWidth = -xOffset;
       } else if (xOffset != 0.0) {
         canvas.translate(translateWidth + xOffset, 0);
@@ -568,7 +652,7 @@ class TextSpan {
   final List<String> activeTags;
   final int index;
   double? xOffset;
-  int? newLine;
+  int newLine = 0;
 
   Map<String, dynamic> get properties {
     final result = <String, dynamic>{};
@@ -576,7 +660,7 @@ class TextSpan {
       result.addAll(props);
     }
     if (xOffset != null) result['xOffset'] = xOffset;
-    if (newLine != null) result['newLine'] = newLine;
+    if (newLine > 0) result['newLine'] = newLine;
     return result;
   }
 
