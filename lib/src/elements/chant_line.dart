@@ -281,7 +281,7 @@ class ChantLine extends ChantLayoutElement {
           y: -ctxt.staffInterval * (staffLineCount * 2 - 1),
         );
         if (score.dropCap case DropCap dc) {
-          final dcHeight = ctxt.textMeasurer.measureBaseline(dc, ctxt);
+          final dcHeight = ctxt.textMeasurer.measureMHeight(dc, ctxt);
           final lOffset = ctxt.textMeasurer.align == .baseline
               ? 0
               : lyricLineHeight;

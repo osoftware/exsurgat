@@ -28,6 +28,7 @@ class DropCap extends TextElement {
       ...getExtraStyleProperties(ctxt),
       'base-font-family': fontFamily(ctxt),
       'base-font-size': fontSize(ctxt),
+      'line-height': 1.0,
     };
     final dc = spans.first.buildParagraph(ctxt, dcProps, .start)
       ..layout(ui.ParagraphConstraints(width: double.infinity));

@@ -713,6 +713,7 @@ class TextSpan {
       color: _colorFromCss(props['fill'], ctxt.theme.textColor),
       fontFamilyFallback: fontFamily,
       fontSize: fontSize * (resize ?? 1),
+      height: props['line-height'],
       fontStyle: props['font-style'] == 'italic'
           ? FontStyle.italic
           : FontStyle.normal,

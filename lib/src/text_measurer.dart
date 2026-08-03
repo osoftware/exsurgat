@@ -35,7 +35,7 @@ abstract class TextMeasurer {
     int? length,
   ]);
 
-  double measureBaseline(TextElement textElement, ChantContext ctxt) {
+  double measureMHeight(TextElement textElement, ChantContext ctxt) {
     final paragraph = textElement.spans.first.buildParagraph(
       ctxt,
       {
@@ -43,11 +43,13 @@ abstract class TextMeasurer {
         ...textElement.spans.first.properties,
         'base-font-family': textElement.fontFamily(ctxt),
         'base-font-size': textElement.fontSize(ctxt),
+        'line-height': 1.0,
       },
-      textElement.textAnchor,
+      ui.TextAlign.start,
       textElement.resize,
-    );
-    return paragraph.alphabeticBaseline;
+    )..layout(ui.ParagraphConstraints(width: double.infinity));
+    final metrics = paragraph.getLineMetricsAt(0)!;
+    return metrics.ascent;
   }
 
   double getSubstringWidth(
