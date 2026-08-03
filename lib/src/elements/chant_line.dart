@@ -1875,7 +1875,7 @@ class ChantLine extends ChantLayoutElement {
         final minLeft = staffLeft - paddingLeft;
         if (currLyric.getLeft() < minLeft) {
           curr.bounds = curr.bounds.copyWith(
-            x: curr.bounds.x - currLyric.getLeft() - minLeft,
+            x: curr.bounds.x - currLyric.getLeft() + minLeft,
           );
         }
         space.condensable = math.min(
