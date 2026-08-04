@@ -166,6 +166,20 @@ class GabcHeader {
   }
 }
 
+enum DiffType { equal, insert, delete }
+
+class Diff {
+  final DiffType code;
+  final List<dynamic> values;
+
+  Diff(this.code, this.values);
+}
+
+extension<T> on List<T> {
+  T at(int index, {required T or}) =>
+      (index >= 0 && index < length) ? this[index] : or;
+}
+
 /// The main gabc parser. Takes gabc source code and produces [ChantMapping]s
 /// describing the chant.
 ///
@@ -207,30 +221,32 @@ class Gabc {
   /// [before] is an array of mappings, and [after] is an array of strings
   /// (gabc words).
   ///
-  /// Returns a list of pairs, with the first part being one of three strings
-  /// ('-', '+', '=') and the second part being a list of values from the
-  /// original before and/or after lists.
-  static List<List<dynamic>> diffDescriptorsAndNewWords(
+  /// Returns a list of Diff objects, with the code being a DiffType
+  /// (.delete, .insert, .equal) and the values being a list of values from
+  /// the original before and/or after lists.
+  ///
+  /// Based on https://github.com/paulgb/simplediff/
+  static List<Diff> diffDescriptorsAndNewWords(
     List<ChantMapping> before,
     List<String> after,
   ) {
     final oldIndexMap = <String, List<int>>{};
     for (var i = 0; i < before.length; i++) {
-      oldIndexMap.putIfAbsent(before[i].source as String, () => []);
-      oldIndexMap[before[i].source as String]!.add(i);
+      oldIndexMap.putIfAbsent(before[i].source, () => []);
+      oldIndexMap[before[i].source]!.add(i);
     }
 
-    var overlap = <int?>[];
+    var overlap = <int>[];
     var startOld = 0, startNew = 0, subLength = 0;
 
     for (var inew = 0; inew < after.length; inew++) {
-      final overlap2 = <int?>[];
+      final overlap2 = <int>[];
       oldIndexMap.putIfAbsent(after[inew], () => []);
       for (var i = 0; i < oldIndexMap[after[inew]]!.length; i++) {
         final iold = oldIndexMap[after[inew]]![i];
-        overlap2.add(((iold > 0 ? overlap[iold - 1] : 0) ?? 0) + 1);
-        if (overlap2.length > iold && (overlap2[iold] ?? 0) > subLength) {
-          subLength = overlap2[iold]!;
+        overlap2.add(((iold > 0 ? overlap.at(iold - 1, or: 0) : 0)) + 1);
+        if (overlap2.length > iold && (overlap2[iold]) > subLength) {
+          subLength = overlap2[iold];
           startOld = iold - subLength + 1;
           startNew = inew - subLength + 1;
         }
@@ -239,9 +255,9 @@ class Gabc {
     }
 
     if (subLength == 0) {
-      final result = <List<dynamic>>[];
-      if (before.isNotEmpty) result.add(['-', before]);
-      if (after.isNotEmpty) result.add(['+', after]);
+      final result = <Diff>[];
+      if (before.isNotEmpty) result.add(Diff(.delete, before));
+      if (after.isNotEmpty) result.add(Diff(.insert, after));
       return result;
     }
 
@@ -250,7 +266,7 @@ class Gabc {
         before.sublist(0, startOld),
         after.sublist(0, startNew),
       ),
-      ['=', after.sublist(startNew, startNew + subLength)],
+      Diff(.equal, after.sublist(startNew, startNew + subLength)),
       ...diffDescriptorsAndNewWords(
         before.sublist(startOld + subLength),
         after.sublist(startNew + subLength),
@@ -292,7 +308,6 @@ class Gabc {
   /// Performs and applies a rudimentary diff between a previously parsed set
   /// of mappings and a new gabc source text. The mappings array passed in is
   /// changed in place to be updated from the new source.
-  /// TODO: fix insertionIndex logic
   static int updateMappingsFromSource(
     ChantContext ctxt,
     List<ChantMapping> mappings,
@@ -303,7 +318,7 @@ class Gabc {
     final headerLength = GabcHeader.getLength(newGabcSource);
     final source = newGabcSource.substring(headerLength);
     // always remove the last old mapping since its spacing/trailingSpace is handled specially
-    mappings.removeLast();
+    // mappings.removeLast();
 
     final insIdx = insertionIndex ?? -1;
     final oldInsIdx = oldInsertionIndex ?? -1;
@@ -321,16 +336,16 @@ class Gabc {
 
     var lastTranslationNeumes = <dynamic>[];
     for (var i = 0; i < results.length; i++) {
-      final resultCode = results[i][0] as String;
-      final resultValues = results[i][1] as List;
+      final resultCode = results[i].code;
+      final resultValues = results[i].values;
 
       if (index > 0) {
         sourceIndex =
             mappings[index - 1].sourceIndex +
-            (mappings[index - 1].source as String).length +
+            (mappings[index - 1].source).length +
             1;
       }
-      if (resultCode == '=') {
+      if (resultCode == DiffType.equal) {
         final sourceIndexDiff = sourceIndex - mappings[index].sourceIndex;
         for (var j = 0; j < resultValues.length; j++, index++) {
           mapping = mappings[index];
@@ -449,9 +464,9 @@ class Gabc {
             }
           }
         }
-      } else if (resultCode == '-') {
+      } else if (resultCode == DiffType.delete) {
         mappings.removeRange(index, index + resultValues.length);
-      } else if (resultCode == '+') {
+      } else if (resultCode == DiffType.insert) {
         for (var j = 0; j < resultValues.length; j++) {
           wordLength = (resultValues[j] as String).length + 1;
           mapping = createMappingFromWord(
@@ -1737,11 +1752,6 @@ class Gabc {
   /// format) and populates [score] with the resulting mappings.
   ///
   /// If [createDropCap] is `true`, then a drop cap is created for the score.
-  ///
-  /// TODO: The JavaScript implementation references `Gabc.parseChantNotations`
-  ///   from `ChantScore.unserializeFromJson`, but this method is not actually
-  ///   defined in the original `Exsurge.Gabc.js` source. This is a placeholder
-  ///   until the full JSON round-trip serialization is implemented.
   static void parseChantNotations(
     String notations,
     dynamic score,

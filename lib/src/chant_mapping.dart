@@ -10,7 +10,7 @@ class ChantMapping {
   ChantMapping(this.source, this.notations, this.sourceIndex);
 
   /// The source text fragment that this mapping was generated from.
-  dynamic source;
+  String source;
 
   /// The notations generated from [source].
   List<ChantNotationElement> notations;

@@ -34,7 +34,7 @@ class _ChantScoreRenderBox extends RenderBox {
     : _gabc = gabc,
       _chantContext = ChantContext(),
       _useDropCap = useDropCap {
-    _rebuildScore();
+    _buildScore();
   }
 
   final ChantContext _chantContext;
@@ -47,7 +47,9 @@ class _ChantScoreRenderBox extends RenderBox {
   set gabc(String value) {
     if (value == _gabc) return;
     _gabc = value;
-    _needsRebuild = true;
+    _score.updateHeader(_chantContext, GabcHeader(_gabc));
+    Gabc.updateMappingsFromSource(_chantContext, _score.mappings, _gabc);
+    _score.updateNotations(_chantContext);
     markNeedsLayout();
   }
 
@@ -59,7 +61,7 @@ class _ChantScoreRenderBox extends RenderBox {
     markNeedsLayout();
   }
 
-  void _rebuildScore() {
+  void _buildScore() {
     final List<ChantMapping> mappings = Gabc.createMappingsFromSource(
       _chantContext,
       _gabc,
@@ -70,13 +72,13 @@ class _ChantScoreRenderBox extends RenderBox {
       header: GabcHeader(_gabc),
       useDropCap: _useDropCap,
     );
-    _score.performLayout(_chantContext);
     _needsRebuild = false;
   }
 
   @override
   void performLayout() {
-    if (_needsRebuild) _rebuildScore();
+    if (_needsRebuild) _buildScore();
+    _score.performLayout(_chantContext);
     _score.layoutChantLines(_chantContext, constraints.maxWidth);
     size = constraints.constrain(
       Size(_score.bounds.width, _score.bounds.height),
