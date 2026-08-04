@@ -1,5 +1,6 @@
+import 'dart:math' as math;
+
 import '../../chant_context.dart';
-import '../../core.dart';
 import '../notation/neumes/note.dart';
 import 'text_element.dart';
 
@@ -10,12 +11,13 @@ class ChoralSign extends TextElement {
         ctxt,
         (ctxt.textStyles['choralSign']?['prefix'] ?? '') + text,
         (ctxt) => ctxt.textStyles['choralSign']?['font'],
-        (ctxt) => ctxt.textStyles['choralSign']?['size'],
+        (ctxt) => ctxt.theme.choralSign.size!.call(ctxt),
         .start,
         sourceIndex,
         text,
       ) {
     textType = ctxt.theme.choralSign;
+    spans.firstOrNull?.propertyArray.add({'line-height': 1.0});
   }
 
   MarkingPositionHint positionHint = MarkingPositionHint.defaultHint;
@@ -23,31 +25,23 @@ class ChoralSign extends TextElement {
 
   void performLayout(ChantContext ctxt) {
     recalculateMetrics(ctxt);
-    bounds = Rect.fromXYWH(
-      note.bounds.x +
-          (ctxt.staffInterval - bounds.width).clamp(0.0, double.infinity),
-      bounds.y,
-      bounds.width,
-      bounds.height,
+    bounds = bounds.copyWith(
+      x: note.bounds.x + math.max(0, (ctxt.staffInterval - bounds.width) / 2),
     );
 
-    double offset;
     double staffPosition;
     if (positionHint == MarkingPositionHint.below) {
-      offset = -1;
-      staffPosition = note.staffPosition.toDouble() + 2 * offset;
-      staffPosition += (staffPosition % 2 == 0) ? 0.3 : 1;
+      staffPosition = note.staffPosition - 2;
+      staffPosition += (staffPosition % 2 == 0) ? -0.7 : 0;
     } else {
-      offset = 1;
-      staffPosition = note.staffPosition.toDouble() + 2 * offset;
-      staffPosition += (staffPosition % 2 == 0) ? 0.3 : -0.4;
+      staffPosition = note.staffPosition + 1;
+      staffPosition += (staffPosition % 2 == 1) ? 0.3 : -0.4;
     }
-
-    bounds = Rect.fromXYWH(
-      bounds.x,
-      ctxt.calculateHeightFromStaffPosition(staffPosition.toInt()) + origin.y,
-      bounds.width,
-      bounds.height,
+    bounds = bounds.copyWith(
+      y:
+          ctxt.calculateHeightFromStaffPosition(staffPosition) +
+          origin.y -
+          (ctxt.textMeasurer.align == .baseline ? 0 : bounds.height),
     );
   }
 }
