@@ -72,19 +72,6 @@ class LineaVisualizer extends ChantLayoutElement {
     return QuickSvg.createSvgTree('g', {}, children);
   }
 
-  @override
-  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
-    final children = [
-      QuickSvg.createFragment('rect', getSvgProps(ctxt, bounds.x), null),
-      QuickSvg.createFragment(
-        'rect',
-        getSvgProps(ctxt, bounds.x + bounds.width - ctxt.neumeLineWeight),
-        null,
-      ),
-    ].join();
-    return QuickSvg.createFragment('g', {}, children);
-  }
-
   Map<String, dynamic> getSvgProps(ChantContext ctxt, double x) {
     return <String, dynamic>{
       'x': x,

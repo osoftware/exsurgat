@@ -33,12 +33,6 @@ class BracePoint extends ChantLayoutElement {
   }
 
   @override
-  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
-    // TODO: implement createSvgFragment
-    throw UnimplementedError();
-  }
-
-  @override
   XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) {
     // TODO: implement createSvgNode
     throw UnimplementedError();

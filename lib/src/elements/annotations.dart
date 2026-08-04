@@ -71,14 +71,4 @@ class Annotations extends ChantLayoutElement {
     updateBounds(-1.0);
     return QuickSvg.createSvgTree('g', {}, result);
   }
-
-  @override
-  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
-    updateBounds();
-    final result = annotations
-        .map((a) => a.createSvgFragment(ctxt, source))
-        .join('');
-    updateBounds(-1.0);
-    return result;
-  }
 }

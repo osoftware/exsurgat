@@ -422,7 +422,7 @@ class Gabc {
                 final transText = curNotation.translationText[l];
                 transText.endNeume = null;
                 transText.sourceIndex += sourceIndexDiff;
-                if (transText.textAnchor == 'end' &&
+                if (transText.textAnchor == .end &&
                     lastTranslationNeumes.isNotEmpty) {
                   final lastTranslationText =
                       lastTranslationNeumes[0].translationText[l];
@@ -620,7 +620,7 @@ class Gabc {
         notationWithLyrics.translationText = translationText;
         for (var i = 0; i < translationText.length; ++i) {
           final transText = translationText[i];
-          if (transText.textAnchor == 'end' &&
+          if (transText.textAnchor == .end &&
               lastTranslationNeumes.isNotEmpty) {
             final lastTranslationText =
                 lastTranslationNeumes[0].translationText[i];
@@ -1341,9 +1341,6 @@ class Gabc {
             episemaNote = note;
           } else if (episemaNoteIndex > 0 && notes.isNotEmpty) {
             episemaNote = notes[--episemaNoteIndex];
-          } else if (episemaNoteIndex == 0 && notes.isNotEmpty) {
-            // TODO: check if this works
-            // episemaNote = null;
           }
 
           break;

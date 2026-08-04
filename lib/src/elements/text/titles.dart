@@ -203,18 +203,6 @@ class Titles extends ChantLayoutElement {
     return QuickSvg.createSvgTree('g', {'class': 'Titles'}, titles);
   }
 
-  @override
-  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
-    var fragment = '';
-
-    for (final el in _elements()) {
-      fragment += el.createSvgFragment(ctxt);
-    }
-
-    fragment = QuickSvg.createFragment('g', {'class': 'Titles'}, fragment);
-    return fragment;
-  }
-
   /// Indexer that allows accessing the title elements by name, mirroring the
   /// JavaScript implementation which uses `this[elementName]`.
   TitleTextElement? operator [](String elementName) {

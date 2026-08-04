@@ -65,11 +65,6 @@ class RoundBraceVisualizer extends ChantLayoutElement {
     return QuickSvg.createSvgTree('path', getSvgPathProps(ctxt));
   }
 
-  @override
-  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
-    return QuickSvg.createFragment('path', getSvgPathProps(ctxt));
-  }
-
   Map<String, dynamic> getPathPoints() {
     final x1 = bounds.x;
     final x2 = bounds.right;

@@ -100,21 +100,6 @@ class CurlyBraceVisualizer extends ChantLayoutElement {
     return node;
   }
 
-  @override
-  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
-    final fragment = QuickSvg.createFragment(
-      'path',
-      getSvgPathProps(ctxt),
-      null,
-    );
-    if (accent != null) {
-      return QuickSvg.createFragment('g', {
-        'class': 'accentedBrace',
-      }, fragment + accent!.createSvgFragment(ctxt, source));
-    }
-    return fragment;
-  }
-
   Map<String, dynamic> getPathPoints() {
     final x1 = bounds.x;
     final x2 = bounds.right;

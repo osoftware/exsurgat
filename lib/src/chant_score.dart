@@ -575,31 +575,6 @@ class ChantScore {
     return QuickSvg.createSvgTree('svg', svgProps, g);
   }
 
-  /// Creates an SVG fragment string representing the score.
-  String createSvg(ChantContext ctxt) {
-    var fragment = '';
-
-    // create defs section
-    for (final def in ctxt.defs.entries) {
-      fragment += def.value as String;
-    }
-    fragment += ctxt.createStyle();
-
-    fragment = QuickSvg.createFragment('defs', {}, fragment);
-
-    if (titles != null) fragment += titles!.createSvgFragment(ctxt);
-
-    for (var i = 0; i < lines.length; i++) {
-      fragment += lines[i].createSvgFragment(ctxt);
-    }
-
-    fragment = QuickSvg.createFragment('g', {}, fragment);
-
-    fragment = QuickSvg.createFragment('svg', getSvgProps(ctxt), fragment);
-
-    return fragment;
-  }
-
   /// Creates a separate [XmlElement] for each chant line (system).
   List<XmlElement> createSvgNodeForEachLine(ChantContext ctxt) {
     final node = <XmlElement>[];
@@ -626,38 +601,6 @@ class ChantScore {
       top += height;
     }
     return node;
-  }
-
-  /// Creates a separate SVG fragment string for each chant line (system).
-  String createSvgForEachLine(ChantContext ctxt) {
-    var fragment = '';
-    var fragmentDefs = '';
-
-    // create defs section
-    for (final def in ctxt.defs.entries) {
-      fragmentDefs += def.value as String;
-    }
-    fragmentDefs += ctxt.createStyle();
-
-    fragmentDefs = QuickSvg.createFragment('defs', {}, fragmentDefs);
-    var top = 0.0;
-    for (var i = 0; i < lines.length; i++) {
-      var lineFragment =
-          fragmentDefs + lines[i].createSvgFragment(ctxt, null, top);
-      final height = lines[i].bounds.height + ctxt.staffInterval * 1.5;
-      lineFragment = QuickSvg.createFragment('g', {}, lineFragment);
-      lineFragment = QuickSvg.createFragment('svg', {
-        'xmlns': QuickSvg.ns,
-        'version': '1.1',
-        'xmlns:xlink': QuickSvg.xlink,
-        'class': 'Exsurge ChantScore',
-        'width': bounds.width,
-        'height': height,
-      }, lineFragment);
-      fragment += lineFragment;
-      top += height;
-    }
-    return fragment;
   }
 
   /// Unserializes the score from a JSON-compatible map.

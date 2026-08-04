@@ -197,9 +197,4 @@ class HorizontalEpisema extends ChantLayoutElement {
   SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
     return QuickSvg.createSvgTree('rect', getSvgProps(ctxt));
   }
-
-  @override
-  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
-    return QuickSvg.createFragment('rect', getSvgProps(ctxt));
-  }
 }

@@ -160,24 +160,6 @@ class ChantNotationElement extends ChantLayoutElement {
         ),
       ]);
 
-  @override
-  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
-    return QuickSvg.createFragment(
-      'g',
-      getSvgProps(),
-      [
-        for (final l in lyrics) l.createSvgFragment(ctxt),
-        for (final t in translationText) t.createSvgFragment(ctxt),
-        for (final al in alText) al.createSvgFragment(ctxt),
-        QuickSvg.createFragment(
-          'g',
-          {'class': 'Notation'},
-          [for (final v in visualizers) v.createSvgFragment(ctxt, this)].join(),
-        ),
-      ].join(),
-    );
-  }
-
   Map<String, dynamic> getSvgProps() {
     return <String, dynamic>{
       'class': 'ChantNotationElement ${cssClass ?? runtimeType}',

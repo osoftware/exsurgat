@@ -50,11 +50,6 @@ class DividerLineVisualizer extends ChantLayoutElement {
     return QuickSvg.createSvgTree('rect', getSvgProps(ctxt));
   }
 
-  @override
-  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
-    return QuickSvg.createFragment('rect', getSvgProps(ctxt), null);
-  }
-
   Map<String, dynamic> getSvgProps(ChantContext ctxt) {
     final props = <String, dynamic>{
       'x': bounds.x,

@@ -564,29 +564,6 @@ abstract class TextElement extends ChantLayoutElement {
   }
 
   @override
-  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
-    final spansFragment = spans
-        .map(
-          (span) => QuickSvg.createFragment(
-            'tspan',
-            getSpanOptions(span, ctxt),
-            escapeForTspan(span.text),
-          ),
-        )
-        .join();
-    final options = getSvgProps();
-    final extraStyleProperties = getExtraStyleProperties(ctxt);
-    options['style'] = getCssForProperties(extraStyleProperties);
-    if (extraStyleProperties['class'] != null) {
-      options['class'] = '${extraStyleProperties['class']} ${options['class']}';
-    }
-    if (ctxt.setFontFamilyAttributes) {
-      options['font-size'] = fontSize(ctxt);
-    }
-    return QuickSvg.createFragment('text', options, spansFragment);
-  }
-
-  @override
   void draw(ChantContext ctxt) {
     final canvas = ctxt.canvas;
     double translateWidth = 0.0;

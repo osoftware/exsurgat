@@ -115,7 +115,7 @@ class Note extends ChantLayoutElement with BraceEnd {
   XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) {
     // TODO: investigate if this is even needed
     glyphVisualizer!.bounds = bounds.clone();
-    svgNode = glyphVisualizer!.createSvgNodeWithAttributes(ctxt, this);
+    svgNode = glyphVisualizer!.createSvgNode(ctxt, this);
     return svgNode!;
   }
 
@@ -123,11 +123,5 @@ class Note extends ChantLayoutElement with BraceEnd {
   SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
     glyphVisualizer!.bounds = bounds.clone();
     return glyphVisualizer!.createSvgTree(ctxt, this);
-  }
-
-  @override
-  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
-    glyphVisualizer!.bounds = bounds.clone();
-    return glyphVisualizer!.createSvgFragmentWithAttributes(ctxt, this);
   }
 }

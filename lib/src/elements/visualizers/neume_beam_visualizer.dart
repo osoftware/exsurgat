@@ -80,11 +80,6 @@ class NeumeBeamVisualizer extends ChantLayoutElement {
     return QuickSvg.createSvgTree('polygon', getSvgProps(ctxt));
   }
 
-  @override
-  String createSvgFragment(ChantContext ctxt, [ChantLayoutElement? source]) {
-    return QuickSvg.createFragment('polygon', getSvgProps(ctxt), null);
-  }
-
   Map<String, dynamic> getSvgProps(ChantContext ctxt) {
     final points = getPoints(ctxt);
     return <String, dynamic>{
