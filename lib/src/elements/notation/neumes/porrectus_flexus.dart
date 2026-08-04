@@ -33,8 +33,9 @@ class PorrectusFlexus extends Neume {
       fourthGlyph = GlyphCode.punctumQuadratum;
     }
 
-    build(ctxt)
-      ..lineFrom(second)
+    final builder = build(ctxt);
+    if (!first.suppressVirga) builder.lineFrom(second);
+    builder
       ..withPorrectusSwash(start: first, end: second)
       ..noteAt(third, thirdGlyph)
       ..noteAt(fourth, fourthGlyph);
