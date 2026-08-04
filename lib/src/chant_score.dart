@@ -63,33 +63,7 @@ class ChantScore {
     this.useDropCap = false,
     GabcHeader? header,
   }) : mappings = List.of(mappings) {
-    lines = [];
-    notes = [];
-    staffLineCount = 4;
-    if (ctxt != null && header != null) {
-      titles = Titles(
-        ctxt,
-        this,
-        title: header['title'],
-        subtitle: header['subtitle'],
-        supertitle: header['supertitle'],
-        textLeft: header['textLeft'],
-        textRight: header['textRight'],
-      );
-      if (header['annotation'] != null || header['mode'] != null) {
-        annotation = Annotations(ctxt, [
-          ...header['annotationArray'] ?? [?header['annotation']],
-          ?header['mode'],
-        ]);
-      }
-    }
-    startingClef = null;
-    dropCap = null;
-    compiled = false;
-    autoColoring = true;
-    needsLayout = true;
-    extendLastSystemStaffLines = true;
-    bounds = core.Rect();
+    if (ctxt != null) updateHeader(ctxt, header);
     if (ctxt != null) updateNotations(ctxt);
   }
 
@@ -97,11 +71,11 @@ class ChantScore {
   List<ChantMapping> mappings;
 
   /// The chant lines (systems) that make up the score, created during layout.
-  late List<ChantLine> lines;
+  List<ChantLine> lines = [];
 
   /// A flattened array of all notes and notation elements in the score, for
   /// O(1) access by index.
-  late List<ChantLayoutElement> notes;
+  List<ChantLayoutElement> notes = [];
 
   /// A flattened array of all notations in the score.
   late List<ChantNotationElement> notations;
@@ -161,7 +135,7 @@ class ChantScore {
 
   /// The pages of the score, created by [paginate]. Initially contains just
   /// this score.
-  late List<dynamic> pages;
+  late List<ChantScore> pages;
 
   /// Make a copy of the score, only including the specified lines.
   ///
@@ -183,6 +157,26 @@ class ChantScore {
       result.annotation = annotation;
     }
     return result;
+  }
+
+  void updateHeader(ChantContext ctxt, GabcHeader? header) {
+    if (header != null) {
+      titles = Titles(
+        ctxt,
+        this,
+        title: header['title'],
+        subtitle: header['subtitle'],
+        supertitle: header['supertitle'],
+        textLeft: header['textLeft'],
+        textRight: header['textRight'],
+      );
+      if (header['annotation'] != null || header['mode'] != null) {
+        annotation = Annotations(ctxt, [
+          ...header['annotationArray'] ?? [?header['annotation']],
+          ?header['mode'],
+        ]);
+      }
+    }
   }
 
   /// Updates the selection state of the score.
@@ -474,8 +468,7 @@ class ChantScore {
   }
 
   /// Paginates the score into pages that fit within [height].
-  void paginate(double? height) {
-    if (height == null) return;
+  void paginate(double height) {
     pages = [];
     var pageHeightOffset = 0.0;
     var startLineIndex = 0;
@@ -498,12 +491,11 @@ class ChantScore {
   }
 
   /// Draws the score to the canvas in [ctxt].
-  void draw(ChantContext ctxt, [double scale = 1]) {
-    ctxt.setCanvasSize(bounds.width, bounds.height, scale);
+  void draw(ChantContext ctxt, {double scale = 1}) {
+    final canvas = ctxt.canvas;
 
-    final canvasCtxt = ctxt.canvas;
-
-    canvasCtxt.translate(bounds.x, bounds.y);
+    canvas.save();
+    canvas.translate(bounds.x, bounds.y);
 
     titles?.draw(ctxt);
 
@@ -511,7 +503,7 @@ class ChantScore {
       lines[i].draw(ctxt);
     }
 
-    canvasCtxt.translate(-bounds.x, -bounds.y);
+    canvas.restore();
   }
 
   /// Returns the SVG attributes for the root `<svg>` element.

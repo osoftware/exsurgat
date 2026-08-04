@@ -263,8 +263,6 @@ class ChantContext {
   void attachCanvas(Canvas canvas) {
     this.canvas = canvas;
   }
-
-  void setCanvasSize(double width, double height, [double scale = 1]) {}
 }
 
 final TextSpan __connectorSpan = TextSpan(' • ', [], []);
