@@ -1,5 +1,6 @@
 import '../chant_context.dart';
 import '../glyphs.dart';
+import '../trailing_space.dart';
 import 'notation/neumes/neume.dart';
 import 'notation/neumes/note.dart';
 import 'visualizers/glyph_visualizer.dart';
@@ -41,7 +42,7 @@ class Mora extends GlyphVisualizer {
         }
       } else if (note.neume!.notes.length == noteIndex) {
         // this note is the last in its neume:
-        if (note.neume!.trailingSpace == 0) {
+        if (note.neume!.trailingSpace == TrailingSpace.zero) {
           // if this was the last note in its neume, we only care about the next note if there is no trailing space at the end of this neume.
           var notationIndex = note.neume!.score.notations.indexOf(note.neume!);
           if (notationIndex >= 0) {
