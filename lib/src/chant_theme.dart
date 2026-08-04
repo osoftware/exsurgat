@@ -18,11 +18,13 @@ class TextStyleDefinition {
   const TextStyleDefinition({
     this.display = '',
     this.cssClass = '',
+    this.font,
     this.defaultSize,
     this.size,
   });
   final String display;
   final String cssClass;
+  final String? font;
   final double Function(double size)? defaultSize;
   final double Function(ChantContext ctxt)? size;
 }

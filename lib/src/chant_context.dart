@@ -149,7 +149,7 @@ class ChantContext {
           entry.value.defaultSize?.call(theme.baseTextStyle.size) ??
           entry.value.size?.call(this) ??
           theme.baseTextStyle.size;
-      textStyle['font'] = theme.baseTextStyle.font;
+      textStyle['font'] = entry.value.font ?? theme.baseTextStyle.font;
       textStyle['color'] = theme.textColor;
     }
 
