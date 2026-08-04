@@ -87,6 +87,7 @@ class Note extends ChantLayoutElement with BraceEnd {
   ChoralSign? choralSign;
   int inclinataFlags = 0;
   AboveLinesText? alText;
+  bool suppressVirga = false;
 
   Note({this.pitch});
 

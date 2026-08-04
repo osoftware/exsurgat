@@ -30,8 +30,9 @@ class Porrectus extends Neume {
           : GlyphCode.podatusUpperShort;
     }
 
-    build(ctxt)
-      ..lineFrom(second)
+    final builder = build(ctxt);
+    if (!first.suppressVirga) builder.lineFrom(second);
+    builder
       ..withPorrectusSwash(start: first, end: second)
       ..noteAt(third, thirdGlyph);
 

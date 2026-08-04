@@ -26,8 +26,8 @@ final RegExp _altTranslationRegex = RegExp(
 );
 
 final RegExp _notationsRegex = RegExp(
-  r'z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|cb|treble-?|xp-?)[1-5]|\/+| |\!|-?[a-nA-N][oOwWvVrRsxy#~\+><_\.'
-  r"0123459|]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?",
+  r'z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|cb|treble-?|xp-?)[1-5]|\/+| |\!|-?@?[a-nA-N][oOwWvVrRsxy#~\+><_\.'
+  r"'0123459|]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?",
 );
 const int _notationsRegexGroupBar = 1;
 const int _notationsRegexGroupInsideBraces = 2;
@@ -1258,6 +1258,11 @@ class Gabc {
     note.sourceGabc = data;
 
     if (data.isEmpty) throw 'Invalid note data: $data';
+
+    if (data[0] == '@') {
+      note.suppressVirga = true;
+      data = data.substring(1);
+    }
 
     if (data[0] == '-') {
       note.liquescent = LiquescentType.initioDebilis.value;

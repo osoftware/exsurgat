@@ -169,7 +169,7 @@ class NeumeBuilder {
       noteAt(upper, GlyphCode.oriscusDes, withLineTo: false);
     } else {
       if (lower != null) {
-        lineFrom(lower);
+        if (!upper.suppressVirga) lineFrom(lower);
         lineIsHanging = lower.staffPosition < upper.staffPosition;
         if (hasFlag(lower.liquescent, LiquescentType.small)) {
           glyph = GlyphCode.beginningDesLiquescent;
