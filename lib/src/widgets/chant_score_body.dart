@@ -6,34 +6,50 @@ import 'package:flutter/widgets.dart';
 import '../chant_context.dart';
 import '../chant_mapping.dart';
 import '../chant_score.dart';
+import '../chant_theme.dart';
 import '../gabc.dart';
 
 /// Chant score fitting the width constrint of the parent widget.
 /// For scrollable widget see [ChantScoreView]
 class ChantScoreBody extends LeafRenderObjectWidget {
-  const ChantScoreBody({super.key, required this.gabc, this.useDropCap = true});
+  const ChantScoreBody({
+    super.key,
+    required this.gabc,
+    this.useDropCap = true,
+    this.theme,
+  });
 
   final String gabc;
   final bool useDropCap;
+  final ChantTheme? theme;
 
   @override
   RenderBox createRenderObject(BuildContext context) {
-    return _ChantScoreRenderBox(gabc: gabc, useDropCap: useDropCap);
+    return _ChantScoreRenderBox(
+      gabc: gabc,
+      useDropCap: useDropCap,
+      theme: theme ?? ChantTheme.kDefaultTheme,
+    );
   }
 
   @override
   void updateRenderObject(BuildContext context, RenderBox renderObject) {
+    super.updateRenderObject(context, renderObject);
     (renderObject as _ChantScoreRenderBox)
       ..gabc = gabc
-      ..useDropCap = useDropCap;
+      ..useDropCap = useDropCap
+      ..theme = theme ?? ChantTheme.kDefaultTheme;
   }
 }
 
 class _ChantScoreRenderBox extends RenderBox {
-  _ChantScoreRenderBox({required String gabc, required bool useDropCap})
-    : _gabc = gabc,
-      _chantContext = ChantContext(),
-      _useDropCap = useDropCap {
+  _ChantScoreRenderBox({
+    required String gabc,
+    required bool useDropCap,
+    required ChantTheme theme,
+  }) : _gabc = gabc,
+       _chantContext = ChantContext(theme: theme),
+       _useDropCap = useDropCap {
     _buildScore();
   }
 
@@ -57,6 +73,14 @@ class _ChantScoreRenderBox extends RenderBox {
   set useDropCap(bool value) {
     if (value == _useDropCap) return;
     _useDropCap = value;
+    _needsRebuild = true;
+    markNeedsLayout();
+  }
+
+  ChantTheme get theme => _chantContext.theme;
+  set theme(ChantTheme value) {
+    if (value == _chantContext.theme) return;
+    _chantContext.theme = value;
     _needsRebuild = true;
     markNeedsLayout();
   }

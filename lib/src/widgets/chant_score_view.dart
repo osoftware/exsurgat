@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../../exsurgat.dart';
+import '../chant_theme.dart';
 
 /// Scrollable chant score with configurable width and padding.
 class ChantScoreView extends StatelessWidget {
@@ -10,12 +11,14 @@ class ChantScoreView extends StatelessWidget {
     this.useDropCap = true,
     this.width,
     this.padding = const EdgeInsets.all(12),
+    this.theme,
   });
 
   final String gabc;
   final bool useDropCap;
   final double? width;
   final EdgeInsets padding;
+  final ChantTheme? theme;
 
   @override
   Widget build(BuildContext context) {
@@ -24,7 +27,11 @@ class ChantScoreView extends StatelessWidget {
         width: width,
         child: Padding(
           padding: padding,
-          child: ChantScoreBody(gabc: gabc, useDropCap: useDropCap),
+          child: ChantScoreBody(
+            gabc: gabc,
+            useDropCap: useDropCap,
+            theme: theme,
+          ),
         ),
       ),
     );
