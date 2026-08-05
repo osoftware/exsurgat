@@ -63,7 +63,7 @@ class _ChantScoreRenderBox extends RenderBox {
   set gabc(String value) {
     if (value == _gabc) return;
     _gabc = value;
-    _score.updateHeader(_chantContext, GabcHeader(_gabc));
+    _score.updateHeader(_chantContext, GabcHeader.fromSource(_gabc));
     Gabc.updateMappingsFromSource(_chantContext, _score.mappings, _gabc);
     _score.updateNotations(_chantContext);
     markNeedsLayout();
@@ -93,7 +93,7 @@ class _ChantScoreRenderBox extends RenderBox {
     _score = ChantScore(
       ctxt: _chantContext,
       mappings: mappings,
-      header: GabcHeader(_gabc),
+      header: GabcHeader.fromSource(_gabc),
       useDropCap: _useDropCap,
     );
     _needsRebuild = false;

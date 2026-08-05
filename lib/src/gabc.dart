@@ -66,7 +66,7 @@ class GabcHeader {
     return match != null ? match.end : 0;
   }
 
-  GabcHeader(String text) {
+  GabcHeader.fromSource(String text) {
     comments = {};
     cValues = {};
     original = '';
