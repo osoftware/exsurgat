@@ -1,7 +1,18 @@
 name: exsurgat
 description: "GABC renderer for Flutter."
-version: 0.0.1
-homepage:
+version: 0.1.0
+repository: https://github.com/osoftware/exsurgat
+homepage: https://github.com/osoftware/exsurgat
+issue_tracker: https://github.com/osoftware/exsurgat/issues
+topics:
+  - gabc
+  - gregorian-chant
+  - music
+  - engraving
+  - rendering
+funding:
+  - https://buymeacoffee.com/ostudio
+  - https://pay.e.cash/?bip21=ecash:qrx0l5a2cjg679pghc7kalc8ff7uczf58qu7n49rwa
 
 environment:
   sdk: ^3.11.4
