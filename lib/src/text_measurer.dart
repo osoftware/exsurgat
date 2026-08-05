@@ -4,10 +4,17 @@ import 'chant_context.dart';
 import 'core.dart';
 import 'elements/text/text_element.dart';
 
-enum TextMeasuringStrategy { svg, canvas }
+enum TextMeasuringStrategy {
+  /// Measuring strategy that makes sense when positioning elements for SVG export.
+  svg,
+
+  /// Measuring strategy that makes sense when rendering on Flutter Canvas.
+  canvas,
+}
 
 enum TextBoundsAlign { top, baseline }
 
+/// Measures a rectangle that a specific text element would occupy.
 abstract class TextMeasurer {
   const TextMeasurer();
 
@@ -18,6 +25,8 @@ abstract class TextMeasurer {
     };
   }
 
+  /// Whether the text is rendered aligned to text baseline (like in SVG) or
+  /// to top of the box (like in Flutter Canvas).
   TextBoundsAlign get align;
 
   double measureSubstring(
@@ -35,6 +44,7 @@ abstract class TextMeasurer {
     int? length,
   ]);
 
+  /// Returns M-height of a given text element.
   double measureMHeight(TextElement textElement, ChantContext ctxt) {
     final paragraph = textElement.spans.first.buildParagraph(
       ctxt,
@@ -70,6 +80,7 @@ abstract class TextMeasurer {
   }
 }
 
+/// Measuring strategy that makes sense when rendering on Flutter Canvas.
 final class CanvasTextMeasurerStrategy extends TextMeasurer {
   @override
   TextBoundsAlign get align => .top;
@@ -118,6 +129,7 @@ final class CanvasTextMeasurerStrategy extends TextMeasurer {
   }
 }
 
+/// Measuring strategy that makes sense when positioning elements for SVG export.
 final class SvgTextMeasurerStrategy extends TextMeasurer {
   @override
   TextBoundsAlign get align => .baseline;

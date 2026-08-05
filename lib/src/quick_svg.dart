@@ -2,6 +2,7 @@ import 'package:xml/xml.dart';
 
 import 'glyphs.dart';
 
+/// Simplified SVG tree representation.
 class SvgTreeNode {
   SvgTreeNode(this.name, {this.props = const {}, this.children = const []});
 
@@ -27,6 +28,7 @@ enum StylingMode {
   attributes,
 }
 
+/// Collection of helper methods for building Svg trees.
 class QuickSvg {
   static const String ns = 'http://www.w3.org/2000/svg';
   static const String xmlns = 'https://www.w3.org/2000/xmlns/';

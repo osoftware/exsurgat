@@ -46,6 +46,7 @@ class CanvasPathBuilder {
 }
 
 extension Svg on Color {
+  /// Returns a CSS and SVG compatible color string.
   String toSvgString() {
     final hex = toARGB32().toRadixString(16);
     return "#${hex.substring(2)}${hex.substring(0, 2)}";

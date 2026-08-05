@@ -15,7 +15,16 @@ import 'language.dart';
 import 'quick_svg.dart';
 import 'text_measurer.dart';
 
+/// [ChantContext] manages theming and internal state necessary for layout and rendering.
 class ChantContext {
+  /// Creates a new rendering context.
+  /// * [textMeasuringStrategy] is used for layouting text.
+  ///   For export to SVG, pick [TextMeasuringStrategy.svg],
+  ///   otherwise use [TextMeasuringStrategy.canvas].
+  /// * [stylingMode] alters how styles are applied in SVG.
+  ///   For copact output, pick [StylingMode.css].
+  ///   For wider compatibility, choose [StylingMode.attributes].
+  /// * [theme] can provide custom styling.
   ChantContext({
     TextMeasuringStrategy textMeasuringStrategy = TextMeasuringStrategy.canvas,
     this.stylingMode = StylingMode.css,

@@ -134,28 +134,6 @@ class Rect implements Geom {
   String toString() => '($x,$y,$width,$height)';
 }
 
-class Margins {
-  final double left;
-  final double top;
-  final double right;
-  final double bottom;
-
-  Margins([
-    this.left = 0.0,
-    this.top = 0.0,
-    this.right = 0.0,
-    this.bottom = 0.0,
-  ]);
-
-  Margins clone() => Margins(left, top, right, bottom);
-
-  bool equals(Margins other) =>
-      left == other.left &&
-      top == other.top &&
-      right == other.right &&
-      bottom == other.bottom;
-}
-
 enum Step {
   ut(0),
   du(1),

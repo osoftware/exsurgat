@@ -17,6 +17,7 @@ class BaseTextStyle {
   });
 }
 
+/// Represents style for a specific text class.
 class TextStyleDefinition {
   const TextStyleDefinition({
     this.font,
@@ -41,6 +42,7 @@ class TextStyleDefinition {
   final Color? color;
 }
 
+/// All coloring, spacing and text styling that can be configured for a chant rendering.
 class ChantTheme {
   final BaseTextStyle baseTextStyle;
   late final TextStyleDefinition supertitle;
@@ -63,6 +65,7 @@ class ChantTheme {
   final double minSpaceBelowStaff;
   final double spaceBetweenSystems;
 
+  /// Creates a new theme. Unspecified parameters fall back to the default theme.
   ChantTheme({
     this.baseTextStyle = defaultBaseTextStyle,
     this.textColor = ChantColors.nigric,
@@ -122,7 +125,10 @@ const defaultBaseTextStyle = BaseTextStyle(
 );
 
 class ChantColors {
+  /// Standard color for texts to read.
   static const Color nigric = Color(0xFF000000);
+
+  /// Standart color for texts to obey.
   static const Color rubric = Color(0xFFDD0000);
 }
 

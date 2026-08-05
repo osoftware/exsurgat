@@ -8,12 +8,15 @@ class VowelSegment {
   static const notFound = VowelSegment(false, -1, -1);
 }
 
+/// Language-specific syllabification service.
 abstract class Language {
   final String name;
   final bool centerNeume;
 
   const Language(this.name, {this.centerNeume = false});
 
+  /// Takes a text that may contain many words
+  /// and returns list of words where each word is a list of syllables.
   List<List<String>> syllabify(String text) {
     if (text.isEmpty) return [];
 
@@ -23,6 +26,7 @@ abstract class Language {
     return words.map((word) => syllabifyWord(word)).toList();
   }
 
+  /// Takes a single word and returns a list of syllables.
   List<String> syllabifyWord(String word);
 
   VowelSegment findVowelSegment(

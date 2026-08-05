@@ -1,7 +1,7 @@
 import 'package:flutter/widgets.dart';
 
-import '../../exsurgat.dart';
 import '../chant_theme.dart';
+import 'chant_score_body.dart';
 
 /// Scrollable chant score with configurable width and padding.
 class ChantScoreView extends StatelessWidget {

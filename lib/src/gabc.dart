@@ -182,8 +182,6 @@ extension<T> on List<T> {
 
 /// The main gabc parser. Takes gabc source code and produces [ChantMapping]s
 /// describing the chant.
-///
-/// All methods are static, mirroring the JavaScript implementation.
 class Gabc {
   /// State for automatic brace ending tracking.
   static BracePoint? needToEndBrace;
