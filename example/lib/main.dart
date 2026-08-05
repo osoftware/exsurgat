@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:exsurgat/exsurgat.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() {
   runApp(const MyApp());
@@ -14,6 +18,7 @@ class MyApp extends StatelessWidget {
       title: 'GABC code editor',
       theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
       home: const EditorPage(title: 'GABC code editor'),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -30,13 +35,53 @@ class _EditorPageState extends State<EditorPage> {
   final _gabcCtrl = TextEditingController(text: '(c3) ');
 
   bool dropCap = true;
+  bool fancy = false;
 
+  final fancyTheme = ChantTheme(
+    textColor: Colors.brown,
+    rubricColor: ChantColors.rubric,
+    neumeColor: Colors.indigo,
+    staffLineColor: ChantColors.nigric,
+    dividerLineColor: Colors.blueGrey,
+    baseTextStyle: BaseTextStyle(
+      font: GoogleFonts.imFellDwPica().fontFamily!,
+      size: 16,
+    ),
+    supertitle: TextStyleDefinition(relativeSize: (size) => (size * 7) / 6),
+    title: TextStyleDefinition(relativeSize: (size) => (size * 3) / 2),
+    subtitle: TextStyleDefinition(relativeSize: (size) => size),
+    leftRight: TextStyleDefinition(relativeSize: (size) => size * 0.9),
+    annotation: TextStyleDefinition(relativeSize: (size) => (size * 2) / 3),
+    dropCap: TextStyleDefinition(
+      font: GoogleFonts.uncialAntiqua().fontFamily,
+      relativeSize: (size) => size * 4,
+      color: Colors.deepOrange,
+    ),
+    aboveLine: TextStyleDefinition(relativeSize: (size) => size),
+    choralSign: TextStyleDefinition(size: (ctxt) => ctxt.staffInterval * 1.5),
+    lyric: TextStyleDefinition(relativeSize: (size) => size * 0.9),
+    translation: TextStyleDefinition(relativeSize: (size) => size * 0.75),
+  );
+  final normalTheme = ChantTheme(
+    baseTextStyle: BaseTextStyle(
+      font: GoogleFonts.crimsonPro().fontFamily!,
+      size: 16,
+    ),
+  );
   @override
   Widget build(BuildContext context) {
+    final chantTheme = fancy ? fancyTheme : normalTheme;
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
+        actions: [
+          IconButton(
+            onPressed: saveSvg,
+            icon: Icon(Icons.save),
+            tooltip: 'Save as SVG',
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -54,6 +99,12 @@ class _EditorPageState extends State<EditorPage> {
                 onChanged: (v) => setState(() => dropCap = v),
               ),
               Text('Drop Cap'),
+              VerticalDivider(),
+              Switch.adaptive(
+                value: fancy,
+                onChanged: (v) => setState(() => fancy = v),
+              ),
+              Text('Fancy Theme'),
             ],
           ),
           Expanded(
@@ -62,8 +113,11 @@ class _EditorPageState extends State<EditorPage> {
               color: Colors.amber.withAlpha(40),
               child: ListenableBuilder(
                 listenable: _gabcCtrl,
-                builder: (_, _) =>
-                    ChantScoreView(gabc: _gabcCtrl.text, useDropCap: dropCap),
+                builder: (_, _) => ChantScoreView(
+                  gabc: _gabcCtrl.text,
+                  useDropCap: dropCap,
+                  theme: chantTheme,
+                ),
               ),
             ),
           ),
@@ -77,7 +131,34 @@ class _EditorPageState extends State<EditorPage> {
     );
   }
 
-  void loadSampleScore() {
+  Future<void> saveSvg() async {
+    final renderingContext = ChantContext(
+      textMeasuringStrategy: .svg,
+      stylingMode: .attributes,
+      theme: fancy ? fancyTheme : ChantTheme.kDefaultTheme,
+    );
+    final score =
+        ChantScore(
+            ctxt: renderingContext,
+            mappings: Gabc.createMappingsFromSource(
+              renderingContext,
+              _gabcCtrl.text,
+            ),
+            header: GabcHeader.fromSource(_gabcCtrl.text),
+            useDropCap: true,
+          )
+          ..performLayout(renderingContext)
+          ..layoutChantLines(renderingContext, 800);
+    final xml = score.createSvgNode(renderingContext).toXmlString();
+    await FilePicker.saveFile(
+      allowedExtensions: ['.svg'],
+      dialogTitle: 'Save chant to SVG',
+      fileName: 'chant.svg',
+      bytes: Utf8Codec().encode(xml),
+    );
+  }
+
+  Future<void> loadSampleScore() async {
     _gabcCtrl.text = '''
 annotation: Ant
 mode: 7 a
