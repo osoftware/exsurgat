@@ -150,6 +150,14 @@ final class SvgTextMeasurerStrategy extends TextMeasurer {
         textElement.resize,
       );
 
+      final maxWidth = _parseCssLength(
+        textElement.getExtraStyleProperties(ctxt)['textLength'],
+      );
+      p.layout(ui.ParagraphConstraints(width: maxWidth));
+      if (maxWidth.isInfinite) {
+        // now we can read intrinsic width
+        p.layout(ui.ParagraphConstraints(width: p.maxIntrinsicWidth));
+      }
       late final double width, height, baseline;
       if (p.numberOfLines > 0) {
         final metrics = p.getLineMetricsAt(0)!;

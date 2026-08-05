@@ -119,13 +119,6 @@ class GlyphVisualizer extends ChantLayoutElement {
     return QuickSvg.createSvgTree("use", attributes);
   }
 
-  String createSvgFragmentWithAttributes(
-    ChantContext ctxt, [
-    ChantLayoutElement? source,
-  ]) {
-    return QuickSvg.createFragment('use', getSvgAttributes(ctxt, source), null);
-  }
-
   Map<String, dynamic> getSvgAttributes(
     ChantContext ctxt, [
     ChantLayoutElement? source,

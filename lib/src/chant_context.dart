@@ -18,7 +18,7 @@ import 'text_measurer.dart';
 class ChantContext {
   ChantContext({
     TextMeasuringStrategy textMeasuringStrategy = TextMeasuringStrategy.canvas,
-    this.stylingMode = StylingMode.attributes,
+    this.stylingMode = StylingMode.css,
     ChantTheme? theme,
   }) : textMeasurer = TextMeasurer.create(textMeasuringStrategy),
        defsNode = QuickSvg.createNode('defs') {

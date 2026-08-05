@@ -13,7 +13,19 @@ class SvgTreeNode {
 typedef NodeMaker<T> =
     T Function(String name, Map<String, dynamic> attrs, [Object? children]);
 
-enum StylingMode { css, attributes }
+/// Describes how SVG document should style text elements.
+enum StylingMode {
+  /// Text style described globally in `<style/>` element and applied with `class` attribute.
+  /// Produces compact outtput.
+  /// Preferred option, fully supported by web browsers.
+  css,
+
+  /// Text style applied by inline attributes.
+  /// Produces more verbose output.
+  /// Copatibility option for SVG renderers that don't support CSS styles
+  /// such as flutter_svg.
+  attributes,
+}
 
 class QuickSvg {
   static const String ns = 'http://www.w3.org/2000/svg';

@@ -288,6 +288,7 @@ class ChantLine extends ChantLayoutElement {
           final highestNonCollidingY =
               lyricLineBaseline -
               a.bounds.height +
+              a.origin.y +
               lOffset -
               a.padding -
               dcHeight;
