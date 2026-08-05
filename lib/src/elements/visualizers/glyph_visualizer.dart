@@ -4,6 +4,7 @@ import 'package:xml/xml.dart';
 
 import '../../chant_context.dart';
 import '../../core.dart' as core;
+import '../../drawing.dart';
 import '../../glyphs.dart';
 import '../../quick_svg.dart';
 import '../chant_layout_element.dart';
@@ -158,11 +159,15 @@ class GlyphVisualizer extends ChantLayoutElement {
       } else if (source.glyphVisualizer?.glyphCode == .none) {
         className += ' porrectus prrectus-end';
       }
+    } else if (source is Clef) {
+      className += ' clef';
     }
 
     return <String, dynamic>{
       'xlink:href': '#$glyphCode',
       'class': className,
+      if (ctxt.stylingMode == .attributes)
+        'fill': ctxt.theme.neumeColor.toSvgString(),
       'id': ?id,
       if (source is ChantNotationElement)
         'data-source-index': source.sourceIndex,

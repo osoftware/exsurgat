@@ -189,6 +189,8 @@ class ChantContext {
         '.$cssClass { fill:$color; font-family:$font; font-size:${size}px; font-kerning:normal; }',
       );
     }
+    buffer.writeln(".note, .clef { fill: ${theme.neumeColor.toSvgString()} }");
+
     return buffer.toString();
   }
 
