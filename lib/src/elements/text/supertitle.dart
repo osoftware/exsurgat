@@ -4,13 +4,14 @@ import 'title_text_element.dart';
 class Supertitle extends TitleTextElement {
   Supertitle(ChantContext ctxt, String text, [int sourceIndex = 0])
     : super(
-        ctxt,
-        (ctxt.textStyles['supertitle']?['prefix'] ?? '') + text,
-        (ctxt) => ctxt.textStyles['supertitle']?['font'],
-        (ctxt) => ctxt.textStyles['supertitle']?['size'],
-        .center,
-        sourceIndex,
-        text,
+        ctxt: ctxt,
+        text: (ctxt.textStyles['supertitle']?['prefix'] ?? '') + text,
+        cssClass: 'supertitle',
+        fontFamily: (ctxt) => ctxt.textStyles['supertitle']?['font'],
+        fontSize: (ctxt) => ctxt.textStyles['supertitle']?['size'],
+        textAnchor: .center,
+        sourceIndex: sourceIndex,
+        sourceGabc: text,
       ) {
     textType = ctxt.theme.supertitle;
     padding = (ctxt) =>

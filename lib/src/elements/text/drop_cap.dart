@@ -7,13 +7,14 @@ import 'text_element.dart';
 class DropCap extends TextElement {
   DropCap(ChantContext ctxt, String text, int sourceIndex)
     : super(
-        ctxt,
-        (ctxt.textStyles['dropCap']?['prefix'] ?? '') + text,
-        (ctxt) => ctxt.textStyles['dropCap']?['font'],
-        (ctxt) => ctxt.textStyles['dropCap']?['size'],
-        .center,
-        sourceIndex,
-        text,
+        ctxt: ctxt,
+        text: (ctxt.textStyles['dropCap']?['prefix'] ?? '') + text,
+        cssClass: 'dropCap',
+        fontFamily: (ctxt) => ctxt.textStyles['dropCap']?['font'],
+        fontSize: (ctxt) => ctxt.textStyles['dropCap']?['size'],
+        textAnchor: .center,
+        sourceIndex: sourceIndex,
+        sourceGabc: text,
       ) {
     textType = ctxt.theme.dropCap;
     padding =

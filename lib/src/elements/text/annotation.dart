@@ -8,13 +8,14 @@ class Annotation extends TextElement {
           (ctxt.textStyles['annotation']?['padding'] as num? ?? 0).toDouble(),
 
       super(
-        ctxt,
-        (ctxt.textStyles['annotation']?['prefix'] ?? '') + text,
-        (ctxt) => ctxt.textStyles['annotation']?['font'],
-        (ctxt) => ctxt.textStyles['annotation']?['size'],
-        .center,
-        0, // sourceIndex not provided in JS constructor
-        text,
+        ctxt: ctxt,
+        text: (ctxt.textStyles['annotation']?['prefix'] ?? '') + text,
+        cssClass: 'annotation',
+        fontFamily: (ctxt) => ctxt.textStyles['annotation']?['font'],
+        fontSize: (ctxt) => ctxt.textStyles['annotation']?['size'],
+        textAnchor: .center,
+        sourceIndex: 0, // sourceIndex not provided in JS constructor
+        sourceGabc: text,
       ) {
     textType = ctxt.theme.annotation;
     dominantBaseline = 'hanging';

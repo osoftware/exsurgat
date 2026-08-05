@@ -4,13 +4,14 @@ import 'title_text_element.dart';
 class Title extends TitleTextElement {
   Title(ChantContext ctxt, String text, [int sourceIndex = 0])
     : super(
-        ctxt,
-        (ctxt.textStyles['title']?['prefix'] ?? '') + text,
-        (ctxt) => ctxt.textStyles['title']?['font'],
-        (ctxt) => ctxt.textStyles['title']?['size'],
-        .center,
-        sourceIndex,
-        text,
+        ctxt: ctxt,
+        text: (ctxt.textStyles['title']?['prefix'] ?? '') + text,
+        cssClass: 'title',
+        fontFamily: (ctxt) => ctxt.textStyles['title']?['font'],
+        fontSize: (ctxt) => ctxt.textStyles['title']?['size'],
+        textAnchor: .center,
+        sourceIndex: sourceIndex,
+        sourceGabc: text,
       ) {
     textType = ctxt.theme.title;
     padding = (ctxt) =>

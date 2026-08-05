@@ -8,13 +8,14 @@ class ChoralSign extends TextElement {
   ChoralSign(ChantContext ctxt, String text, this.note, int sourceIndex)
     : positionHint = MarkingPositionHint.defaultHint,
       super(
-        ctxt,
-        (ctxt.textStyles['choralSign']?['prefix'] ?? '') + text,
-        (ctxt) => ctxt.textStyles['choralSign']?['font'],
-        (ctxt) => ctxt.theme.choralSign.size!.call(ctxt),
-        .start,
-        sourceIndex,
-        text,
+        ctxt: ctxt,
+        text: (ctxt.textStyles['choralSign']?['prefix'] ?? '') + text,
+        cssClass: 'choralSign',
+        fontFamily: (ctxt) => ctxt.textStyles['choralSign']?['font'],
+        fontSize: (ctxt) => ctxt.textStyles['choralSign']?['size'],
+        textAnchor: .start,
+        sourceIndex: sourceIndex,
+        sourceGabc: text,
       ) {
     textType = ctxt.theme.choralSign;
     spans.firstOrNull?.propertyArray.add({'line-height': 1.0});

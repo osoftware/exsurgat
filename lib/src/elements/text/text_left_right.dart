@@ -10,13 +10,14 @@ class TextLeftRight extends TitleTextElement {
   ]) : extraClass = type == 'textLeft' ? 'textLeft' : 'textRight',
        headerKey = type == 'textLeft' ? 'text-left' : 'text-right',
        super(
-         ctxt,
-         (ctxt.textStyles['leftRight']?['prefix'] ?? '') + text,
-         (ctxt) => ctxt.textStyles['leftRight']?['font'],
-         (ctxt) => ctxt.textStyles['leftRight']?['size'],
-         type == 'textLeft' ? .start : .end,
-         sourceIndex,
-         text,
+         ctxt: ctxt,
+         text: (ctxt.textStyles['leftRight']?['prefix'] ?? '') + text,
+         cssClass: 'leftRight',
+         fontFamily: (ctxt) => ctxt.textStyles['leftRight']?['font'],
+         fontSize: (ctxt) => ctxt.textStyles['leftRight']?['size'],
+         textAnchor: type == 'textLeft' ? .start : .end,
+         sourceIndex: sourceIndex,
+         sourceGabc: text,
        ) {
     textType = ctxt.theme.leftRight;
 

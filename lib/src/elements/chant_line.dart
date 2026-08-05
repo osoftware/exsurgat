@@ -602,7 +602,7 @@ class ChantLine extends ChantLayoutElement {
 
     return QuickSvg.createFragment('path', {
       'd': d,
-      'stroke': ctxt.theme.neumeLineColor.toSvgString(),
+      'stroke': ctxt.theme.neumeColor.toSvgString(),
       'stroke-width': '${ctxt.neumeLineWeight}px',
       'fill': 'none',
     });

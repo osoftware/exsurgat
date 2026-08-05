@@ -51,10 +51,10 @@ class ChantContext {
 
     activeClef = null;
 
-    this.theme = theme ?? ChantTheme();
     setGlyphScaling(1.0 / 16.0);
-
     setMergeAnnotationWithTextLeft(true);
+
+    this.theme = theme ?? ChantTheme();
   }
 
   late ChantTheme _theme;
@@ -146,11 +146,11 @@ class ChantContext {
       final textStyle = textStyles[entry.key] ?? <String, dynamic>{};
       textStyles[entry.key] = textStyle;
       textStyle['size'] =
-          entry.value.defaultSize?.call(theme.baseTextStyle.size) ??
+          entry.value.relativeSize?.call(theme.baseTextStyle.size) ??
           entry.value.size?.call(this) ??
           theme.baseTextStyle.size;
       textStyle['font'] = entry.value.font ?? theme.baseTextStyle.font;
-      textStyle['color'] = theme.textColor;
+      textStyle['fill'] = entry.value.color;
     }
 
     baseTextStyle = theme.baseTextStyle.baseStyle;
@@ -181,7 +181,7 @@ class ChantContext {
     final buffer = StringBuffer();
     for (final entry in theme.textStyles.entries) {
       final style = textStyles[entry.key] ?? {};
-      final cssClass = entry.value.cssClass;
+      final cssClass = entry.key;
       final color = (style['color'] as Color? ?? theme.textColor).toSvgString();
       final font = style['font'] ?? 'serif';
       final size = style['size'] ?? 16;
@@ -232,8 +232,6 @@ class ChantContext {
     for (final makeDef in makeDefs) {
       makeDef();
     }
-
-    updateHyphenWidth();
   }
 
   double calculateHeightFromStaffPosition(num staffPosition) =>

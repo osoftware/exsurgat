@@ -4,13 +4,14 @@ import 'title_text_element.dart';
 class Subtitle extends TitleTextElement {
   Subtitle(ChantContext ctxt, String text, [int sourceIndex = 0])
     : super(
-        ctxt,
-        (ctxt.textStyles['subtitle']?['prefix'] ?? '') + text,
-        (ctxt) => ctxt.textStyles['subtitle']?['font'],
-        (ctxt) => ctxt.textStyles['subtitle']?['size'],
-        .center,
-        sourceIndex,
-        text,
+        ctxt: ctxt,
+        text: (ctxt.textStyles['subtitle']?['prefix'] ?? '') + text,
+        cssClass: 'subtitle',
+        fontFamily: (ctxt) => ctxt.textStyles['subtitle']?['font'],
+        fontSize: (ctxt) => ctxt.textStyles['subtitle']?['size'],
+        textAnchor: .center,
+        sourceIndex: sourceIndex,
+        sourceGabc: text,
       ) {
     textType = ctxt.theme.subtitle;
 

@@ -172,7 +172,7 @@ class HorizontalEpisema extends ChantLayoutElement {
     canvasCtxt.drawRect(
       ui.Rect.fromLTWH(bounds.x, bounds.y, bounds.width, bounds.height),
       ui.Paint()
-        ..color = ctxt.theme.neumeLineColor
+        ..color = ctxt.theme.neumeColor
         ..style = ui.PaintingStyle.fill,
     );
   }
@@ -183,7 +183,7 @@ class HorizontalEpisema extends ChantLayoutElement {
       'y': bounds.y,
       'width': bounds.width,
       'height': bounds.height,
-      'fill': ctxt.theme.neumeLineColor.toSvgString(),
+      'fill': ctxt.theme.neumeColor.toSvgString(),
       'class': 'horizontalEpisema',
     };
   }

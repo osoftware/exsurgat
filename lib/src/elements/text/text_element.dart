@@ -14,15 +14,16 @@ import 'drop_cap.dart';
 import 'lyric.dart';
 
 abstract class TextElement extends ChantLayoutElement {
-  TextElement(
-    ChantContext ctxt,
-    String text,
-    this.fontFamily,
-    this.fontSize,
-    this.textAnchor,
-    this.sourceIndex,
-    this.sourceGabc,
-  ) {
+  TextElement({
+    required ChantContext ctxt,
+    required String text,
+    required this.cssClass,
+    required this.fontFamily,
+    required this.fontSize,
+    required this.textAnchor,
+    required this.sourceIndex,
+    required this.sourceGabc,
+  }) {
     bounds = const core.Rect.fromXYWH(0, 0, 0, 0);
     origin = const core.Point(0, 0);
     selected = false;
@@ -44,6 +45,7 @@ abstract class TextElement extends ChantLayoutElement {
   late String text;
   late List<TextSpan> spans;
   late TextStyleDefinition textType;
+  late String cssClass;
   late int numLines;
   bool? rightAligned;
   bool needsLayout = false;
@@ -54,7 +56,7 @@ abstract class TextElement extends ChantLayoutElement {
 
   late double firstLineMaxWidth;
 
-  String getCssClasses() => textType.cssClass;
+  String getCssClasses() => cssClass;
   Map<String, dynamic> getExtraStyleProperties(ChantContext ctxt) =>
       ctxt.baseTextStyle;
 
@@ -579,6 +581,7 @@ abstract class TextElement extends ChantLayoutElement {
       ...getExtraStyleProperties(ctxt),
       'base-font-family': fontFamily(ctxt),
       'base-font-size': fontSize(ctxt),
+      'fill': ?ctxt.textStyles[cssClass]!['fill'],
     };
     for (final span in spans) {
       final xOffset = span.xOffset ?? 0.0;

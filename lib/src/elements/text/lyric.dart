@@ -103,13 +103,14 @@ class Lyric extends TextElement {
     this.notations,
     int sourceIndex = 0,
   ]) : super(
-         ctxt,
-         (ctxt.textStyles['lyric']?['prefix'] ?? '') + text,
-         (ctxt) => ctxt.textStyles['lyric']?['font'],
-         (ctxt) => ctxt.textStyles['lyric']?['size'],
-         .start,
-         sourceIndex,
-         text,
+         ctxt: ctxt,
+         text: (ctxt.textStyles['lyric']?['prefix'] ?? '') + text,
+         cssClass: 'lyric',
+         fontFamily: (ctxt) => ctxt.textStyles['lyric']?['font'],
+         fontSize: (ctxt) => ctxt.textStyles['lyric']?['size'],
+         textAnchor: .start,
+         sourceIndex: sourceIndex,
+         sourceGabc: text,
        ) {
     textType = ctxt.theme.lyric;
     originalText = text;

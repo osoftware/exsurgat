@@ -9,15 +9,16 @@ class TranslationText extends TextElement {
     this.notation,
     int sourceIndex,
   ) : super(
-        ctxt,
-        text == '/'
+        ctxt: ctxt,
+        text: text == '/'
             ? ''
             : (ctxt.textStyles['translation']?['prefix'] ?? '') + text,
-        (ctxt) => ctxt.textStyles['translation']?['font'],
-        (ctxt) => ctxt.textStyles['translation']?['size'],
-        text == '/' ? .end : .start,
-        sourceIndex,
-        text,
+        cssClass: 'translation',
+        fontFamily: (ctxt) => ctxt.textStyles['translation']?['font'],
+        fontSize: (ctxt) => ctxt.textStyles['translation']?['size'],
+        textAnchor: text == '/' ? .end : .start,
+        sourceIndex: sourceIndex,
+        sourceGabc: text,
       ) {
     textType = ctxt.theme.translation;
     padding = ctxt.staffInterval / 2;

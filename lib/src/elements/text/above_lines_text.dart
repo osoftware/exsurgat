@@ -6,13 +6,14 @@ class AboveLinesText extends TextElement {
   AboveLinesText(ChantContext ctxt, String text, this.notation, int sourceIndex)
     : padding = ctxt.staffInterval / 2,
       super(
-        ctxt,
-        (ctxt.textStyles['al']?['prefix'] ?? '') + text,
-        (ctxt) => ctxt.textStyles['al']?['font'],
-        (ctxt) => ctxt.textStyles['al']?['size'],
-        .start,
-        sourceIndex,
-        text,
+        ctxt: ctxt,
+        text: (ctxt.textStyles['al']?['prefix'] ?? '') + text,
+        cssClass: 'al',
+        fontFamily: (ctxt) => ctxt.textStyles['al']?['font'],
+        fontSize: (ctxt) => ctxt.textStyles['al']?['size'],
+        textAnchor: .start,
+        sourceIndex: sourceIndex,
+        sourceGabc: text,
       ) {
     textType = ctxt.theme.aboveLine;
   }

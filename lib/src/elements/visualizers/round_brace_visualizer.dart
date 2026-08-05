@@ -49,7 +49,7 @@ class RoundBraceVisualizer extends ChantLayoutElement {
         points['y'] as double,
       );
     final paint = Paint()
-      ..color = ctxt.theme.neumeLineColor
+      ..color = ctxt.theme.neumeColor
       ..style = PaintingStyle.stroke
       ..strokeWidth = ctxt.staffLineWeight;
     ctxt.canvas.drawPath(path, paint);
@@ -89,7 +89,7 @@ class RoundBraceVisualizer extends ChantLayoutElement {
   Map<String, dynamic> getSvgPathProps(ChantContext ctxt) {
     return <String, dynamic>{
       'd': generatePathString(),
-      'stroke': ctxt.theme.neumeLineColor.toSvgString(),
+      'stroke': ctxt.theme.neumeColor.toSvgString(),
       'stroke-width': '${ctxt.staffLineWeight}px',
       'fill': 'none',
       'class': 'brace',

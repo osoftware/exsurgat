@@ -3,8 +3,11 @@ import 'dart:ui';
 import 'chant_context.dart';
 
 class BaseTextStyle {
+  /// Font list using CSS syntax.
   final String font;
   final double size;
+
+  /// Additional CSS properties.
   final Map<String, dynamic> baseStyle;
 
   const BaseTextStyle({
@@ -16,17 +19,26 @@ class BaseTextStyle {
 
 class TextStyleDefinition {
   const TextStyleDefinition({
-    this.display = '',
-    this.cssClass = '',
     this.font,
-    this.defaultSize,
+    this.relativeSize,
     this.size,
-  });
-  final String display;
-  final String cssClass;
+    this.color,
+  }) : assert(
+         (relativeSize != null) ^ (size != null),
+         'Can\'t define relativeSize and size at the same time',
+       );
+
+  /// Font list using CSS syntax. Overrides font defined in baseTextStyle.
   final String? font;
-  final double Function(double size)? defaultSize;
+
+  /// Calculates the font size relative to size defined in baseFontStyle.
+  final double Function(double size)? relativeSize;
+
+  /// Calculates the font size from ChantContext if [relativeSize] is not provided.
   final double Function(ChantContext ctxt)? size;
+
+  /// Text color. Overrides [ChantTheme.textColor] but not [ChantTheme.rubricColor].
+  final Color? color;
 }
 
 class ChantTheme {
@@ -43,7 +55,7 @@ class ChantTheme {
   late final TextStyleDefinition translation;
   final Color textColor;
   final Color rubricColor;
-  final Color neumeLineColor;
+  final Color neumeColor;
   final Color staffLineColor;
   final Color dividerLineColor;
   final double minLedgerSeparation;
@@ -55,7 +67,7 @@ class ChantTheme {
     this.baseTextStyle = defaultBaseTextStyle,
     this.textColor = ChantColors.nigric,
     this.rubricColor = ChantColors.rubric,
-    this.neumeLineColor = ChantColors.nigric,
+    this.neumeColor = ChantColors.nigric,
     this.staffLineColor = ChantColors.rubric,
     this.dividerLineColor = ChantColors.nigric,
     this.minLedgerSeparation = kDefaultMinLedgerSeparation,
@@ -74,14 +86,14 @@ class ChantTheme {
     TextStyleDefinition? translation,
   }) : supertitle = supertitle ?? defaultTextStyles['supertitle']!,
        title = title ?? defaultTextStyles['title']!,
-       subtitle = title ?? defaultTextStyles['subtitle']!,
-       leftRight = title ?? defaultTextStyles['leftRight']!,
-       annotation = title ?? defaultTextStyles['annotation']!,
-       dropCap = title ?? defaultTextStyles['dropCap']!,
-       aboveLine = title ?? defaultTextStyles['al']!,
-       choralSign = title ?? defaultTextStyles['choralSign']!,
-       lyric = title ?? defaultTextStyles['lyric']!,
-       translation = title ?? defaultTextStyles['translation']!;
+       subtitle = subtitle ?? defaultTextStyles['subtitle']!,
+       leftRight = leftRight ?? defaultTextStyles['leftRight']!,
+       annotation = annotation ?? defaultTextStyles['annotation']!,
+       dropCap = dropCap ?? defaultTextStyles['dropCap']!,
+       aboveLine = aboveLine ?? defaultTextStyles['al']!,
+       choralSign = choralSign ?? defaultTextStyles['choralSign']!,
+       lyric = lyric ?? defaultTextStyles['lyric']!,
+       translation = translation ?? defaultTextStyles['translation']!;
 
   Map<String, TextStyleDefinition> get textStyles => {
     'supertitle': supertitle,
@@ -95,6 +107,8 @@ class ChantTheme {
     'lyric': lyric,
     'translation': translation,
   };
+
+  static final kDefaultTheme = ChantTheme();
 }
 
 const double kDefaultMinLedgerSeparation = 2;
@@ -113,54 +127,14 @@ class ChantColors {
 }
 
 final Map<String, TextStyleDefinition> defaultTextStyles = {
-  'supertitle': TextStyleDefinition(
-    display: 'Supertitle',
-    cssClass: 'supertitle',
-    defaultSize: (size) => (size * 7) / 6, // 14pt
-  ),
-  'title': TextStyleDefinition(
-    display: 'Title',
-    cssClass: 'title',
-    defaultSize: (size) => (size * 3) / 2, // 18pt
-  ),
-  'subtitle': TextStyleDefinition(
-    display: 'Subtitle',
-    cssClass: 'subtitle',
-    defaultSize: (size) => size, // 12pt
-  ),
-  'leftRight': TextStyleDefinition(
-    display: 'Left / Right Text',
-    cssClass: 'textLeftRight',
-    defaultSize: (size) => size * 0.9,
-  ),
-  'annotation': TextStyleDefinition(
-    display: 'Annotation',
-    cssClass: 'annotation',
-    defaultSize: (size) => (size * 2) / 3,
-  ),
-  'dropCap': TextStyleDefinition(
-    display: 'Drop Cap',
-    cssClass: 'dropCap',
-    defaultSize: (size) => size * 4,
-  ),
-  'al': TextStyleDefinition(
-    display: 'Above Staff',
-    cssClass: 'aboveLinesText',
-    defaultSize: (size) => size,
-  ),
-  'choralSign': TextStyleDefinition(
-    display: 'Choral Sign',
-    cssClass: 'choralSign',
-    size: (ctxt) => ctxt.staffInterval * 1.5,
-  ),
-  'lyric': TextStyleDefinition(
-    display: 'Lyric',
-    cssClass: 'lyric',
-    defaultSize: (size) => size * 0.9,
-  ),
-  'translation': TextStyleDefinition(
-    display: 'Translation',
-    cssClass: 'translation',
-    defaultSize: (size) => size * 0.75,
-  ),
+  'supertitle': TextStyleDefinition(relativeSize: (size) => (size * 7) / 6),
+  'title': TextStyleDefinition(relativeSize: (size) => (size * 3) / 2),
+  'subtitle': TextStyleDefinition(relativeSize: (size) => size),
+  'leftRight': TextStyleDefinition(relativeSize: (size) => size * 0.9),
+  'annotation': TextStyleDefinition(relativeSize: (size) => (size * 2) / 3),
+  'dropCap': TextStyleDefinition(relativeSize: (size) => size * 4),
+  'al': TextStyleDefinition(relativeSize: (size) => size),
+  'choralSign': TextStyleDefinition(size: (ctxt) => ctxt.staffInterval * 1.5),
+  'lyric': TextStyleDefinition(relativeSize: (size) => size * 0.9),
+  'translation': TextStyleDefinition(relativeSize: (size) => size * 0.75),
 };
