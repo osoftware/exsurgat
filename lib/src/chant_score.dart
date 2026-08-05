@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' as ui;
 
 import 'package:xml/xml.dart';
 
@@ -495,6 +496,7 @@ class ChantScore {
     final canvas = ctxt.canvas;
 
     canvas.save();
+    canvas.scale(scale, scale);
     canvas.translate(bounds.x, bounds.y);
 
     titles?.draw(ctxt);
@@ -504,6 +506,16 @@ class ChantScore {
     }
 
     canvas.restore();
+  }
+
+  Future<ui.Image> createImage(ChantContext ctxt, {double scale = 1}) {
+    final recorder = ui.PictureRecorder();
+    ctxt.attachCanvas(ui.Canvas(recorder));
+    draw(ctxt, scale: scale);
+    return recorder.endRecording().toImage(
+      (bounds.width * scale).toInt(),
+      (bounds.height * scale).toInt(),
+    );
   }
 
   /// Returns the SVG attributes for the root `<svg>` element.
