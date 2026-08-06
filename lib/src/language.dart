@@ -21,7 +21,7 @@ abstract class Language {
     if (text.isEmpty) return [];
 
     // Divide the text into words separated by whitespace
-    final words = text.split(RegExp(r'[\s]+'));
+    final words = text.split(RegExp(r'[\s]+')).where((word) => word.isNotEmpty);
 
     return words.map((word) => syllabifyWord(word)).toList();
   }
@@ -487,6 +487,222 @@ class Spanish extends Language {
       if (index >= 0) return VowelSegment(true, index, 1);
     }
 
+    return VowelSegment.notFound;
+  }
+}
+
+class Polish extends Language {
+  static final List<String> vowels = [
+    'a',
+    'e',
+    'i',
+    'o',
+    'u',
+    'y',
+    'ó',
+    'ą',
+    'ę',
+  ];
+  static final List<String> consonantDigraphs = [
+    'sz',
+    'cz',
+    'dz',
+    'dź',
+    'dż',
+    'rz',
+    'ch',
+    'szcz',
+  ];
+  static final List<String> palatalizedConsonantTriplets = ['dzi'];
+  static final List<String> palatalizedConsonantSequences = [
+    'si',
+    'zi',
+    'ci',
+    'ni',
+    'li',
+  ];
+  static final List<String> vowelDigraphs = ['ia', 'ie', 'io', 'iu'];
+  static final List<String> validOnsets = [
+    'pr',
+    'br',
+    'dr',
+    'kr',
+    'gr',
+    'tr',
+    'fr',
+    'wr',
+    'pl',
+    'bl',
+    'gl',
+    'kl',
+    'pł',
+    'bł',
+    'gł',
+    'kł',
+    'sł',
+    'tł',
+    'dł',
+    'fł',
+    'mł',
+    'sk',
+    'sm',
+    'sn',
+    'sp',
+    'st',
+    'sw',
+    'sz',
+    'cz',
+    'dz',
+    'ch',
+    'rz',
+    'prz',
+    'brz',
+    'drz',
+    'krz',
+    'grz',
+    'trz',
+    'str',
+    'skr',
+    'spr',
+    'strz',
+    'szcz',
+  ];
+
+  const Polish() : super('Polish');
+
+  bool isVowel(String c) {
+    final lower = c.toLowerCase();
+    return vowels.contains(lower) || vowelDigraphs.contains(lower);
+  }
+
+  bool isLetter(String c) => RegExp(r'[A-Za-ząćęłńóśżźĄĆĘŁŃÓŚŻŹ]').hasMatch(c);
+
+  List<String> _tokenize(String word) {
+    final tokens = <String>[];
+    final lower = word.toLowerCase();
+    int index = 0;
+
+    while (index < word.length) {
+      if (index + 4 <= word.length) {
+        final sequence = lower.substring(index, index + 4);
+        if (sequence == 'szcz') {
+          tokens.add(word.substring(index, index + 4));
+          index += 4;
+          continue;
+        }
+      }
+      if (index + 4 <= word.length) {
+        final sequence = lower.substring(index, index + 4);
+        if (sequence == 'szcz') {
+          tokens.add(word.substring(index, index + 4));
+          index += 4;
+          continue;
+        }
+      }
+      if (index + 2 <= word.length) {
+        final sequence = lower.substring(index, index + 2);
+        if (palatalizedConsonantTriplets.contains(sequence) &&
+            index + 3 <= word.length) {
+          final next = lower[index + 2];
+          if (next == 'i') {
+            tokens.add(word.substring(index, index + 3));
+            index += 3;
+            continue;
+          }
+        }
+        if (palatalizedConsonantSequences.contains(sequence) &&
+            index + 2 < word.length) {
+          final next = lower[index + 2];
+          if (vowels.contains(next)) {
+            tokens.add(word.substring(index, index + 2));
+            index += 2;
+            continue;
+          }
+        }
+        if (consonantDigraphs.contains(sequence)) {
+          tokens.add(word.substring(index, index + 2));
+          index += 2;
+          continue;
+        }
+        if (vowelDigraphs.contains(sequence)) {
+          tokens.add(word.substring(index, index + 2));
+          index += 2;
+          continue;
+        }
+      }
+      tokens.add(word[index]);
+      index += 1;
+    }
+
+    return tokens;
+  }
+
+  int _keepForCoda(List<String> cluster) {
+    if (cluster.isEmpty) return 0;
+    if (cluster.length == 1) return 0;
+
+    final lowerCluster = cluster.join().toLowerCase();
+    final maxOnsetLength = 4;
+    for (var length = maxOnsetLength; length >= 1; length--) {
+      if (cluster.length < length) continue;
+      final suffix = lowerCluster.substring(lowerCluster.length - length);
+      if (length == 1 || validOnsets.contains(suffix)) {
+        return cluster.length - length;
+      }
+    }
+
+    return 0;
+  }
+
+  @override
+  List<String> syllabifyWord(String word) {
+    if (word.isEmpty) return [];
+
+    final tokens = _tokenize(word);
+    final vowelIndices = <int>[];
+
+    for (int i = 0; i < tokens.length; i++) {
+      if (isVowel(tokens[i])) {
+        vowelIndices.add(i);
+      }
+    }
+
+    if (vowelIndices.isEmpty) {
+      return [word];
+    }
+
+    final syllables = <String>[];
+    int start = 0;
+
+    for (
+      int vowelIndex = 0;
+      vowelIndex < vowelIndices.length - 1;
+      vowelIndex++
+    ) {
+      final currentIndex = vowelIndices[vowelIndex];
+      final nextIndex = vowelIndices[vowelIndex + 1];
+      final cluster = tokens.sublist(currentIndex + 1, nextIndex);
+      final keep = _keepForCoda(cluster);
+      final boundary = currentIndex + 1 + keep;
+      syllables.add(tokens.sublist(start, boundary).join());
+      start = boundary;
+    }
+
+    syllables.add(tokens.sublist(start).join());
+    return syllables;
+  }
+
+  @override
+  VowelSegment findVowelSegment(
+    String s,
+    int startIndex, [
+    List<Map<String, int>>? ignore,
+  ]) {
+    for (int i = startIndex; i < s.length; i++) {
+      if (isVowel(s[i])) {
+        return VowelSegment(true, i, 1);
+      }
+    }
     return VowelSegment.notFound;
   }
 }
