@@ -611,6 +611,13 @@ abstract class TextElement extends ChantLayoutElement {
     }
     canvas.restore();
   }
+
+  @override
+  core.Rect get boundsForHitTest => switch (textAnchor) {
+    .center => bounds.copyWith(x: bounds.x - bounds.width / 2),
+    .end => bounds.copyWith(x: bounds.x - bounds.width),
+    _ => bounds,
+  };
 }
 
 class TextSpan {

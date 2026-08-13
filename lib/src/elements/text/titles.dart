@@ -165,7 +165,7 @@ class Titles extends ChantLayoutElement {
   bool hasTextRight(ChantContext ctxt, String? textRight) =>
       this.textRight != null;
 
-  List<TitleTextElement> _elements() {
+  List<TitleTextElement> get elements {
     return [
       ?supertitle,
       ?title,
@@ -180,7 +180,7 @@ class Titles extends ChantLayoutElement {
     final canvasCtxt = ctxt.canvas;
     canvasCtxt.translate(bounds.x, bounds.y);
 
-    for (final el in _elements()) {
+    for (final el in elements) {
       el.draw(ctxt);
     }
 
@@ -188,7 +188,7 @@ class Titles extends ChantLayoutElement {
   }
 
   List<T> getInnerNodes<T>(ChantContext ctxt, ElementNodeMaker<T> create) {
-    return [for (final el in _elements()) create(el, ctxt)];
+    return [for (final el in elements) create(el, ctxt)];
   }
 
   @override

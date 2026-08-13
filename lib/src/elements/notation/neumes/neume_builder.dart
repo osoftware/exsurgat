@@ -337,7 +337,11 @@ class NeumeBuilder {
     end.setGlyph(ctxt, GlyphCode.none);
 
     x = start.bounds.right;
-    end.bounds = end.bounds.copyWith(x: x - end.bounds.width);
+    end.bounds = end.bounds.copyWith(
+      x: x - end.bounds.width - start.bounds.width / 2,
+      width: start.bounds.width / 2,
+      height: start.bounds.height / 2,
+    );
 
     neume.addVisualizer(start);
     neume.addVisualizer(end);

@@ -5,19 +5,13 @@ import '../core.dart';
 import '../quick_svg.dart';
 
 abstract class ChantLayoutElement {
-  ChantLayoutElement() {
-    bounds = const Rect.fromXYWH(0, 0, 0, 0);
-    origin = const Point(0, 0);
-
-    selected = false;
-    highlighted = false;
-  }
-
-  late Rect bounds;
-  late Point origin;
-  late bool selected;
-  late bool highlighted;
+  Rect bounds = const Rect.fromXYWH(0, 0, 0, 0);
+  Point origin = const Point(0, 0);
+  bool selected = false;
+  bool highlighted = false;
   bool ignoreBounds = false;
+
+  Rect get boundsForHitTest => bounds.copyWith(y: bounds.y - origin.y);
 
   void draw(ChantContext ctxt);
 

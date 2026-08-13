@@ -12,6 +12,7 @@ class ChantScoreView extends StatelessWidget {
     this.width,
     this.padding = const EdgeInsets.all(12),
     this.theme,
+    this.editable = false,
   });
 
   final String gabc;
@@ -19,6 +20,7 @@ class ChantScoreView extends StatelessWidget {
   final double? width;
   final EdgeInsets padding;
   final ChantTheme? theme;
+  final bool editable;
 
   @override
   Widget build(BuildContext context) {
@@ -31,6 +33,7 @@ class ChantScoreView extends StatelessWidget {
             gabc: gabc,
             useDropCap: useDropCap,
             theme: theme,
+            editable: editable,
           ),
         ),
       ),
