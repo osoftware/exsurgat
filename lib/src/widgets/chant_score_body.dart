@@ -212,6 +212,21 @@ class RenderChantScore extends RenderBox {
               result.add(ChantHitTestEntry(element, this));
               break;
             }
+            final neumePosition = Point(
+              linePosition.x - element.bounds.x,
+              linePosition.y,
+            );
+            for (final text in [
+              ...element.lyrics,
+              ...element.translationText,
+              ...element.alText,
+            ]) {
+              if (text.boundsForHitTest.containsPoint(neumePosition)) {
+                result.add(ChantHitTestEntry(text, this));
+                result.add(ChantHitTestEntry(element, this));
+                break;
+              }
+            }
           }
         }
 
