@@ -11,7 +11,6 @@ import '../chant_score.dart';
 import '../chant_theme.dart';
 import '../core.dart';
 import '../elements/annotations.dart';
-import '../elements/chant_layout_element.dart';
 import '../elements/notation/neumes/neume.dart';
 import '../elements/text/drop_cap.dart';
 import '../gabc.dart';
@@ -24,50 +23,51 @@ class ChantScoreBody extends LeafRenderObjectWidget {
     required this.gabc,
     this.useDropCap = true,
     this.theme,
-    this.editable = false,
+    this.tool,
   });
 
   final String gabc;
   final bool useDropCap;
   final ChantTheme? theme;
-  final bool editable;
+  final Tool? tool;
 
   @override
   RenderBox createRenderObject(BuildContext context) {
-    return _ChantScoreRenderBox(
+    return RenderChantScore(
       gabc: gabc,
       useDropCap: useDropCap,
       theme: theme ?? ChantTheme.kDefaultTheme,
-      editable: editable,
+      tool: tool,
     );
   }
 
   @override
   void updateRenderObject(BuildContext context, RenderBox renderObject) {
     super.updateRenderObject(context, renderObject);
-    (renderObject as _ChantScoreRenderBox)
+    (renderObject as RenderChantScore)
       ..gabc = gabc
       ..useDropCap = useDropCap
-      ..theme = theme ?? ChantTheme.kDefaultTheme;
+      ..theme = theme ?? ChantTheme.kDefaultTheme
+      ..tool = tool;
   }
 }
 
-class _ChantScoreRenderBox extends RenderBox {
-  _ChantScoreRenderBox({
+class RenderChantScore extends RenderBox {
+  RenderChantScore({
     required String gabc,
     required bool useDropCap,
     required ChantTheme theme,
-    required bool editable,
+    required Tool? tool,
   }) : _gabc = gabc,
        _chantContext = ChantContext(theme: theme),
        _useDropCap = useDropCap,
-       _editable = editable {
+       _tool = tool {
     _buildScore();
   }
 
   String _gabc;
   bool _useDropCap;
-  bool _editable;
+  Tool? _tool;
 
   final ChantContext _chantContext;
   late ChantScore _score;
@@ -91,10 +91,10 @@ class _ChantScoreRenderBox extends RenderBox {
     markNeedsLayout();
   }
 
-  bool get editable => _editable;
-  set editable(bool value) {
-    if (value == _editable) return;
-    _editable = value;
+  Tool? get tool => _tool;
+  set tool(Tool? value) {
+    if (value == _tool) return;
+    _tool = value;
   }
 
   ChantTheme get theme => _chantContext.theme;
@@ -142,7 +142,7 @@ class _ChantScoreRenderBox extends RenderBox {
   @override
   bool hitTest(BoxHitTestResult result, {required Offset position}) {
     return super.hitTest(result, position: position) ||
-        _editable && hitTestNotationElements(result, position: position);
+        _tool != null && hitTestNotationElements(result, position: position);
   }
 
   bool hitTestNotationElements(
@@ -153,7 +153,7 @@ class _ChantScoreRenderBox extends RenderBox {
     if (_score.titles?.bounds.containsPoint(globalPosition) ?? false) {
       for (final t in _score.titles!.elements) {
         if (t.boundsForHitTest.containsPoint(globalPosition)) {
-          result.add(ChantHitTestEntry(t, _chantContext));
+          result.add(ChantHitTestEntry(t, this));
           return true;
         }
       }
@@ -164,7 +164,7 @@ class _ChantScoreRenderBox extends RenderBox {
         y: boundsForHitTest.y + _score.lines.first.bounds.y,
       );
       if (dropCapBounds.containsPoint(globalPosition)) {
-        result.add(ChantHitTestEntry(_score.dropCap!, _chantContext));
+        result.add(ChantHitTestEntry(_score.dropCap!, this));
         return true;
       }
       if (_score.annotation case Annotations(:final annotations)) {
@@ -174,7 +174,7 @@ class _ChantScoreRenderBox extends RenderBox {
             x: a.boundsForHitTest.x + _score.annotation!.bounds.x,
           );
           if (aBounds.containsPoint(globalPosition)) {
-            result.add(ChantHitTestEntry(a, _chantContext));
+            result.add(ChantHitTestEntry(a, this));
             return true;
           }
         }
@@ -188,7 +188,7 @@ class _ChantScoreRenderBox extends RenderBox {
           globalPosition.y - line.bounds.y,
         );
         if (line.startingClef?.bounds.containsPoint(linePosition) ?? false) {
-          result.add(ChantHitTestEntry(line.startingClef!, _chantContext));
+          result.add(ChantHitTestEntry(line.startingClef!, this));
         } else {
           for (
             int i = line.notationsStartIndex;
@@ -203,36 +203,58 @@ class _ChantScoreRenderBox extends RenderBox {
                     x: element.bounds.x + note.bounds.x,
                   );
                   if (noteBounds.containsPoint(linePosition)) {
-                    result.add(ChantHitTestEntry(note, _chantContext));
+                    result.add(ChantHitTestEntry(note, this));
                     break;
                   }
                 }
               }
 
-              result.add(ChantHitTestEntry(element, _chantContext));
+              result.add(ChantHitTestEntry(element, this));
               break;
             }
           }
         }
 
-        result.add(ChantHitTestEntry(line, _chantContext));
-        return true;
+        result.add(ChantHitTestEntry(line, this));
       }
+    }
+
+    if (size.contains(position)) {
+      result.add(ChantHitTestEntry(_score, this));
+      return true;
     }
 
     return false;
   }
+
+  void _handleTargetEvent(PointerEvent event, ChantHitTestTarget target) {
+    _tool?.handleTargetEvent(event, target);
+  }
 }
 
-class ChantHitTestTarget implements HitTestTarget {
-  ChantHitTestTarget(this.target);
-  ChantLayoutElement target;
+class ChantHitTestTarget<T> implements HitTestTarget {
+  const ChantHitTestTarget(this.element);
+
+  final T element;
+
   @override
-  void handleEvent(PointerEvent event, covariant ChantHitTestEntry entry) {}
+  void handleEvent(PointerEvent event, covariant ChantHitTestEntry entry) {
+    entry.renderObject._handleTargetEvent(event, this);
+  }
+
+  @override
+  int get hashCode => element.hashCode;
+
+  @override
+  bool operator ==(Object other) => hashCode == other.hashCode;
 }
 
-class ChantHitTestEntry extends HitTestEntry<ChantHitTestTarget> {
-  ChantHitTestEntry(ChantLayoutElement target, this.ctxt)
+class ChantHitTestEntry<T> extends HitTestEntry<ChantHitTestTarget<T>> {
+  ChantHitTestEntry(T target, this.renderObject)
     : super(ChantHitTestTarget(target));
-  final ChantContext ctxt;
+  final RenderChantScore renderObject;
+}
+
+abstract interface class Tool {
+  void handleTargetEvent(PointerEvent event, HitTestTarget target);
 }

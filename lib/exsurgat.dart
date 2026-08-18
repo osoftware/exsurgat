@@ -3,6 +3,7 @@ export 'src/chant_score.dart';
 export 'src/chant_theme.dart';
 export 'src/drawing.dart';
 export 'src/elements/annotations.dart';
+export 'src/elements/chant_layout_element.dart';
 export 'src/gabc.dart';
 export 'src/widgets/chant_score_body.dart';
 export 'src/widgets/chant_score_view.dart';
