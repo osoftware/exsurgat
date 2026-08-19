@@ -62,6 +62,7 @@ class RenderChantScore extends RenderBox {
        _chantContext = ChantContext(theme: theme),
        _useDropCap = useDropCap,
        _tool = tool {
+    _tool?.attachTo(this);
     _buildScore();
   }
 
@@ -95,6 +96,7 @@ class RenderChantScore extends RenderBox {
   set tool(Tool? value) {
     if (value == _tool) return;
     _tool = value;
+    _tool?.attachTo(this);
   }
 
   ChantTheme get theme => _chantContext.theme;
@@ -270,6 +272,18 @@ class ChantHitTestEntry<T> extends HitTestEntry<ChantHitTestTarget<T>> {
   final RenderChantScore renderObject;
 }
 
-abstract interface class Tool {
+abstract class Tool {
+  late RenderChantScore _renderObject;
+
+  RenderChantScore get renderObject => _renderObject;
+
+  ChantScore get score => _renderObject._score;
+
+  ChantContext get chantContext => _renderObject._chantContext;
+
+  void attachTo(RenderChantScore renderObject) {
+    _renderObject = renderObject;
+  }
+
   void handleTargetEvent(PointerEvent event, HitTestTarget target);
 }
