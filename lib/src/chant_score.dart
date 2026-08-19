@@ -22,19 +22,16 @@ import 'quick_svg.dart';
 
 /// A selection state for a [ChantScore], tracking which elements are selected
 /// and where an insertion cursor should be displayed.
-class ScoreSelection {
-  ScoreSelection({this.element, this.note});
+class Selection {
+  Selection({this.element});
 
   /// The element-level selection, containing the indices of selected elements.
   final ElementSelection? element;
 
-  /// The note-level selection.
-  final NoteSelection? note;
-
   dynamic get insertion => element?.insertion;
 }
 
-/// The element-level portion of a [ScoreSelection].
+/// The element-level portion of a [Selection].
 class ElementSelection {
   ElementSelection({this.indices = const [], this.insertion});
 
@@ -43,13 +40,6 @@ class ElementSelection {
 
   /// The insertion cursor location, if any.
   final dynamic insertion;
-}
-
-/// The note-level portion of a [ScoreSelection].
-class NoteSelection {
-  NoteSelection({this.indices = const []});
-
-  final List<int> indices;
 }
 
 /// A chant score, the main document type produced by parsing gabc source.
@@ -124,7 +114,7 @@ class ChantScore {
   bool hasTranslations = false;
 
   /// The current selection state, if any.
-  ScoreSelection? selection;
+  Selection? selection;
 
   /// The element that the insertion cursor should be drawn after, if any.
   ChantLayoutElement? insertionElement;
@@ -181,7 +171,7 @@ class ChantScore {
   }
 
   /// Updates the selection state of the score.
-  void updateSelection(ScoreSelection? selection) {
+  void updateSelection(Selection? selection) {
     this.selection = selection;
     final elementSelection = selection?.element ?? ElementSelection();
     final selectedIndices = elementSelection.indices;
@@ -279,11 +269,12 @@ class ChantScore {
         final elements = notation is Neume ? notation.notes : [notation];
         for (final element in elements) {
           final elementIndex = notes.length;
+          notes.add(element);
           if (element case ChantNotationElement e) {
             e.elementIndex = elementIndex;
           }
-          notes.add(element);
           if (element is Note) {
+            element.elementIndex = elementIndex;
             element.noteIndex = elementIndex - nonNoteElementCount;
           } else {
             ++nonNoteElementCount;
