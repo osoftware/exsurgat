@@ -1,4 +1,5 @@
 import 'dart:math' as math;
+import 'dart:ui' as ui;
 
 import 'package:xml/xml.dart';
 
@@ -380,6 +381,20 @@ class ChantLine extends ChantLayoutElement {
     final canvas = ctxt.canvas;
 
     canvas.translate(bounds.x, bounds.y);
+
+    if (selected) {
+      canvas.drawRRect(
+        ui.RRect.fromRectAndRadius(
+          ui.Rect.fromLTWH(0, -origin.y, bounds.width, bounds.height),
+          ui.Radius.circular(3),
+        ),
+        ui.Paint()
+          ..color = ctxt.theme.selectionColor
+          ..style = .stroke
+          ..strokeJoin = .round
+          ..strokeWidth = 2,
+      );
+    }
 
     final x1 = staffLeft;
     final x2 = staffRight;

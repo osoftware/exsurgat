@@ -23,23 +23,35 @@ import 'quick_svg.dart';
 /// A selection state for a [ChantScore], tracking which elements are selected
 /// and where an insertion cursor should be displayed.
 class Selection {
-  Selection({this.element});
+  Selection({
+    this.element = const ElementSelection(),
+    this.line = const LineSelection(),
+  });
 
-  /// The element-level selection, containing the indices of selected elements.
-  final ElementSelection? element;
+  /// The element-level selection, containing the indices of elements in [ChantScore.notes].
+  final ElementSelection element;
 
-  dynamic get insertion => element?.insertion;
+  /// The line-level selection, containing indices of lines in [ChantScore.lines]
+  final LineSelection line;
+
+  dynamic get insertion => element.insertion;
 }
 
 /// The element-level portion of a [Selection].
 class ElementSelection {
-  ElementSelection({this.indices = const [], this.insertion});
+  const ElementSelection({this.indices = const {}, this.insertion});
 
   /// The indices of the selected elements within the score's `notes` array.
-  final List<int> indices;
+  final Set<int> indices;
 
   /// The insertion cursor location, if any.
   final dynamic insertion;
+}
+
+class LineSelection {
+  const LineSelection({this.indices = const {}});
+
+  final Set<int> indices;
 }
 
 /// A chant score, the main document type produced by parsing gabc source.
@@ -178,10 +190,10 @@ class ChantScore {
     var insertion = elementSelection.insertion;
     if (insertion == null &&
         selectedIndices.length == 1 &&
-        notes[selectedIndices[0]] is TextOnly) {
+        notes[selectedIndices.first] is TextOnly) {
       // if there is only one selection, and its a text only, it should display
       // as an insertion cursor:
-      insertion = {'afterElementIndex': selectedIndices[0]};
+      insertion = {'afterElementIndex': selectedIndices.first};
     }
 
     // update the selected elements so that they can be given a .selected class
@@ -198,6 +210,7 @@ class ChantScore {
 
     for (var i = 0; i < lines.length; ++i) {
       lines[i].insertionCursor = null;
+      lines[i].selected = selection?.line.indices.contains(i) ?? false;
     }
 
     // update the insertion cursor, so it can be drawn on the correct system
