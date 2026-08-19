@@ -40,9 +40,10 @@ class FaClef extends Clef {
   void performLayout(ChantContext ctxt) {
     super.performLayout(ctxt);
 
-    var glyph = GlyphVisualizer(ctxt, GlyphCode.faClef);
-    glyph.setStaffPosition(ctxt, staffPosition);
-    addVisualizer(glyph);
+    addVisualizer(
+      GlyphVisualizer(ctxt, GlyphCode.faClef, this)
+        ..setStaffPosition(ctxt, staffPosition),
+    );
 
     finishLayout(ctxt);
   }

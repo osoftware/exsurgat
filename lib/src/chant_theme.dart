@@ -60,6 +60,7 @@ class ChantTheme {
   final Color neumeColor;
   final Color staffLineColor;
   final Color dividerLineColor;
+  final Color selectionColor;
   final double minLedgerSeparation;
   final double minSpaceAboveStaff;
   final double minSpaceBelowStaff;
@@ -73,6 +74,7 @@ class ChantTheme {
     this.neumeColor = ChantColors.nigric,
     this.staffLineColor = ChantColors.rubric,
     this.dividerLineColor = ChantColors.nigric,
+    this.selectionColor = ChantColors.caeruleus,
     this.minLedgerSeparation = kDefaultMinLedgerSeparation,
     this.minSpaceAboveStaff = kDefaultMinSpaceAboveStaff,
     this.minSpaceBelowStaff = kDefaultMinSpaceBelowStaff,
@@ -130,6 +132,9 @@ class ChantColors {
 
   /// Standart color for texts to obey.
   static const Color rubric = Color(0xFFDD0000);
+
+  /// Selection highlight
+  static const Color caeruleus = Color(0xFF007BA7);
 }
 
 final Map<String, TextStyleDefinition> defaultTextStyles = {

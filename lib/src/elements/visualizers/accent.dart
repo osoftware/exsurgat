@@ -13,7 +13,7 @@ class Accent extends GlyphVisualizer {
     ChantContext ctxt,
     this.note, {
     GlyphCode glyphCode = GlyphCode.acuteAccent,
-  }) : super(ctxt, glyphCode);
+  }) : super(ctxt, glyphCode, note);
 
   void performLayout(ChantContext ctxt) {
     bounds = bounds.copyWith(

@@ -13,7 +13,7 @@ class TextOnly extends ChantNotationElement {
     super.performLayout(ctxt);
 
     // add an empty glyph as a placeholder
-    addVisualizer(GlyphVisualizer(ctxt, GlyphCode.none));
+    addVisualizer(GlyphVisualizer(ctxt, GlyphCode.none, this));
 
     origin = Point(0, -ctxt.staffInterval);
 

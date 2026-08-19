@@ -8,7 +8,7 @@ class Ictus extends GlyphVisualizer {
   MarkingPositionHint positionHint = MarkingPositionHint.defaultHint;
 
   Ictus(ChantContext ctxt, this.note)
-    : super(ctxt, GlyphCode.verticalEpisemaAbove);
+    : super(ctxt, GlyphCode.verticalEpisemaAbove, note);
 
   void performLayout(ChantContext ctxt) {
     var glyphCode = note.glyphVisualizer!.glyphCode;

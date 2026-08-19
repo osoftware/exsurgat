@@ -33,13 +33,13 @@ class CurlyBraceVisualizer extends ChantLayoutElement {
     bounds = rect;
     origin = const core.Point(0, 0);
     if (addAcuteAccent && isAbove) {
-      accent = GlyphVisualizer(ctxt, GlyphCode.acuteAccent);
-      accent!.bounds = core.Rect.fromXYWH(
-        rect.x + (x2 - x1) / 2,
-        rect.y - ctxt.staffInterval / 4,
-        accent!.bounds.width,
-        accent!.bounds.height,
-      );
+      accent = GlyphVisualizer(ctxt, GlyphCode.acuteAccent, this)
+        ..bounds = core.Rect.fromXYWH(
+          rect.x + (x2 - x1) / 2,
+          rect.y - ctxt.staffInterval / 4,
+          accent!.bounds.width,
+          accent!.bounds.height,
+        );
     }
   }
 

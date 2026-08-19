@@ -95,7 +95,7 @@ class Note extends ChantLayoutElement with BraceEnd {
     if (glyphVisualizer != null) {
       glyphVisualizer!.setGlyph(ctxt, glyphCode);
     } else {
-      glyphVisualizer = GlyphVisualizer(ctxt, glyphCode);
+      glyphVisualizer = GlyphVisualizer(ctxt, glyphCode, this);
     }
 
     glyphVisualizer!.setStaffPosition(ctxt, staffPosition);

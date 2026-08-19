@@ -37,5 +37,5 @@ class Accidental extends ChantNotationElement {
         AccidentalType.natural => GlyphCode.natural,
         AccidentalType.sharp => GlyphCode.sharp,
         AccidentalType.flat => GlyphCode.flat,
-      })..setStaffPosition(ctxt, staffPosition);
+      }, this)..setStaffPosition(ctxt, staffPosition);
 }

@@ -16,10 +16,10 @@ class Virgula extends Divider {
   void performLayout(ChantContext ctxt) {
     super.performLayout(ctxt);
 
-    final glyph = GlyphVisualizer(ctxt, GlyphCode.virgula);
-    glyph.setStaffPosition(ctxt, staffPosition);
-
-    addVisualizer(glyph);
+    addVisualizer(
+      GlyphVisualizer(ctxt, GlyphCode.virgula, this)
+        ..setStaffPosition(ctxt, staffPosition),
+    );
 
     origin = Point(bounds.width / 2, origin.y);
 

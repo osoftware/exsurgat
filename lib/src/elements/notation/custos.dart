@@ -38,8 +38,11 @@ class Custos extends ChantNotationElement with BraceEnd {
     }
 
     addVisualizer(
-      GlyphVisualizer(ctxt, getGlyphCode(staffPosition, ctxt.staffLineCount))
-        ..setStaffPosition(ctxt, staffPosition),
+      GlyphVisualizer(
+        ctxt,
+        getGlyphCode(staffPosition, ctxt.staffLineCount),
+        this,
+      )..setStaffPosition(ctxt, staffPosition),
     );
 
     finishLayout(ctxt);

@@ -10,7 +10,7 @@ class Mora extends GlyphVisualizer {
   MarkingPositionHint positionHint = MarkingPositionHint.defaultHint;
   late double horizontalOffset;
 
-  Mora(ChantContext ctxt, this.note) : super(ctxt, GlyphCode.mora) {
+  Mora(ChantContext ctxt, this.note) : super(ctxt, GlyphCode.mora, note) {
     horizontalOffset = ctxt.staffInterval / 2 + origin.x;
   }
 

@@ -42,12 +42,13 @@ class TrebleClef extends Clef {
   void performLayout(ChantContext ctxt) {
     super.performLayout(ctxt);
 
-    var glyph = GlyphVisualizer(
-      ctxt,
-      small ? GlyphCode.trebleClefSmall : GlyphCode.trebleClef,
+    addVisualizer(
+      GlyphVisualizer(
+        ctxt,
+        small ? GlyphCode.trebleClefSmall : GlyphCode.trebleClef,
+        this,
+      )..setStaffPosition(ctxt, staffPosition),
     );
-    glyph.setStaffPosition(ctxt, staffPosition);
-    addVisualizer(glyph);
 
     finishLayout(ctxt);
   }

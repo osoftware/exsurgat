@@ -42,12 +42,13 @@ class ChiRhoClef extends Clef {
   void performLayout(ChantContext ctxt) {
     super.performLayout(ctxt);
 
-    var glyph = GlyphVisualizer(
-      ctxt,
-      sans ? GlyphCode.chiRhoClefSans : GlyphCode.chiRhoClef,
+    addVisualizer(
+      GlyphVisualizer(
+        ctxt,
+        sans ? GlyphCode.chiRhoClefSans : GlyphCode.chiRhoClef,
+        this,
+      )..setStaffPosition(ctxt, staffPosition),
     );
-    glyph.setStaffPosition(ctxt, staffPosition);
-    addVisualizer(glyph);
 
     finishLayout(ctxt);
   }

@@ -40,9 +40,10 @@ class DoClef extends Clef {
   void performLayout(ChantContext ctxt) {
     super.performLayout(ctxt);
 
-    var glyph = GlyphVisualizer(ctxt, GlyphCode.doClef);
-    glyph.setStaffPosition(ctxt, staffPosition);
-    addVisualizer(glyph);
+    addVisualizer(
+      GlyphVisualizer(ctxt, GlyphCode.doClef, this)
+        ..setStaffPosition(ctxt, staffPosition),
+    );
 
     finishLayout(ctxt);
   }
