@@ -4,6 +4,7 @@ library;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
 import '../chant_context.dart';
@@ -53,7 +54,7 @@ class ChantScoreBody extends LeafRenderObjectWidget {
   }
 }
 
-class RenderChantScore extends RenderBox {
+class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
   RenderChantScore({
     required String gabc,
     required bool useDropCap,
@@ -146,6 +147,18 @@ class RenderChantScore extends RenderBox {
   bool hitTest(BoxHitTestResult result, {required Offset position}) =>
       tool?.hitTestElements(result, position: position) ??
       super.hitTest(result, position: position);
+
+  @override
+  MouseCursor get cursor => tool?.cursor ?? MouseCursor.defer;
+
+  @override
+  PointerEnterEventListener? get onEnter => null;
+
+  @override
+  PointerExitEventListener? get onExit => _tool?.handlePointerExit;
+
+  @override
+  bool get validForMouseTracker => _tool != null;
 }
 
 /// Provides pointer event handling for [ChantLayoutElement]
@@ -192,6 +205,9 @@ abstract class Tool {
   /// Chant context of the edited score.
   ChantContext get chantContext => _renderObject._chantContext;
 
+  /// Override this getter to change the cursor display when this tool is active.
+  MouseCursor get cursor => MouseCursor.defer;
+
   /// Determines a set of [ChantLayoutElement]s that are located at the given
   /// position or are relevant to it in the order from the innermost to
   /// the outermost.
@@ -201,6 +217,7 @@ abstract class Tool {
       for (final t in score.titles!.elements) {
         if (t.boundsForHitTest.containsPoint(globalPosition)) {
           result.add(ChantHitTestEntry(t, renderObject));
+          result.add(BoxHitTestEntry(renderObject, position));
           return true;
         }
       }
@@ -212,6 +229,7 @@ abstract class Tool {
       );
       if (dropCapBounds.containsPoint(globalPosition)) {
         result.add(ChantHitTestEntry(score.dropCap!, renderObject));
+        result.add(BoxHitTestEntry(renderObject, position));
         return true;
       }
       if (score.annotation case Annotations(:final annotations)) {
@@ -222,6 +240,7 @@ abstract class Tool {
           );
           if (aBounds.containsPoint(globalPosition)) {
             result.add(ChantHitTestEntry(a, renderObject));
+            result.add(BoxHitTestEntry(renderObject, position));
             return true;
           }
         }
@@ -283,6 +302,7 @@ abstract class Tool {
 
     if (renderObject.size.contains(position)) {
       result.add(ChantHitTestEntry(score, renderObject));
+      result.add(BoxHitTestEntry(renderObject, position));
       return true;
     }
 
@@ -294,4 +314,8 @@ abstract class Tool {
   /// This method is is called for each [ChantHitTestTarget] collected by
   /// [hitTestElements] in the same order.
   void handleTargetEvent(PointerEvent event, ChantHitTestTarget target);
+
+  /// Override this method if you need to do something when the pointer leaves
+  /// the score body.
+  void handlePointerExit(PointerExitEvent event) {}
 }
