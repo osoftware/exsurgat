@@ -1,0 +1,10 @@
+export 'src/core.dart';
+export 'src/drawing.dart';
+export 'src/elements/annotations.dart';
+export 'src/elements/chant_layout_element.dart';
+export 'src/elements/chant_line.dart';
+export 'src/elements/notation/chant_notation_element.dart';
+export 'src/elements/notation/clefs.dart';
+export 'src/elements/notation/dividers.dart';
+export 'src/elements/notation/neumes.dart';
+export 'src/elements/text.dart';

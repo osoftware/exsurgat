@@ -93,6 +93,7 @@ class ChantLine extends ChantLayoutElement {
   int? maxNumNotationsOnLine;
 
   InsertionCursor? insertionCursor;
+  Neume? insertionPreview;
 
   ChantLine(this.score);
 
@@ -376,10 +377,22 @@ class ChantLine extends ChantLayoutElement {
     return insertionCursor;
   }
 
+  Neume? layoutInsertionPreview(ChantContext ctxt) {
+    if (insertionPreview case Neume(:final bounds)) {
+      return insertionPreview!
+        ..performLayout(ctxt)
+        ..bounds = insertionPreview!.bounds.copyWith(
+          x: bounds.x - insertionPreview!.bounds.width,
+        );
+    }
+    return null;
+  }
+
   @override
   void draw(ChantContext ctxt) {
     final canvas = ctxt.canvas;
 
+    canvas.save();
     canvas.translate(bounds.x, bounds.y);
 
     if (selected) {
@@ -448,7 +461,9 @@ class ChantLine extends ChantLayoutElement {
 
     if (custos != null) custos!.draw(ctxt);
 
-    canvas.translate(-bounds.x, -bounds.y);
+    layoutInsertionPreview(ctxt)?.draw(ctxt);
+
+    canvas.restore();
   }
 
   List<T> getInnerNodes<T>(
@@ -496,6 +511,10 @@ class ChantLine extends ChantLayoutElement {
 
     if (layoutInsertionCursor(ctxt) != null) {
       inner.add(element(layoutInsertionCursor(ctxt)!, ctxt));
+    }
+
+    if (layoutInsertionPreview(ctxt) != null) {
+      inner.add(element(layoutInsertionPreview(ctxt)!, ctxt));
     }
 
     for (int i = 0; i < ledgerLines.length; i++) {
