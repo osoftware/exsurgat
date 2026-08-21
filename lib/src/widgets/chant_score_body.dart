@@ -1,4 +1,5 @@
 /// @docImport 'chant_score_view.dart';
+/// @docImport '../elements/chant_layout_element.dart';
 library;
 
 import 'package:flutter/gestures.dart';
@@ -62,7 +63,7 @@ class RenderChantScore extends RenderBox {
        _chantContext = ChantContext(theme: theme),
        _useDropCap = useDropCap,
        _tool = tool {
-    _tool?.attachTo(this);
+    _tool?._attachTo(this);
     _buildScore();
   }
 
@@ -96,7 +97,7 @@ class RenderChantScore extends RenderBox {
   set tool(Tool? value) {
     if (value == _tool) return;
     _tool = value;
-    _tool?.attachTo(this);
+    _tool?._attachTo(this);
   }
 
   ChantTheme get theme => _chantContext.theme;
@@ -142,62 +143,106 @@ class RenderChantScore extends RenderBox {
   }
 
   @override
-  bool hitTest(BoxHitTestResult result, {required Offset position}) {
-    return super.hitTest(result, position: position) ||
-        _tool != null && hitTestNotationElements(result, position: position);
+  bool hitTest(BoxHitTestResult result, {required Offset position}) =>
+      tool?.hitTestElements(result, position: position) ??
+      super.hitTest(result, position: position);
+}
+
+/// Provides pointer event handling for [ChantLayoutElement]
+/// by redirecting it to [Tool.handleTargetEvent].
+class ChantHitTestTarget<T> implements HitTestTarget {
+  const ChantHitTestTarget(this.element);
+
+  final T element;
+
+  @override
+  void handleEvent(PointerEvent event, covariant ChantHitTestEntry entry) {
+    entry.renderObject.tool?.handleTargetEvent(event, this);
   }
 
-  bool hitTestNotationElements(
-    BoxHitTestResult result, {
-    required Offset position,
-  }) {
+  @override
+  int get hashCode => element.hashCode;
+
+  @override
+  bool operator ==(Object other) => hashCode == other.hashCode;
+}
+
+/// Data about a hit test target collected by [Tool.hitTestElements].
+class ChantHitTestEntry<T> extends HitTestEntry<ChantHitTestTarget<T>> {
+  ChantHitTestEntry(T target, this.renderObject)
+    : super(ChantHitTestTarget(target));
+  final RenderChantScore renderObject;
+}
+
+/// Base class for interactive editing tools.
+/// The inheriting class needs to implement [handleTargetEvent]
+/// and may override [hitTestElements].
+abstract class Tool {
+  late RenderChantScore _renderObject;
+  void _attachTo(RenderChantScore renderObject) {
+    _renderObject = renderObject;
+  }
+
+  /// Render object that this tool is attached to.
+  RenderChantScore get renderObject => _renderObject;
+
+  /// Score this tool is editing.
+  ChantScore get score => _renderObject._score;
+
+  /// Chant context of the edited score.
+  ChantContext get chantContext => _renderObject._chantContext;
+
+  /// Determines a set of [ChantLayoutElement]s that are located at the given
+  /// position or are relevant to it in the order from the innermost to
+  /// the outermost.
+  bool hitTestElements(BoxHitTestResult result, {required Offset position}) {
     final globalPosition = Point(position.dx, position.dy);
-    if (_score.titles?.bounds.containsPoint(globalPosition) ?? false) {
-      for (final t in _score.titles!.elements) {
+    if (score.titles?.bounds.containsPoint(globalPosition) ?? false) {
+      for (final t in score.titles!.elements) {
         if (t.boundsForHitTest.containsPoint(globalPosition)) {
-          result.add(ChantHitTestEntry(t, this));
+          result.add(ChantHitTestEntry(t, renderObject));
           return true;
         }
       }
     }
 
-    if (_score.dropCap case DropCap(:final boundsForHitTest)) {
+    if (score.dropCap case DropCap(:final boundsForHitTest)) {
       final dropCapBounds = boundsForHitTest.copyWith(
-        y: boundsForHitTest.y + _score.lines.first.bounds.y,
+        y: boundsForHitTest.y + score.lines.first.bounds.y,
       );
       if (dropCapBounds.containsPoint(globalPosition)) {
-        result.add(ChantHitTestEntry(_score.dropCap!, this));
+        result.add(ChantHitTestEntry(score.dropCap!, renderObject));
         return true;
       }
-      if (_score.annotation case Annotations(:final annotations)) {
+      if (score.annotation case Annotations(:final annotations)) {
         for (final a in annotations) {
           final aBounds = a.boundsForHitTest.copyWith(
-            y: a.boundsForHitTest.y + _score.lines.first.boundsForHitTest.y,
-            x: a.boundsForHitTest.x + _score.annotation!.bounds.x,
+            y: a.boundsForHitTest.y + score.lines.first.boundsForHitTest.y,
+            x: a.boundsForHitTest.x + score.annotation!.bounds.x,
           );
           if (aBounds.containsPoint(globalPosition)) {
-            result.add(ChantHitTestEntry(a, this));
+            result.add(ChantHitTestEntry(a, renderObject));
             return true;
           }
         }
       }
     }
 
-    for (final line in _score.lines) {
+    for (final line in score.lines) {
       if (line.boundsForHitTest.containsPoint(globalPosition)) {
         final linePosition = Point(
           globalPosition.x - line.bounds.x,
           globalPosition.y - line.bounds.y,
         );
         if (line.startingClef?.bounds.containsPoint(linePosition) ?? false) {
-          result.add(ChantHitTestEntry(line.startingClef!, this));
+          result.add(ChantHitTestEntry(line.startingClef!, renderObject));
         } else {
           for (
             int i = line.notationsStartIndex;
             i < line.notationsStartIndex + line.numNotationsOnLine;
             i++
           ) {
-            final element = _score.notations[i];
+            final element = score.notations[i];
             if (element.bounds.containsPoint(linePosition)) {
               if (element case Neume(:final notes)) {
                 for (final note in notes.reversed) {
@@ -205,13 +250,13 @@ class RenderChantScore extends RenderBox {
                     x: element.bounds.x + note.bounds.x,
                   );
                   if (noteBounds.containsPoint(linePosition)) {
-                    result.add(ChantHitTestEntry(note, this));
+                    result.add(ChantHitTestEntry(note, renderObject));
                     break;
                   }
                 }
               }
 
-              result.add(ChantHitTestEntry(element, this));
+              result.add(ChantHitTestEntry(element, renderObject));
               break;
             }
             final neumePosition = Point(
@@ -224,66 +269,29 @@ class RenderChantScore extends RenderBox {
               ...element.alText,
             ]) {
               if (text.boundsForHitTest.containsPoint(neumePosition)) {
-                result.add(ChantHitTestEntry(text, this));
-                result.add(ChantHitTestEntry(element, this));
+                result.add(ChantHitTestEntry(text, renderObject));
+                result.add(ChantHitTestEntry(element, renderObject));
                 break;
               }
             }
           }
         }
 
-        result.add(ChantHitTestEntry(line, this));
+        result.add(ChantHitTestEntry(line, renderObject));
       }
     }
 
-    if (size.contains(position)) {
-      result.add(ChantHitTestEntry(_score, this));
+    if (renderObject.size.contains(position)) {
+      result.add(ChantHitTestEntry(score, renderObject));
       return true;
     }
 
     return false;
   }
 
-  void _handleTargetEvent(PointerEvent event, ChantHitTestTarget target) {
-    _tool?.handleTargetEvent(event, target);
-  }
-}
-
-class ChantHitTestTarget<T> implements HitTestTarget {
-  const ChantHitTestTarget(this.element);
-
-  final T element;
-
-  @override
-  void handleEvent(PointerEvent event, covariant ChantHitTestEntry entry) {
-    entry.renderObject._handleTargetEvent(event, this);
-  }
-
-  @override
-  int get hashCode => element.hashCode;
-
-  @override
-  bool operator ==(Object other) => hashCode == other.hashCode;
-}
-
-class ChantHitTestEntry<T> extends HitTestEntry<ChantHitTestTarget<T>> {
-  ChantHitTestEntry(T target, this.renderObject)
-    : super(ChantHitTestTarget(target));
-  final RenderChantScore renderObject;
-}
-
-abstract class Tool {
-  late RenderChantScore _renderObject;
-
-  RenderChantScore get renderObject => _renderObject;
-
-  ChantScore get score => _renderObject._score;
-
-  ChantContext get chantContext => _renderObject._chantContext;
-
-  void attachTo(RenderChantScore renderObject) {
-    _renderObject = renderObject;
-  }
-
-  void handleTargetEvent(PointerEvent event, HitTestTarget target);
+  /// Override this method to handle pointer events.
+  ///
+  /// This method is is called for each [ChantHitTestTarget] collected by
+  /// [hitTestElements] in the same order.
+  void handleTargetEvent(PointerEvent event, ChantHitTestTarget target);
 }
