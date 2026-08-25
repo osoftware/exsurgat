@@ -1,3 +1,6 @@
+/// @docImport '../../../gabc.dart';
+library;
+
 import 'package:xml/xml.dart';
 
 import '../../../chant_context.dart';
@@ -124,5 +127,161 @@ class Note extends ChantLayoutElement with BraceEnd {
   SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
     glyphVisualizer!.bounds = bounds.clone();
     return glyphVisualizer!.createSvgTree(ctxt, this);
+  }
+
+  /// Returns gabc source code that, when parsed by [Gabc.createNoteFromData],
+  /// produces an equivalent [Note].
+  ///
+  /// This may not produce the same code as in [sourceGabc] but it can be
+  /// considered a canonical form.
+  String toGabcString() {
+    final buf = StringBuffer();
+
+    // 1. leading modifiers: @ (suppressVirga), - (initioDebilis)
+    if (suppressVirga) buf.write('@');
+    if (hasFlag(liquescent, LiquescentType.initioDebilis)) buf.write('-');
+
+    // 2. height letter
+    final base = (shape == .inclinatum ? 'C' : 'c').codeUnitAt(0);
+    final heightLetter = String.fromCharCode(base + staffPosition);
+    buf.write(heightLetter);
+
+    // 3. offset: reconstruct from staffPositionOffset if present
+    if (staffPositionOffset != 0) {
+      final basis = staffPosition % 2 != 0 ? 2 : 1;
+      final isPositive = staffPositionOffset > 0;
+      final magnitude = (staffPositionOffset.abs() * 3).round();
+      if (magnitude == basis) {
+        buf.write(isPositive ? '9' : '0');
+      }
+    }
+
+    // 4. shape letter (uppercase for inclinatum)
+    buf.write(switch (shape) {
+      .virga => 'v',
+      .quilisma => 'w',
+      .stropha => 's',
+      .oriscus => 'o',
+      _ => '',
+    });
+
+    // 5. shape modifiers
+    if (hasFlag(shapeModifiers, NoteShapeModifiers.reverse)) {
+      buf.write('V');
+    }
+    if (hasFlag(shapeModifiers, NoteShapeModifiers.linea)) {
+      buf.write('R');
+    }
+    if (shape == NoteShape.oriscus) {
+      if (hasFlag(shapeModifiers, NoteShapeModifiers.stemmed)) {
+        buf.write('O');
+        if (hasFlag(shapeModifiers, NoteShapeModifiers.ascending)) {
+          buf.write('<');
+        } else if (hasFlag(shapeModifiers, NoteShapeModifiers.descending)) {
+          buf.write('>');
+        }
+      } else if (hasFlag(shapeModifiers, NoteShapeModifiers.ascending)) {
+        buf.write('<');
+      } else if (hasFlag(shapeModifiers, NoteShapeModifiers.descending)) {
+        buf.write('>');
+      }
+    }
+    if (hasFlag(shapeModifiers, NoteShapeModifiers.cavum)) {
+      buf.write('r0');
+    }
+
+    // 6. liquescent (non-initioDebilis)
+    if (hasFlag(liquescent, LiquescentType.ascending)) buf.write('<');
+    if (hasFlag(liquescent, LiquescentType.descending)) buf.write('>');
+    if (hasAnyFlag(liquescent, LiquescentType.small | LiquescentType.large)) {
+      buf.write('~');
+    }
+
+    // 7. inclinata flags
+    buf.write('|' * inclinataFlags);
+
+    // 8. morae
+    for (final mora in morae) {
+      buf.write(switch (mora.positionHint) {
+        .defaultHint => '.',
+        .below => '.0',
+        .above => '.1',
+      });
+    }
+
+    // 9. episemata
+    for (final episema in episemata) {
+      buf.write(switch (episema.positionHint) {
+        MarkingPositionHint.defaultHint => '_',
+        MarkingPositionHint.below => '_0',
+        MarkingPositionHint.above => '_1',
+      });
+      if (episema.terminating) buf.write('2');
+      buf.write(switch (episema.alignment) {
+        .defaultValue => '',
+        .left => '3',
+        .center => '4',
+        .right => '5',
+      });
+    }
+
+    // 10. ictus
+    if (ictus case Ictus(:final positionHint)) {
+      buf.write(switch (positionHint) {
+        .defaultHint => "'",
+        .below => "'0",
+        .above => "'1",
+      });
+    }
+
+    // 11. accent (r1..r5)
+    if (accent case Accent(:final glyphCode)) {
+      buf.write(switch (glyphCode) {
+        .acuteAccent => 'r1',
+        .graveAccent => 'r2',
+        .circle => 'r3',
+        .semicircle => 'r4',
+        .reversedSemicircle => 'r5',
+        _ => '',
+      });
+    }
+
+    // 12. bracketed instructions: choral sign, al text, braces
+    if (choralSign != null) {
+      buf.write(choralSign!.toGabcString());
+    }
+    if (alText != null) {
+      buf.write(alText!.toGabcString());
+    }
+    if (braceStart != null) {
+      final bp = braceStart as BracePoint;
+      buf.write('[');
+      buf.write(bp.isAbove ? 'o' : 'u');
+      buf.write(switch (bp.shape) {
+        .roundBrace => 'b',
+        .curlyBrace => 'cb',
+        .accentedCurlyBrace => 'cba',
+      });
+      buf.write(bp.attachment == .left ? '0' : '1');
+      buf.write('{');
+      buf.write(']');
+    }
+    if (braceEnd != null) {
+      final bp = braceEnd as BracePoint;
+      buf.write('[');
+      buf.write(bp.isAbove ? 'o' : 'u');
+      buf.write(switch (bp.shape) {
+        .roundBrace => 'b',
+        .curlyBrace => 'cb',
+        .accentedCurlyBrace => 'cba',
+      });
+      buf.write(bp.attachment == .left ? '0' : '1');
+      buf.write('}');
+      buf.write(']');
+    }
+
+    // TODO: trailing space
+
+    return buf.toString();
   }
 }

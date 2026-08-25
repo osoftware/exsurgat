@@ -618,6 +618,8 @@ abstract class TextElement extends ChantLayoutElement {
     .end => bounds.copyWith(x: bounds.x - bounds.width),
     _ => bounds,
   };
+
+  String toGabcString() => spans.map((s) => s.toGabcString()).join('');
 }
 
 class TextSpan {
@@ -742,6 +744,18 @@ class TextSpan {
     }
     if (fontSizeValue is num) return fontSizeValue.toDouble();
     return baseFontSize;
+  }
+
+  String toGabcString() {
+    final buf = StringBuffer();
+    for (var t in activeTags) {
+      buf.write('<$t>');
+    }
+    buf.write(text);
+    for (var t in activeTags) {
+      buf.write('</$t>');
+    }
+    return buf.toString();
   }
 }
 

@@ -20,4 +20,7 @@ class AboveLinesText extends TextElement {
 
   ChantLayoutElement notation;
   late double padding;
+
+  @override
+  String toGabcString() => '[alt:${super.toGabcString()}]';
 }

@@ -294,4 +294,17 @@ class Neume extends ChantNotationElement {
 
   // subclasses can override this in order to correctly place markings in a neume specific way
   void positionMarkings() {}
+
+  @override
+  String toGabcString() {
+    final texts = super.toGabcString();
+    final buf = StringBuffer(texts);
+
+    buf.write('(');
+    for (final note in notes) {
+      buf.write(note.sourceGabc);
+    }
+    buf.write(')');
+    return buf.toString();
+  }
 }

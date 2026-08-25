@@ -166,4 +166,12 @@ class ChantNotationElement extends ChantLayoutElement {
       'transform': 'translate(${bounds.x},0)',
     };
   }
+
+  String toGabcString() {
+    final buf = StringBuffer();
+    buf.write(lyrics.map((l) => l.toGabcString()).join('|'));
+    buf.write(translationText.map((t) => t.toGabcString()).join(('')));
+    buf.write(alText.map((al) => al.toGabcString()).join(''));
+    return buf.toString();
+  }
 }

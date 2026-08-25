@@ -45,4 +45,7 @@ class ChoralSign extends TextElement {
           (ctxt.textMeasurer.align == .baseline ? 0 : bounds.height),
     );
   }
+
+  @override
+  String toGabcString() => '[cs:${super.toGabcString()}]';
 }

@@ -27,4 +27,7 @@ class TranslationText extends TextElement {
   final ChantNotationElement notation;
   late double padding;
   ChantNotationElement? endNeume;
+
+  @override
+  String toGabcString() => '[${super.toGabcString()}]';
 }
