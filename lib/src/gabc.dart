@@ -528,13 +528,10 @@ class Gabc {
     List<dynamic> lastTranslationNeumes, [
     int? insertionIndex,
   ]) {
-    final matches = <RegExpMatch>[];
+    final syllables = parseWord(word);
+    final matches = _syllablesRegex.allMatches(word).toList();
     final notations = <ChantNotationElement>[];
     var currSyllable = 0;
-
-    for (final m in _syllablesRegex.allMatches(word)) {
-      matches.add(m);
-    }
 
     for (var j = 0; j < matches.length; j++) {
       final match = matches[j];
@@ -624,7 +621,7 @@ class Gabc {
       if (lyricText.isEmpty && alText.isEmpty) continue;
 
       if (notationWithLyrics == null) {
-        return ChantMapping(word, notations, sourceIndex);
+        return ChantMapping(word, syllables, notations, sourceIndex);
       }
 
       if (alText.isNotEmpty) {
@@ -680,7 +677,7 @@ class Gabc {
       notationWithLyrics.lyrics = lyrics;
     }
 
-    return ChantMapping(word, notations, sourceIndex);
+    return ChantMapping(word, syllables, notations, sourceIndex);
   }
 
   /// Returns an array of lyrics (an array because each syllable can have
@@ -898,7 +895,10 @@ class Gabc {
             ? notations[notations.length - 1]
             : null;
         notation.sourceIndex = sourceIndex;
-        if (match != null) notation.sourceGabc = match[0]!;
+        if (match != null) {
+          notation.sourceGabc = match[0]!;
+          notation.sourceLength = match[0]!.length;
+        }
         if (notation is Clef) {
           ctxt.activeClef = notation;
           if (prevNotation != null &&
@@ -1276,6 +1276,7 @@ class Gabc {
     var note = Note();
     note.sourceIndex = sourceIndex;
     note.sourceGabc = data;
+    note.sourceLength = data.length;
 
     if (data.isEmpty) throw 'Invalid note data: $data';
 
