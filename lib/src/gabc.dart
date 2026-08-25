@@ -26,7 +26,7 @@ final RegExp _altTranslationRegex = RegExp(
 );
 
 final RegExp _notationsRegex = RegExp(
-  r'z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|cb|treble-?|xp-?)[1-5]|\/+| |\!|-?@?[a-nA-N][oOwWvVrRsxy#~\+><_\.'
+  r'z0|z|Z|(::|(?::|[,;][1-8]?|`)_?)|(?:[cfg]|cb|treble-?|xp-?)[1-5]|(?:\/+(?:0|(?:\[-?[0-9]+(?:\.?[0-9]*)\]))?)| |\!|-?@?[a-nA-N][oOwWvVrRsxy#~\+><_\.'
   r"'0123459|]*(?:\[[^\]]*\]?)*|\{([^}]+)\}?",
 );
 const int _notationsRegexGroupBar = 1;
@@ -44,7 +44,9 @@ final RegExp _bracketedCommandRegex = RegExp(r'^([a-z]+):(.*)');
 final RegExp _braceSpecRegex = RegExp(
   r'([ou])(b|cb|cba):([01])(?:([{}])|;(\d*(?:\.\d+)?)mm)',
 );
-
+final RegExp _trailingSpaceSpec = RegExp(
+  r'(?<cuts>\/+)(?:(?<half>0)|(?:\[(?<factor>-?[0-9]+(?:\.?[0-9]*))\]))?',
+);
 final RegExp regexHeaderEnd = RegExp(r'(?:^|\n)%%\s?\n');
 final RegExp regexHeaderLine = RegExp(
   r'^([\w-_.]+):\s*((?:[^;\r\n]|;[ \t])*)(?:;|$)',
@@ -876,9 +878,7 @@ class Gabc {
     var trailingSpace = TrailingSpace.defaultTrailingSpace;
 
     void addToLastSourceGabc(String gabc) {
-      if (notes.isNotEmpty) {
-        notes[notes.length - 1].sourceGabc += gabc;
-      }
+      if (notes.isNotEmpty) notes.last.sourceGabc += gabc;
     }
 
     void addNotation(ChantNotationElement? notation, RegExpMatch? match) {
@@ -1067,7 +1067,14 @@ class Gabc {
 
         default:
           if (atom[0] == '/') {
-            trailingSpace = TrailingSpace.multiple(atom.length.toDouble());
+            final trailingSpaceMatch = _trailingSpaceSpec.firstMatch(atom)!;
+            final cuts = trailingSpaceMatch.namedGroup('cuts')!.length;
+            final half = trailingSpaceMatch.namedGroup('half') != null;
+            final factor = trailingSpaceMatch.namedGroup('factor');
+            final multiplier = half
+                ? 0.5
+                : double.tryParse(factor ?? '') ?? cuts.toDouble();
+            trailingSpace = TrailingSpace.multiple(multiplier);
             addToLastSourceGabc(atom);
             addNotation(null, match);
           } else if (atom.length > 1 && atom.endsWith('+')) {
