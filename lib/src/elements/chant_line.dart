@@ -97,8 +97,16 @@ class ChantLine extends ChantLayoutElement {
 
   ChantLine(this.score);
 
-  int get staffSpaces {
-    return score.staffLineCount - 1;
+  int get staffSpaces => score.staffLineCount - 1;
+
+  Iterable<ChantNotationElement> get notations sync* {
+    for (
+      int i = notationsStartIndex;
+      i < notationsStartIndex + numNotationsOnLine;
+      i++
+    ) {
+      yield score.notations[i];
+    }
   }
 
   void performLayout(ChantContext ctxt) {

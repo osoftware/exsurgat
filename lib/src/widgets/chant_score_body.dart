@@ -256,12 +256,7 @@ abstract class Tool {
         if (line.startingClef?.bounds.containsPoint(linePosition) ?? false) {
           result.add(ChantHitTestEntry(line.startingClef!, renderObject));
         } else {
-          for (
-            int i = line.notationsStartIndex;
-            i < line.notationsStartIndex + line.numNotationsOnLine;
-            i++
-          ) {
-            final element = score.notations[i];
+          for (final element in line.notations) {
             if (element.bounds.containsPoint(linePosition)) {
               if (element case Neume(:final notes)) {
                 for (final note in notes.reversed) {

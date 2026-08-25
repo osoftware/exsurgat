@@ -34,18 +34,20 @@ class BracePoint extends ChantLayoutElement {
 
   @override
   XmlElement createSvgNode(ChantContext ctxt, [ChantLayoutElement? source]) {
-    // TODO: implement createSvgNode
-    throw UnimplementedError();
+    throw UnsupportedError('Braces are handled by the ChantLine');
   }
 
   @override
   SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
-    // TODO: implement createSvgTree
-    throw UnimplementedError();
+    throw UnsupportedError('Braces are handled by the ChantLine');
   }
 
   @override
   void draw(ChantContext ctxt) {
-    // TODO: implement draw
+    // braces are handled by the chant line, so we don't mess with them here
+    // this is because brace size depends on chant line logic (neume spacing,
+    // justification, etc.) so they are considered chant line level
+    // markings rather than note level markings
+    throw UnsupportedError('Braces are handled by the ChantLine');
   }
 }
