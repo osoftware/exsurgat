@@ -8,3 +8,4 @@ export 'src/elements/notation/clefs.dart';
 export 'src/elements/notation/dividers.dart';
 export 'src/elements/notation/neumes.dart';
 export 'src/elements/text.dart';
+export 'src/glyphs.dart';
