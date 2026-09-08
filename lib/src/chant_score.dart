@@ -3,8 +3,8 @@ import 'dart:ui' as ui;
 
 import 'package:xml/xml.dart';
 
+import 'ast.dart';
 import 'chant_context.dart';
-import 'chant_mapping.dart';
 import 'core.dart' as core;
 import 'elements/annotations.dart';
 import 'elements/chant_layout_element.dart';
@@ -56,22 +56,22 @@ class LineSelection {
 
 /// A chant score, the main document type produced by parsing gabc source.
 class ChantScore {
-  /// Creates a new [ChantScore] from the given [mappings].
+  /// Creates a new [ChantScore] from the given [words].
   ///
   /// If [useDropCap] is `true`, then a drop cap is created for the first
   /// syllable of the score.
   ChantScore({
     ChantContext? ctxt,
-    List<ChantMapping> mappings = const [],
+    List<Word> words = const [],
     this.useDropCap = false,
     GabcHeader? header,
-  }) : mappings = List.of(mappings) {
+  }) : words = List.of(words) {
     if (ctxt != null) updateHeader(ctxt, header);
     if (ctxt != null) updateNotations(ctxt);
   }
 
   /// The mappings that describe how the gabc source maps to exsurge notations.
-  List<ChantMapping> mappings;
+  List<Word> words;
 
   /// The chant lines (systems) that make up the score, created during layout.
   List<ChantLine> lines = [];
@@ -236,7 +236,7 @@ class ChantScore {
     }
   }
 
-  /// Updates the internal notations arrays from the current [mappings].
+  /// Updates the internal notations arrays from the current [words].
   void updateNotations(ChantContext ctxt) {
     // flatten all mappings into one array for O(1) access to notations
     notations = [];
@@ -252,12 +252,12 @@ class ChantScore {
     // start with a default clef in case the notations don't provide one.
     startingClef = null;
 
-    for (var i = 0; i < mappings.length; i++) {
-      final mapping = mappings[i];
+    for (var i = 0; i < words.length; i++) {
+      final mapping = words[i];
       for (var j = 0; j < mapping.notations.length; j++) {
         final notation = mapping.notations[j];
         notation.score = this;
-        notation.mapping = mapping;
+        notation.word = mapping;
 
         if (startingClef == null) {
           if (notation is Neume) {

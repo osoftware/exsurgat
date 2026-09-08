@@ -1,5 +1,5 @@
+import 'ast.dart';
 import 'chant_context.dart';
-import 'chant_mapping.dart';
 import 'core.dart';
 import 'elements/brace_point.dart';
 import 'elements/horizontal_episema.dart';
@@ -182,18 +182,15 @@ extension<T> on List<T> {
       (index >= 0 && index < length) ? this[index] : or;
 }
 
-/// The main gabc parser. Takes gabc source code and produces [ChantMapping]s
+/// The main gabc parser. Takes gabc source code and produces [Word]s
 /// describing the chant.
 class Gabc {
   /// State for automatic brace ending tracking.
   static BracePoint? needToEndBrace;
 
   /// Takes gabc source code (without the header info) and returns an array
-  /// of [ChantMapping]s describing the chant.
-  static List<ChantMapping> createMappingsFromSource(
-    ChantContext ctxt,
-    String gabcSource,
-  ) {
+  /// of [Word]s describing the chant.
+  static List<Word> fromSource(ChantContext ctxt, String gabcSource) {
     final headerLength = GabcHeader.getLength(gabcSource);
     final source = gabcSource.substring(headerLength);
     final words = splitWords(source);
@@ -201,15 +198,11 @@ class Gabc {
     // set the default clef
     ctxt.activeClef = Clef.defaultClef();
 
-    final mappings = createMappingsFromWords(ctxt, words);
+    final mappings = createAstFromWords(ctxt, words, headerLength);
 
     // always set the last notation to have a trailingSpace of 0
-    if (mappings.isNotEmpty &&
-        mappings[mappings.length - 1].notations.isNotEmpty) {
-      mappings[mappings.length - 1]
-              .notations[mappings[mappings.length - 1].notations.length - 1]
-              .trailingSpace =
-          TrailingSpace.zero;
+    if (mappings.isNotEmpty && mappings.last.notations.isNotEmpty) {
+      mappings.last.notations.last.trailingSpace = TrailingSpace.zero;
     }
 
     return mappings;
@@ -227,7 +220,7 @@ class Gabc {
   ///
   /// Based on https://github.com/paulgb/simplediff/
   static List<Diff> diffDescriptorsAndNewWords(
-    List<ChantMapping> before,
+    List<Word> before,
     List<String> after,
   ) {
     final oldIndexMap = <String, List<int>>{};
@@ -274,32 +267,32 @@ class Gabc {
     ];
   }
 
-  /// Takes an array of gabc words and returns an array of [ChantMapping]
+  /// Takes an array of gabc words and returns an array of [Word]
   /// objects, one for each word.
-  static List<ChantMapping> createMappingsFromWords(
+  static List<Word> createAstFromWords(
     ChantContext ctxt,
-    List<String> words,
-  ) {
-    final mappings = <ChantMapping>[];
-    var sourceIndex = 0;
+    List<String> words, [
+    int sourceIndex = 0,
+  ]) {
+    final mappings = <Word>[];
     var wordLength = 0;
     final lastTranslationNeumes = <dynamic>[];
 
     for (var i = 0; i < words.length; i++) {
       sourceIndex += wordLength;
-      wordLength = words[i].length + 1;
+      wordLength = words[i].length;
       final word = words[i].trim();
 
       if (word.isEmpty) continue;
 
-      final mapping = createMappingFromWord(
+      final mapping = createWordFromSource(
         ctxt,
         word,
         sourceIndex,
         lastTranslationNeumes,
       );
 
-      if (mapping != null) mappings.add(mapping);
+      mappings.add(mapping);
     }
 
     return mappings;
@@ -308,9 +301,9 @@ class Gabc {
   /// Performs and applies a rudimentary diff between a previously parsed set
   /// of mappings and a new gabc source text. The mappings array passed in is
   /// changed in place to be updated from the new source.
-  static int updateMappingsFromSource(
+  static int updateAstFromSource(
     ChantContext ctxt,
-    List<ChantMapping> mappings,
+    List<Word> mappings,
     String newGabcSource, {
     int? insertionIndex,
     int? oldInsertionIndex,
@@ -326,11 +319,11 @@ class Gabc {
     final newWords = splitWords(source);
     final results = diffDescriptorsAndNewWords(mappings, newWords);
 
-    var index = 0;
-    var sourceIndex = 0;
-    var wordLength = 0;
-    var elementIndex = 0;
-    ChantMapping mapping;
+    int index = 0;
+    int sourceIndex = headerLength;
+    int wordLength = 0;
+    int elementIndex = 0;
+    Word mapping;
 
     ctxt.activeClef = Clef.defaultClef();
 
@@ -342,8 +335,7 @@ class Gabc {
       if (index > 0) {
         sourceIndex =
             mappings[index - 1].sourceIndex +
-            (mappings[index - 1].source).length +
-            1;
+            (mappings[index - 1].source).length;
       }
       if (resultCode == DiffType.equal) {
         final sourceIndexDiff = sourceIndex - mappings[index].sourceIndex;
@@ -361,13 +353,13 @@ class Gabc {
                 (oldInsIdx >= elementIndex &&
                     oldInsIdx < elementIndex + elementCount)) {
               final si = mapping.sourceIndex + sourceIndexDiff;
-              mapping = createMappingFromWord(
+              mapping = createWordFromSource(
                 ctxt,
                 resultValues[j] as String,
                 si,
                 lastTranslationNeumes,
                 insIdx - elementIndex,
-              )!;
+              );
               mappings[index] = mapping;
               elementIndex += elementCount;
               continue;
@@ -468,14 +460,14 @@ class Gabc {
         mappings.removeRange(index, index + resultValues.length);
       } else if (resultCode == DiffType.insert) {
         for (var j = 0; j < resultValues.length; j++) {
-          wordLength = (resultValues[j] as String).length + 1;
-          mapping = createMappingFromWord(
+          wordLength = (resultValues[j] as String).length;
+          mapping = createWordFromSource(
             ctxt,
             resultValues[j] as String,
             sourceIndex,
             lastTranslationNeumes,
             insIdx - elementIndex,
-          )!;
+          );
 
           if (elementIndex == 0 &&
               mapping.notations.isNotEmpty &&
@@ -483,13 +475,13 @@ class Gabc {
             elementIndex = -1;
             final elementCount = _elementCountForNotations(mapping.notations);
             if (insIdx < elementCount) {
-              mapping = createMappingFromWord(
+              mapping = createWordFromSource(
                 ctxt,
                 resultValues[j] as String,
                 sourceIndex,
                 lastTranslationNeumes,
                 insIdx - elementIndex,
-              )!;
+              );
             }
           }
 
@@ -508,55 +500,49 @@ class Gabc {
     }
 
     // always set the last notation to have a trailingSpace of 0
-    if (mappings.isNotEmpty &&
-        mappings[mappings.length - 1].notations.isNotEmpty) {
-      mappings[mappings.length - 1]
-              .notations[mappings[mappings.length - 1].notations.length - 1]
-              .trailingSpace =
-          TrailingSpace.zero;
+    if (mappings.isNotEmpty && mappings.last.notations.isNotEmpty) {
+      mappings.last.notations.last.trailingSpace = TrailingSpace.zero;
     }
 
     return headerLength;
   }
 
-  /// Takes a gabc word and returns a [ChantMapping] object that contains the
+  /// Takes a gabc word and returns a [Word] object that contains the
   /// gabc word source text as well as the generated notations.
-  static ChantMapping? createMappingFromWord(
+  static Word createWordFromSource(
     ChantContext ctxt,
-    String word,
+    String source,
     int sourceIndex,
     List<dynamic> lastTranslationNeumes, [
     int? insertionIndex,
   ]) {
-    final syllables = parseWord(word);
-    final matches = _syllablesRegex.allMatches(word).toList();
+    final syllables = parseWord(source, sourceIndex);
+    // final matches = _syllablesRegex.allMatches(word).toList();
     final notations = <ChantNotationElement>[];
     var currSyllable = 0;
 
-    for (var j = 0; j < matches.length; j++) {
-      final match = matches[j];
+    for (var j = 0; j < syllables.length; j++) {
+      final syllable = syllables[j];
 
-      var lyricText = match
-          .group(1)!
-          .replaceAllMapped(
-            RegExp(r'(^|<\/sp>)([\s\S]*?)($|<sp>)'),
-            (m) => '${m[1]}${m[2]!.replaceAll('~', ' ')}${m[3]}',
-          );
+      var lyricText = syllable.rawLyrics.replaceAllMapped(
+        RegExp(r'(^|<\/sp>)([\s\S]*?)($|<sp>)'),
+        (m) => '${m[1]}${m[2]!.replaceAll('~', ' ')}${m[3]}',
+      );
       var alText = <AboveLinesText>[];
       var translationText = <TranslationText>[];
-      final notationData = match.group(2);
+      final notationData = syllable.rawNotations;
 
       // new words reset the accidentals, per the Solesmes style (see LU xviij)
       if (currSyllable == 0 &&
           RegExp(r'[a-z]', caseSensitive: false).hasMatch(lyricText) &&
-          RegExp(r'[a-n]', caseSensitive: false).hasMatch(notationData ?? '')) {
+          RegExp(r'[a-n]', caseSensitive: false).hasMatch(notationData)) {
         (ctxt.activeClef as Clef).resetAccidentals();
       }
 
       final items = parseNotations(
         ctxt,
         notationData,
-        sourceIndex + match.start + match.group(1)!.length + 1,
+        syllable.sourceIndex + syllable.rawLyrics.length + 1,
         insertionIndex,
       );
 
@@ -568,6 +554,7 @@ class Gabc {
 
       items[0].firstOfSyllable = lyricText.isNotEmpty;
       items[0].firstOfParentheses = true;
+      syllable.notations.addAll(items);
       notations.addAll(items);
 
       // add the lyrics and/or alText to the first notation that makes sense...
@@ -621,7 +608,7 @@ class Gabc {
       if (lyricText.isEmpty && alText.isEmpty) continue;
 
       if (notationWithLyrics == null) {
-        return ChantMapping(word, syllables, notations, sourceIndex);
+        return Word(source, syllables, notations, sourceIndex);
       }
 
       if (alText.isNotEmpty) {
@@ -651,11 +638,11 @@ class Gabc {
       final cne = items.last;
       if (cne is! Neume && cne is! TextOnly) {
         proposedLyricType = LyricType.directive;
-      } else if (currSyllable == 0 && j == matches.length - 1) {
+      } else if (currSyllable == 0 && j == syllables.length - 1) {
         proposedLyricType = LyricType.singleSyllable;
-      } else if (currSyllable == 0 && j < matches.length - 1) {
+      } else if (currSyllable == 0 && j < syllables.length - 1) {
         proposedLyricType = LyricType.beginningSyllable;
-      } else if (j == matches.length - 1) {
+      } else if (j == syllables.length - 1) {
         proposedLyricType = LyricType.endingSyllable;
       } else {
         proposedLyricType = LyricType.middleSyllable;
@@ -669,7 +656,7 @@ class Gabc {
         proposedLyricType,
         notationWithLyrics,
         items,
-        sourceIndex + match.start,
+        syllable.sourceIndex,
       );
 
       if (lyrics == null || lyrics.isEmpty) continue;
@@ -677,7 +664,7 @@ class Gabc {
       notationWithLyrics.lyrics = lyrics;
     }
 
-    return ChantMapping(word, syllables, notations, sourceIndex);
+    return Word(source, syllables, notations, sourceIndex);
   }
 
   /// Returns an array of lyrics (an array because each syllable can have
@@ -1211,25 +1198,6 @@ class Gabc {
     }
 
     unknownState = UnknownState(createNeume, notes, currNoteIndex);
-    // final punctumState = PunctumState(createNeume, notes, currNoteIndex);
-    // final punctaInclinataState = PunctaInclinataState(createNeume);
-    // final oriscusState = OriscusState(createNeume);
-    // final podatusState = PodatusState(createNeume, notes, currNoteIndex);
-    // final clivisState = ClivisState(createNeume);
-    // final climacusState = ClimacusState(createNeume);
-    // final porrectusState = PorrectusState(createNeume);
-    // final pesSubpunctisState = PesSubpunctisState(createNeume);
-    // final salicusState = SalicusState(createNeume);
-    // final salicusFlexusState = SalicusFlexusState(createNeume);
-    // final scandicusState = ScandicusState(createNeume);
-    // final scandicusFlexusState = ScandicusFlexusState(createNeume);
-    // final virgaState = VirgaState(createNeume);
-    // final bivirgaState = BivirgaState(createNeume);
-    // final apostrophaState = ApostrophaState(createNeume);
-    // final distrophaState = DistrophaState(createNeume);
-    // final tristrophaState = TristrophaState(createNeume);
-    // final torculusState = TorculusState(createNeume, notes, currNoteIndex);
-    // final torculusResupinusState = TorculusResupinusState(createNeume);
 
     NeumeState state = unknownState;
 
@@ -1276,7 +1244,6 @@ class Gabc {
     var note = Note();
     note.sourceIndex = sourceIndex;
     note.sourceGabc = data;
-    note.sourceLength = data.length;
 
     if (data.isEmpty) throw 'Invalid note data: $data';
 
@@ -1685,37 +1652,47 @@ class Gabc {
     }
   }
 
-  /// Takes raw gabc text source and parses it into words.
-  static List<String> splitWords(String gabcNotations) {
-    gabcNotations = gabcNotations.replaceAllMapped(
-      RegExp(r'\)\s(?=[^\)]*(?:\(|$))'),
-      (m) => ')\n',
-    );
-    return gabcNotations.split(RegExp(r'\n'));
-  }
-
-  static List<List<SyllableData>> parseSource(String gabcSource) {
+  static List<List<Syllable>> parseSource(String gabcSource) {
     return parseWords(splitWords(gabcSource));
   }
 
+  /// Takes raw gabc text source and parses it into words.
+  static List<String> splitWords(String gabcNotations) {
+    final wordDelimiter = RegExp(r'(?<=\)(?:\s{1,8}))(?=[^\)^\s]*(?:\(|$))');
+    return gabcNotations.split(wordDelimiter);
+  }
+
   /// [gabcWords] is an array of strings, e.g., the result of [splitWords].
-  static List<List<SyllableData>> parseWords(List<String> gabcWords) {
-    final words = <List<SyllableData>>[];
-    for (var i = 0; i < gabcWords.length; i++) {
-      words.add(parseWord(gabcWords[i]));
+  static List<List<Syllable>> parseWords(List<String> gabcWords) {
+    final words = <List<Syllable>>[];
+    int sourceIndex = 0;
+    for (final word in gabcWords) {
+      words.add(parseWord(word, sourceIndex));
+      sourceIndex += word.length;
     }
     return words;
   }
 
-  /// Returns an array of [SyllableData], each with notations and lyrics.
-  static List<SyllableData> parseWord(String gabcWord) {
-    final syllables = <SyllableData>[];
+  /// Returns an array of [Syllable], each with notations and lyrics.
+  static List<Syllable> parseWord(String gabcWord, int sourceIndex) {
+    final syllables = <Syllable>[];
 
+    int sourceIndexOffset = 0;
     for (final match in _syllablesRegex.allMatches(gabcWord)) {
-      final lyrics = match.group(1)!.trim().split('|');
+      final rawLyrics = match.group(1)!;
+      final lyrics = rawLyrics.trim().split('|');
       final notations = match.group(2);
 
-      syllables.add(SyllableData(notations: notations, lyrics: lyrics));
+      syllables.add(
+        Syllable(
+          rawNotations: notations ?? '',
+          rawLyrics: rawLyrics,
+          lyrics: lyrics,
+          notations: [],
+          sourceIndex: sourceIndex + sourceIndexOffset,
+        ),
+      );
+      sourceIndexOffset = match.end;
     }
 
     return syllables;
@@ -1765,14 +1742,6 @@ class Gabc {
   ) {
     // TODO: implement full parsing of serialized notations into the score.
   }
-}
-
-/// A simple data class used by [Gabc.parseWord].
-class SyllableData {
-  SyllableData({this.notations, required this.lyrics});
-
-  final String? notations;
-  final List<String> lyrics;
 }
 
 /// Base class for neume-building states in the finite state machine used by

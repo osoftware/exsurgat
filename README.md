@@ -112,7 +112,7 @@ final renderingContext = ChantContext(textMeasuringStrategy: .svg);
 final score =
     ChantScore(
         ctxt: renderingContext,
-        mappings: Gabc.createMappingsFromSource(renderingContext, source),
+        words: Gabc.fromSource(renderingContext, source),
         header: GabcHeader.fromSource(source),
         useDropCap: true,
       )
@@ -132,7 +132,7 @@ final renderingContext = ChantContext(textMeasuringStrategy: .canvas);
 final score =
     ChantScore(
         ctxt: renderingContext,
-        mappings: Gabc.createMappingsFromSource(renderingContext, source),
+        words: Gabc.fromSource(renderingContext, source),
         header: GabcHeader.fromSource(source),
         useDropCap: true,
       )

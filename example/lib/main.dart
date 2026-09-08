@@ -140,10 +140,7 @@ class _EditorPageState extends State<EditorPage> {
     final score =
         ChantScore(
             ctxt: renderingContext,
-            mappings: Gabc.createMappingsFromSource(
-              renderingContext,
-              _gabcCtrl.text,
-            ),
+            words: Gabc.fromSource(renderingContext, _gabcCtrl.text),
             header: GabcHeader.fromSource(_gabcCtrl.text),
             useDropCap: true,
           )

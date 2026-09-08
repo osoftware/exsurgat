@@ -62,7 +62,7 @@ class Note extends ChantLayoutElement with BraceEnd {
   double staffPositionOffset = 0;
   int? sourceIndex;
   String sourceGabc = '';
-  int sourceLength = 0;
+  int get sourceLength => sourceGabc.length;
   int liquescent = 0;
   NoteShape shape = NoteShape.defaultShape;
   int shapeModifiers = 0;

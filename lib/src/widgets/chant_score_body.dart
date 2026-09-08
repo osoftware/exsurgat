@@ -7,8 +7,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
+import '../ast.dart';
 import '../chant_context.dart';
-import '../chant_mapping.dart';
 import '../chant_score.dart';
 import '../chant_theme.dart';
 import '../core.dart';
@@ -81,7 +81,7 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     if (value == _gabc) return;
     _gabc = value;
     _score.updateHeader(_chantContext, GabcHeader.fromSource(_gabc));
-    Gabc.updateMappingsFromSource(_chantContext, _score.mappings, _gabc);
+    Gabc.updateAstFromSource(_chantContext, _score.words, _gabc);
     _score.updateNotations(_chantContext);
     markNeedsLayout();
   }
@@ -110,13 +110,10 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
   }
 
   void _buildScore() {
-    final List<ChantMapping> mappings = Gabc.createMappingsFromSource(
-      _chantContext,
-      _gabc,
-    );
+    final List<Word> mappings = Gabc.fromSource(_chantContext, _gabc);
     _score = ChantScore(
       ctxt: _chantContext,
-      mappings: mappings,
+      words: mappings,
       header: GabcHeader.fromSource(_gabc),
       useDropCap: _useDropCap,
     );
