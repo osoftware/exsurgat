@@ -517,7 +517,6 @@ class Gabc {
     int? insertionIndex,
   ]) {
     final syllables = parseWord(source, sourceIndex);
-    // final matches = _syllablesRegex.allMatches(word).toList();
     final notations = <ChantNotationElement>[];
     var currSyllable = 0;
 
@@ -554,6 +553,9 @@ class Gabc {
 
       items[0].firstOfSyllable = lyricText.isNotEmpty;
       items[0].firstOfParentheses = true;
+      for (final i in items) {
+        i.syllable = syllable;
+      }
       syllable.notations.addAll(items);
       notations.addAll(items);
 
@@ -607,9 +609,7 @@ class Gabc {
       }
       if (lyricText.isEmpty && alText.isEmpty) continue;
 
-      if (notationWithLyrics == null) {
-        return Word(source, syllables, notations, sourceIndex);
-      }
+      if (notationWithLyrics == null) break;
 
       if (alText.isNotEmpty) {
         notationWithLyrics.alText = alText;
@@ -664,7 +664,11 @@ class Gabc {
       notationWithLyrics.lyrics = lyrics;
     }
 
-    return Word(source, syllables, notations, sourceIndex);
+    final word = Word(source, syllables, notations, sourceIndex);
+    for (final n in notations) {
+      n.word = word;
+    }
+    return word;
   }
 
   /// Returns an array of lyrics (an array because each syllable can have

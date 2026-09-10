@@ -29,6 +29,7 @@ class ChantNotationElement extends ChantLayoutElement {
   List<Lyric> lyrics = [];
   late ChantScore score;
   late ChantLine line;
+  late Syllable syllable;
   late Word word;
   int notationIndex = 0;
   int? elementIndex;
