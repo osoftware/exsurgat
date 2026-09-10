@@ -139,11 +139,15 @@ class GlyphVisualizer extends ChantLayoutElement {
       }
     } else {
       bool selected = switch (parent) {
-        Clef c => c.model?.selected ?? false,
+        Clef c => newMethod(c),
         ChantLayoutElement e => e.selected,
       };
       return paint..color = selected ? selectedColor : unselectedColor;
     }
+  }
+
+  bool newMethod(Clef c) {
+    return c.model?.selected ?? c.selected;
   }
 
   @override

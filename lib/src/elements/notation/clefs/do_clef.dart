@@ -22,6 +22,9 @@ class DoClef extends Clef {
   }
 
   @override
+  String toGabcString() => '(c${(staffPosition + 1) ~/ 2})';
+
+  @override
   Pitch staffPositionToPitch(int staffPosition) {
     var offset = staffPosition - this.staffPosition;
     var octaveOffset = (offset / 7).floor();
@@ -59,6 +62,7 @@ class DoClef extends Clef {
     clone.leadingSpace = leadingSpace;
     clone.sourceGabc = sourceGabc;
     clone.sourceIndex = sourceIndex;
+    clone.sourceLength = sourceLength;
     clone.elementIndex = elementIndex;
     clone.model = this;
     return clone;

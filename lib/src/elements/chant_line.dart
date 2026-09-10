@@ -396,6 +396,10 @@ class ChantLine extends ChantLayoutElement {
         d
           ..performLayout(ctxt)
           ..bounds = d.bounds.copyWith(x: x),
+      Clef c =>
+        c
+          ..performLayout(ctxt)
+          ..bounds = c.bounds.copyWith(x: x),
       _ => null,
     };
   }
@@ -741,6 +745,7 @@ class ChantLine extends ChantLayoutElement {
     }
 
     startingClef = ctxt.activeClef!.clone();
+    startingClef!.line = this;
     startingClef!.performLayout(ctxt);
     startingClef!.bounds = startingClef!.bounds.copyWith(x: staffLeft);
 

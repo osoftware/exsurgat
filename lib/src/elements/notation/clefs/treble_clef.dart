@@ -25,6 +25,10 @@ class TrebleClef extends Clef {
   }
 
   @override
+  String toGabcString() =>
+      '(treble${small ? '-' : ''}${(staffPosition + 1) ~/ 2})';
+
+  @override
   Pitch staffPositionToPitch(int staffPosition) {
     var offset = staffPosition - this.staffPosition + 4;
     var octaveOffset = (offset / 7).floor();
@@ -65,6 +69,7 @@ class TrebleClef extends Clef {
     clone.leadingSpace = leadingSpace;
     clone.sourceGabc = sourceGabc;
     clone.sourceIndex = sourceIndex;
+    clone.sourceLength = sourceLength;
     clone.elementIndex = elementIndex;
     clone.model = this;
     return clone;

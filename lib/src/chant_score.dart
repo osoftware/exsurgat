@@ -190,6 +190,7 @@ class ChantScore {
     var insertion = elementSelection.insertion;
     if (insertion == null &&
         selectedIndices.length == 1 &&
+        selectedIndices.first >= 0 &&
         notes[selectedIndices.first] is TextOnly) {
       // if there is only one selection, and its a text only, it should display
       // as an insertion cursor:

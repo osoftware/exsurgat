@@ -21,6 +21,14 @@ abstract class Clef extends ChantNotationElement {
     activeAccidental = defaultAccidental;
   }
 
+  @override
+  Rect get boundsForHitTest {
+    return super.boundsForHitTest.copyWith(
+      y: -super.bounds.height * 2,
+      height: super.bounds.height * 2,
+    );
+  }
+
   void resetAccidentals() {
     activeAccidental = defaultAccidental;
   }

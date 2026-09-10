@@ -253,11 +253,12 @@ abstract class Tool {
           globalPosition.x - line.bounds.x,
           globalPosition.y - line.bounds.y,
         );
-        if (line.startingClef?.bounds.containsPoint(linePosition) ?? false) {
+        if (line.startingClef?.boundsForHitTest.containsPoint(linePosition) ??
+            false) {
           result.add(ChantHitTestEntry(line.startingClef!, renderObject));
         } else {
           for (final element in line.notations) {
-            if (element.bounds.containsPoint(linePosition)) {
+            if (element.boundsForHitTest.containsPoint(linePosition)) {
               if (element case Neume(:final notes)) {
                 for (final note in notes.reversed) {
                   final noteBounds = note.bounds.copyWith(
