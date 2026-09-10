@@ -7,6 +7,10 @@ class HalfBar extends Divider {
   HalfBar({super.hasCarryover = false});
 
   @override
+  String toGabcString() =>
+      '${super.toGabcString()}(${hasCarryover ? ';_' : ';'})';
+
+  @override
   void performLayout(ChantContext ctxt) {
     super.performLayout(ctxt);
 

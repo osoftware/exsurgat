@@ -7,6 +7,10 @@ class QuarterBar extends Divider {
   QuarterBar({super.hasCarryover = false});
 
   @override
+  String toGabcString() =>
+      '${super.toGabcString()}(${hasCarryover ? ',_' : ','})';
+
+  @override
   void performLayout(ChantContext ctxt) {
     super.performLayout(ctxt);
     final top = ctxt.staffLineCount * 2.0;

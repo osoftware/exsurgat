@@ -13,6 +13,10 @@ class Virgula extends Divider {
   }
 
   @override
+  String toGabcString() =>
+      '${super.toGabcString()}(${hasCarryover ? '`_' : '`'})';
+
+  @override
   void performLayout(ChantContext ctxt) {
     super.performLayout(ctxt);
 

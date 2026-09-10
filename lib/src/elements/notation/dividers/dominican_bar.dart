@@ -10,6 +10,14 @@ class DominicanBar extends Divider {
     : staffPosition = staffPosition - 2 * ((staffPosition + 1) % 2);
 
   @override
+  String toGabcString() {
+    final pos = (staffPosition + (staffPosition % 2 == 0 ? 2 : 0))
+        .clamp(1, 8)
+        .toInt();
+    return '${super.toGabcString()}(;$pos)';
+  }
+
+  @override
   void performLayout(ChantContext ctxt) {
     super.performLayout(ctxt);
     addVisualizer(

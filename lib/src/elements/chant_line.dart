@@ -93,7 +93,7 @@ class ChantLine extends ChantLayoutElement {
   int? maxNumNotationsOnLine;
 
   InsertionCursor? insertionCursor;
-  Neume? insertionPreview;
+  ChantNotationElement? insertionPreview;
 
   ChantLine(this.score);
 
@@ -385,13 +385,19 @@ class ChantLine extends ChantLayoutElement {
     return insertionCursor;
   }
 
-  Neume? layoutInsertionPreview(ChantContext ctxt) {
-    if (insertionPreview case Neume(:final bounds)) {
-      return insertionPreview!
-        ..performLayout(ctxt)
-        ..bounds = insertionPreview!.bounds.copyWith(x: bounds.x);
-    }
-    return null;
+  ChantNotationElement? layoutInsertionPreview(ChantContext ctxt) {
+    final x = insertionPreview?.bounds.x;
+    return switch (insertionPreview) {
+      Neume n =>
+        n
+          ..performLayout(ctxt)
+          ..bounds = n.bounds.copyWith(x: x),
+      Divider d =>
+        d
+          ..performLayout(ctxt)
+          ..bounds = d.bounds.copyWith(x: x),
+      _ => null,
+    };
   }
 
   @override

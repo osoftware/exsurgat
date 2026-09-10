@@ -5,6 +5,8 @@ import 'divider.dart';
 
 class DoubleBar extends Divider {
   @override
+  String toGabcString() => '${super.toGabcString()}(::)';
+  @override
   void performLayout(ChantContext ctxt) {
     super.performLayout(ctxt);
 
