@@ -389,9 +389,7 @@ class ChantLine extends ChantLayoutElement {
     if (insertionPreview case Neume(:final bounds)) {
       return insertionPreview!
         ..performLayout(ctxt)
-        ..bounds = insertionPreview!.bounds.copyWith(
-          x: bounds.x - insertionPreview!.bounds.width,
-        );
+        ..bounds = insertionPreview!.bounds.copyWith(x: bounds.x);
     }
     return null;
   }
