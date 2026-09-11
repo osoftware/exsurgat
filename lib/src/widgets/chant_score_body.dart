@@ -44,9 +44,9 @@ class ChantScoreBody extends LeafRenderObjectWidget {
   }
 
   @override
-  void updateRenderObject(BuildContext context, RenderBox renderObject) {
+  void updateRenderObject(BuildContext context, RenderChantScore renderObject) {
     super.updateRenderObject(context, renderObject);
-    (renderObject as RenderChantScore)
+    renderObject
       ..gabc = gabc
       ..useDropCap = useDropCap
       ..theme = theme ?? ChantTheme.kDefaultTheme
@@ -64,8 +64,8 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
        _chantContext = ChantContext(theme: theme),
        _useDropCap = useDropCap,
        _tool = tool {
-    _tool?._attachTo(this);
     _buildScore();
+    _tool?._attachTo(this);
   }
 
   String _gabc;
