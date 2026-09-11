@@ -127,6 +127,7 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     _score.performLayout(_chantContext);
     _score.layoutChantLines(_chantContext, constraints.maxWidth);
     _score.updateSelection(selection);
+    _tool?.handleScoreUpdated();
     size = constraints.constrain(
       Size(_score.bounds.width, _score.bounds.height),
     );
@@ -318,4 +319,7 @@ abstract class Tool {
   /// Override this method if you need to do something when the tool is attached
   /// to a score body.
   void handleAttach() {}
+
+  /// Override this method to rebind state after source reparsing.
+  void handleScoreUpdated() {}
 }
