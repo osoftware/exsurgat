@@ -1,6 +1,9 @@
+import 'dart:ui';
+
 import 'ast.dart';
 import 'chant_context.dart';
 import 'core.dart';
+import 'drawing.dart';
 import 'elements/brace_point.dart';
 import 'elements/horizontal_episema.dart';
 import 'elements/mora.dart';
@@ -126,7 +129,39 @@ class GabcHeader {
   dynamic operator [](String key) => _values[key];
   void operator []=(String key, dynamic value) => _values[key] = value;
 
+  /// Parses scalar entry: either a number (interpreted in [defaultUnit])
+  /// or a string like `"124.3mm"`.
+  /// Returns [fallback] when entry at [key] is null or cannot be parsed.
+  Scalar readScalar(String key, Scalar fallback) => switch (this[key]) {
+    null => fallback,
+    num n => Scalar(n.toDouble(), Unit.deviceIndependent),
+    String s => Scalar.tryParse(s) ?? fallback,
+    _ => fallback,
+  };
+
+  /// Parses color entry: either #rgb, #rrggbb, #rrggbbaa or red and black.
+  /// Returns [fallback] when entry at [key] is null or cannot be parsed.
+  Color readColor(String key, Color fallback) =>
+      parseColor(this[key]) ?? fallback;
+
+  /// Parses number entry.
+  /// Returns [fallback] when entry at [key] is null or cannot be parsed.
+  double readDouble(String key, double fallback) =>
+      double.tryParse(this[key] ?? '') ?? fallback;
+
   bool containsKey(String key) => _values.containsKey(key);
+
+  void remove(String key) => _values.remove(key);
+
+  /// Sets [key] to [value] if it differs from [kDefaultValue];
+  /// removes [key] otherwise.
+  void put(String key, String value, String kDefaultValue) {
+    if (value != kDefaultValue) {
+      this[key] = value;
+    } else {
+      remove(key);
+    }
+  }
 
   Iterable<String> get keys => _values.keys;
 
@@ -168,12 +203,6 @@ class GabcHeader {
   }
 
   Map<String, dynamic> toMap() => Map.from(_values);
-
-  void merge(Map<String, dynamic> other) {
-    other.forEach((key, value) {
-      this[key] = value;
-    });
-  }
 }
 
 enum DiffType { equal, insert, delete }
@@ -289,9 +318,9 @@ class Gabc {
     for (var i = 0; i < words.length; i++) {
       sourceIndex += wordLength;
       wordLength = words[i].length;
-      final word = words[i].trim();
+      final word = words[i];
 
-      if (word.isEmpty) continue;
+      if (word.trim().isEmpty) continue;
 
       final mapping = createWordFromSource(
         ctxt,

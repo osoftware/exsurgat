@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 
+import 'package:flutter/foundation.dart';
 import 'package:xml/xml.dart';
 
 import 'ast.dart';
@@ -55,7 +56,7 @@ class LineSelection {
 }
 
 /// A chant score, the main document type produced by parsing gabc source.
-class ChantScore {
+class ChantScore extends ChangeNotifier {
   /// Creates a new [ChantScore] from the given [words].
   ///
   /// If [useDropCap] is `true`, then a drop cap is created for the first
@@ -180,6 +181,7 @@ class ChantScore {
         ]);
       }
     }
+    notifyListeners();
   }
 
   /// Updates the selection state of the score.
@@ -235,6 +237,7 @@ class ChantScore {
         insertionLine!.insertionCursor = InsertionCursor();
       }
     }
+    notifyListeners();
   }
 
   /// Updates the internal notations arrays from the current [words].
@@ -312,6 +315,8 @@ class ChantScore {
     }
 
     needsLayout = true;
+
+    notifyListeners();
   }
 
   /// Recreates the drop cap from the first notation with lyrics.

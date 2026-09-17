@@ -1,73 +1,157 @@
+import 'package:flutter/foundation.dart';
+
 import 'chant_context.dart';
 import 'chant_score.dart';
+import 'chant_theme.dart';
+import 'core.dart';
+import 'gabc.dart';
 
 /// The layout settings for a [ChantDocument].
 class ChantDocumentLayout {
-  ChantDocumentLayout({
-    this.units = 'mm',
-    this.defaultFontFamily = 'Crimson',
-    this.defaultFontSize = 14,
-    this.pageWidth = 8.5,
-    this.pageHeight = 11,
-    this.marginLeft = 0,
-    this.marginTop = 0,
-    this.marginRight = 0,
-    this.marginBottom = 0,
+  static const kDefaultPageWidth = Scalar(8.5, Unit.inches);
+  static const kDefaultPageHeight = Scalar(11, Unit.inches);
+  static const kDefaultMarginLeft = Scalar(0);
+  static const kDefaultMarginTop = Scalar(0);
+  static const kDefaultMarginRight = Scalar(0);
+  static const kDefaultMarginBottom = Scalar(0);
+
+  const ChantDocumentLayout({
+    this.pageWidth = kDefaultPageWidth,
+    this.pageHeight = kDefaultPageHeight,
+    this.marginLeft = kDefaultMarginLeft,
+    this.marginTop = kDefaultMarginTop,
+    this.marginRight = kDefaultMarginRight,
+    this.marginBottom = kDefaultMarginBottom,
   });
 
-  /// The units used for the layout dimensions (e.g., "mm", "in").
-  String units;
-
-  /// The default font family for the document.
-  String defaultFontFamily;
-
-  /// The default font size for the document.
-  double defaultFontSize;
-
   /// The width of the page.
-  double pageWidth;
+  final Scalar pageWidth;
 
   /// The height of the page.
-  double pageHeight;
+  final Scalar pageHeight;
 
   /// The left margin of the page.
-  double marginLeft;
+  final Scalar marginLeft;
 
   /// The top margin of the page.
-  double marginTop;
+  final Scalar marginTop;
 
   /// The right margin of the page.
-  double marginRight;
+  final Scalar marginRight;
 
   /// The bottom margin of the page.
-  double marginBottom;
+  final Scalar marginBottom;
+
+  /// Creates [ChantDocumentLayout] from [GabcHeader] values.
+  factory ChantDocumentLayout.fromGabcHeader(GabcHeader header) =>
+      ChantDocumentLayout(
+        pageWidth: header.readScalar('page-width', kDefaultPageWidth),
+        pageHeight: header.readScalar('page-height', kDefaultPageHeight),
+        marginLeft: header.readScalar('margin-left', kDefaultMarginLeft),
+        marginTop: header.readScalar('margin-top', kDefaultMarginTop),
+        marginRight: header.readScalar('margin-right', kDefaultMarginRight),
+        marginBottom: header.readScalar('margin-bottom', kDefaultMarginBottom),
+      );
 
   ChantDocumentLayout clone() => ChantDocumentLayout(
-    units: units,
-    defaultFontFamily: defaultFontFamily,
-    defaultFontSize: defaultFontSize,
-    pageWidth: pageWidth,
-    pageHeight: pageHeight,
-    marginLeft: marginLeft,
-    marginTop: marginTop,
-    marginRight: marginRight,
-    marginBottom: marginBottom,
+    pageWidth: pageWidth.clone(),
+    pageHeight: pageHeight.clone(),
+    marginLeft: marginLeft.clone(),
+    marginTop: marginTop.clone(),
+    marginRight: marginRight.clone(),
+    marginBottom: marginBottom.clone(),
   );
+
+  /// Updates [header] with this layout's values, compatible with [GabcHeader].
+  ///
+  /// Values that differ from the kDefault layout are set; values that equal
+  /// the kDefault are removed from the header.
+  void updateHeader(GabcHeader header) {
+    header.put('page-width', '$pageWidth', '$kDefaultPageWidth');
+    header.put('page-height', '$pageHeight', '$kDefaultPageHeight');
+    header.put('margin-left', '$marginLeft', '$kDefaultMarginLeft');
+    header.put('margin-top', '$marginTop', '$kDefaultMarginTop');
+    header.put('margin-right', '$marginRight', '$kDefaultMarginRight');
+    header.put('margin-bottom', '$marginBottom', '$kDefaultMarginBottom');
+  }
 }
 
-/// A document containing one or more chant scores, along with layout settings.
-class ChantDocument {
-  ChantDocument() {
-    final defaults = ChantDocumentLayout();
-    copyLayout(this, defaults);
-    scores = [];
+/// A document containing a chant score, along with layout and theme settings.
+class ChantDocument extends ChangeNotifier {
+  ChantDocument({
+    required GabcHeader header,
+    required ChantDocumentLayout layout,
+    required ChantTheme theme,
+    required ChantContext ctxt,
+    required ChantScore score,
+  }) : _score = score,
+       _header = header,
+       _theme = theme,
+       _layout = layout,
+       _ctxt = ctxt {
+    score.addListener(_handleScoreChanged);
   }
 
-  /// The layout settings for this document.
-  late ChantDocumentLayout layout;
+  ChantContext _ctxt;
 
-  /// The scores contained in this document.
-  late List<ChantScore> scores;
+  /// Chant context maintaining internal state necessary for layout rendering.
+  ChantContext get ctxt => _ctxt;
+  set ctxt(ChantContext value) {
+    if (value == _ctxt) return;
+    _ctxt = value;
+    notifyListeners();
+  }
+
+  /// The full header of this document.
+  GabcHeader _header;
+
+  /// The full header of this document.
+  GabcHeader get header => _header;
+  set header(GabcHeader value) {
+    if (value == _header) return;
+    _header = value;
+    notifyListeners();
+  }
+
+  ChantDocumentLayout _layout = ChantDocumentLayout();
+
+  /// The layout settings for this document.
+  ChantDocumentLayout get layout => _layout;
+  set layout(ChantDocumentLayout value) {
+    if (value == _layout) return;
+    _layout = value;
+    notifyListeners();
+  }
+
+  ChantTheme _theme = ChantTheme();
+
+  /// The theme settings for this document.
+  ChantTheme get theme => _theme;
+  set theme(ChantTheme value) {
+    if (value == _theme) return;
+    _theme = value;
+    notifyListeners();
+  }
+
+  ChantScore _score;
+
+  /// The score contained in this document.
+  ChantScore get score => _score;
+  set score(ChantScore value) {
+    if (value == _score) return;
+    _score.removeListener(_handleScoreChanged);
+    _score = value;
+    value.addListener(_handleScoreChanged);
+    notifyListeners();
+  }
+
+  void _handleScoreChanged() => notifyListeners();
+
+  @override
+  void dispose() {
+    score.removeListener(_handleScoreChanged);
+    super.dispose();
+  }
 
   /// Copies the layout settings from [from] to [to].
   void copyLayout(ChantDocument to, ChantDocumentLayout from) {
@@ -75,60 +159,37 @@ class ChantDocument {
   }
 
   /// Unserializes the document from a JSON-compatible map.
-  void unserializeFromJson(Map<String, dynamic> data, ChantContext ctxt) {
-    final layoutData = data['layout'] as Map<String, dynamic>;
-    final defaultFont =
-        layoutData['default-font'] as Map<String, dynamic>? ?? {};
-    final page = layoutData['page'] as Map<String, dynamic>? ?? {};
+  factory ChantDocument.fromSource(String source, [ChantContext? ctxt]) {
+    ctxt = ctxt ?? ChantContext();
 
-    layout = ChantDocumentLayout(
-      units: layoutData['units'] as String? ?? 'mm',
-      defaultFontFamily: defaultFont['font-family'] as String? ?? 'Crimson',
-      defaultFontSize: (defaultFont['font-size'] as num?)?.toDouble() ?? 14,
-      pageWidth: (page['width'] as num?)?.toDouble() ?? 8.5,
-      pageHeight: (page['height'] as num?)?.toDouble() ?? 11,
-      marginLeft: (page['margin-left'] as num?)?.toDouble() ?? 0,
-      marginTop: (page['margin-top'] as num?)?.toDouble() ?? 0,
-      marginRight: (page['margin-right'] as num?)?.toDouble() ?? 0,
-      marginBottom: (page['margin-bottom'] as num?)?.toDouble() ?? 0,
+    final header = GabcHeader.fromSource(source);
+    return ChantDocument(
+      ctxt: ctxt,
+      header: header,
+      layout: ChantDocumentLayout.fromGabcHeader(GabcHeader.fromSource(source)),
+      theme: ChantTheme.fromGabcHeader(GabcHeader.fromSource(source)),
+      score: ChantScore(
+        ctxt: ctxt,
+        header: header,
+        words: Gabc.fromSource(ctxt, source),
+        useDropCap: true,
+      ),
     );
-
-    scores = [];
-
-    // read in the scores
-    final scoresData = data['scores'] as List<dynamic>? ?? [];
-    for (var i = 0; i < scoresData.length; i++) {
-      final score = ChantScore();
-      score.unserializeFromJson(scoresData[i] as Map<String, dynamic>, ctxt);
-      scores.add(score);
-    }
+  }
+  void updateSource(String source) {
+    _header = GabcHeader.fromSource(source);
+    _layout = ChantDocumentLayout.fromGabcHeader(GabcHeader.fromSource(source));
+    _theme = ChantTheme.fromGabcHeader(GabcHeader.fromSource(source));
+    Gabc.updateAstFromSource(ctxt, score.words, source);
+    score.updateNotations(ctxt);
   }
 
-  /// Serializes the document to a JSON-compatible map.
-  Map<String, dynamic> serializeToJson() {
-    final data = <String, dynamic>{};
-
-    data['layout'] = {
-      'units': layout.units,
-      'default-font': {
-        'font-family': layout.defaultFontFamily,
-        'font-size': layout.defaultFontSize,
-      },
-      'page': {
-        'width': layout.pageWidth,
-        'height': layout.pageHeight,
-        'margin-left': layout.marginLeft,
-        'margin-top': layout.marginTop,
-        'margin-right': layout.marginRight,
-        'margin-bottom': layout.marginBottom,
-      },
-    };
-
-    data['scores'] = [];
-    for (var i = 0; i < scores.length; i++) {
-      (data['scores'] as List).add(scores[i].serializeToJson());
-    }
-
-    return data;
+  /// Serializes the document to gabc source.
+  @override
+  String toString() {
+    layout.updateHeader(header);
+    theme.updateHeader(header);
+    final body = score.words.map((w) => w.source).join();
+    return '$header$body';
   }
 }

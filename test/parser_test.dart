@@ -1,5 +1,9 @@
+import 'dart:ui';
+
 import 'package:exsurgat/internals.dart';
 import 'package:exsurgat/src/chant_context.dart';
+import 'package:exsurgat/src/chant_document.dart';
+import 'package:exsurgat/src/chant_theme.dart';
 import 'package:exsurgat/src/gabc.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -58,6 +62,40 @@ Ex(aba)ur(dcd)gat(fg.) de(ab)us(fg.)
       expect(neume3.notes.first.sourceIndex, equals(36));
 
       expect(ast[1].sourceIndex, equals(33));
+    });
+  });
+  group('Document', () {
+    final gabcSource = '''
+mode: 5;
+title: Exsurgat;
+page-width: 21.0cm;
+text-color: #111111ff;
+%%
+Ex(ab)ur(dcd)gat(fg.) de(ab)us(fg.)
+Et(abc)
+''';
+    test('Loads layout and theme', () {
+      final doc = ChantDocument.fromSource(gabcSource);
+      expect(doc.layout.pageWidth, equals(Scalar(21, .centimeters)));
+      expect(doc.theme.textColor, equals(Color(0xff111111)));
+    });
+    test('Preserves all props and content', () {
+      final doc = ChantDocument.fromSource(gabcSource);
+      final saved = doc.toString();
+      expect(saved, equals(gabcSource));
+    });
+    test('Serializes non-default values', () {
+      final doc = ChantDocument.fromSource(gabcSource);
+      doc.theme = ChantTheme(
+        baseTextStyle: BaseTextStyle(
+          font: 'Palatino',
+          size: Scalar(16.0, .points),
+        ),
+        lyric: TextStyleDefinition(size: RelativeFontSize(1)),
+      );
+      final output = doc.toString();
+      expect(output, contains('base-text-style.size: 16.0pt'));
+      expect(output, contains('text-style.lyric.relative-size: 1.0'));
     });
   });
 }

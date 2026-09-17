@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'package:exsurgat/src/core.dart';
+
 import 'chant_context.dart';
 import 'drawing.dart';
 import 'gabc.dart';
@@ -7,7 +9,9 @@ import 'gabc.dart';
 class BaseTextStyle {
   /// Font list using CSS syntax.
   final String font;
-  final double size;
+
+  /// Fons size.
+  final Scalar size;
 
   /// Additional CSS properties.
   final Map<String, dynamic> baseStyle;
@@ -31,7 +35,7 @@ class BaseTextStyle {
       ..remove('size');
     return BaseTextStyle(
       font: map['font'] as String,
-      size: double.parse('${map['size']}'),
+      size: Scalar.parse('${map['size']}'),
       baseStyle: values,
     );
   }
@@ -46,24 +50,24 @@ sealed class FontSize {
 
   factory FontSize.staffInterval(double multiplier) = StaffIntervalFontSize;
 
-  factory FontSize.absolute(double size) = AbsoluteFontSize;
+  factory FontSize.absolute(Scalar size) = AbsoluteFontSize;
 
   /// Resolves the concrete font size.
   double resolve(double baseSize, ChantContext ctxt);
 
-  /// Serialized representation, e.g. `{'relativeSize': 1.5}`.
-  Map<String, double> toMap();
+  /// Serialized representation, e.g. `{'relative-size': 1.5}`.
+  Map<String, dynamic> toMap();
 
   factory FontSize.fromMap(Map<String, dynamic> map) {
-    final relative = map['relativeSize'];
+    final relative = map['relative-size'];
     if (relative != null) {
       return FontSize.relative(double.parse('$relative'));
     }
-    final staffIntervalSize = map['staffIntervalSize'];
+    final staffIntervalSize = map['staff-interval-size'];
     if (staffIntervalSize != null) {
       return FontSize.staffInterval(double.parse('$staffIntervalSize'));
     }
-    return FontSize.absolute(double.parse('${map['size']}'));
+    return FontSize.absolute(Scalar.parse('${map['size']}'));
   }
 }
 
@@ -77,7 +81,7 @@ class RelativeFontSize extends FontSize {
   double resolve(double baseSize, ChantContext ctxt) => baseSize * factor;
 
   @override
-  Map<String, double> toMap() => {'relativeSize': factor};
+  Map<String, dynamic> toMap() => {'relative-size': factor};
 }
 
 /// Font size derived from the staff interval of the [ChantContext].
@@ -91,20 +95,20 @@ class StaffIntervalFontSize extends FontSize {
       ctxt.staffInterval * multiplier;
 
   @override
-  Map<String, double> toMap() => {'staffIntervalSize': multiplier};
+  Map<String, double> toMap() => {'staff-interval-size': multiplier};
 }
 
 /// Fixed font size, independent of context.
 class AbsoluteFontSize extends FontSize {
-  final double size;
+  final Scalar size;
 
   const AbsoluteFontSize(this.size);
 
   @override
-  double resolve(double baseSize, ChantContext ctxt) => size;
+  double resolve(double baseSize, ChantContext ctxt) => size.deviceIndependent;
 
   @override
-  Map<String, double> toMap() => {'size': size};
+  Map<String, dynamic> toMap() => {'size': size};
 }
 
 class TextStyleDefinition {
@@ -130,8 +134,8 @@ class TextStyleDefinition {
 
   static TextStyleDefinition fromMap(Map<String, dynamic> map) {
     final hasSizing =
-        map.containsKey('relativeSize') ||
-        map.containsKey('staffIntervalSize') ||
+        map.containsKey('relative-size') ||
+        map.containsKey('staff-interval-size') ||
         map.containsKey('size');
     return TextStyleDefinition(
       font: map['font'] as String?,
@@ -167,7 +171,7 @@ class ChantTheme {
 
   /// Creates a new theme. Unspecified parameters fall back to the default theme.
   ChantTheme({
-    this.baseTextStyle = defaultBaseTextStyle,
+    this.baseTextStyle = kDefaultBaseTextStyle,
     this.textColor = ChantColors.nigric,
     this.rubricColor = ChantColors.rubric,
     this.neumeColor = ChantColors.nigric,
@@ -188,16 +192,16 @@ class ChantTheme {
     TextStyleDefinition? choralSign,
     TextStyleDefinition? lyric,
     TextStyleDefinition? translation,
-  }) : supertitle = supertitle ?? defaultTextStyles['supertitle']!,
-       title = title ?? defaultTextStyles['title']!,
-       subtitle = subtitle ?? defaultTextStyles['subtitle']!,
-       leftRight = leftRight ?? defaultTextStyles['leftRight']!,
-       annotation = annotation ?? defaultTextStyles['annotation']!,
-       dropCap = dropCap ?? defaultTextStyles['dropCap']!,
-       aboveLine = aboveLine ?? defaultTextStyles['al']!,
-       choralSign = choralSign ?? defaultTextStyles['choralSign']!,
-       lyric = lyric ?? defaultTextStyles['lyric']!,
-       translation = translation ?? defaultTextStyles['translation']!;
+  }) : supertitle = supertitle ?? kDefaultTextStyles['supertitle']!,
+       title = title ?? kDefaultTextStyles['title']!,
+       subtitle = subtitle ?? kDefaultTextStyles['subtitle']!,
+       leftRight = leftRight ?? kDefaultTextStyles['leftRight']!,
+       annotation = annotation ?? kDefaultTextStyles['annotation']!,
+       dropCap = dropCap ?? kDefaultTextStyles['dropCap']!,
+       aboveLine = aboveLine ?? kDefaultTextStyles['al']!,
+       choralSign = choralSign ?? kDefaultTextStyles['choralSign']!,
+       lyric = lyric ?? kDefaultTextStyles['lyric']!,
+       translation = translation ?? kDefaultTextStyles['translation']!;
 
   Map<String, TextStyleDefinition> get textStyles => {
     'supertitle': supertitle,
@@ -212,116 +216,109 @@ class ChantTheme {
     'translation': translation,
   };
 
-  /// Serializes this theme into header values, compatible with [GabcHeader].
+  /// Updates [header] with this theme's values, compatible with [GabcHeader].
   ///
-  /// Only values that differ from the default theme are included.
-  Map<String, String> toHeaderValues() {
-    final values = <String, String>{};
-
-    void putIfDifferent(String key, String value, String defaultValue) {
-      if (value != defaultValue) values[key] = value;
-    }
-
-    putIfDifferent(
-      'textColor',
+  /// Values that differ from the default theme are set; values that equal the
+  /// default are removed from the header.
+  void updateHeader(GabcHeader header) {
+    header.put(
+      'text-color',
       textColor.toSvgString(),
       kDefaultTheme.textColor.toSvgString(),
     );
-    putIfDifferent(
-      'rubricColor',
+    header.put(
+      'rubric-color',
       rubricColor.toSvgString(),
       kDefaultTheme.rubricColor.toSvgString(),
     );
-    putIfDifferent(
-      'neumeColor',
+    header.put(
+      'neume-color',
       neumeColor.toSvgString(),
       kDefaultTheme.neumeColor.toSvgString(),
     );
-    putIfDifferent(
-      'staffLineColor',
+    header.put(
+      'staff-line-color',
       staffLineColor.toSvgString(),
       kDefaultTheme.staffLineColor.toSvgString(),
     );
-    putIfDifferent(
-      'dividerLineColor',
+    header.put(
+      'divider-line-color',
       dividerLineColor.toSvgString(),
       kDefaultTheme.dividerLineColor.toSvgString(),
     );
-    putIfDifferent(
-      'selectionColor',
+    header.put(
+      'selection-color',
       selectionColor.toSvgString(),
       kDefaultTheme.selectionColor.toSvgString(),
     );
-    putIfDifferent(
-      'minLedgerSeparation',
+    header.put(
+      'min-ledger-separation',
       '$minLedgerSeparation',
       '${kDefaultTheme.minLedgerSeparation}',
     );
-    putIfDifferent(
-      'minSpaceAboveStaff',
+    header.put(
+      'min-space-above-staff',
       '$minSpaceAboveStaff',
       '${kDefaultTheme.minSpaceAboveStaff}',
     );
-    putIfDifferent(
-      'minSpaceBelowStaff',
+    header.put(
+      'min-space-below-staff',
       '$minSpaceBelowStaff',
       '${kDefaultTheme.minSpaceBelowStaff}',
     );
-    putIfDifferent(
-      'spaceBetweenSystems',
+    header.put(
+      'space-between-systems',
       '$spaceBetweenSystems',
       '${kDefaultTheme.spaceBetweenSystems}',
     );
 
     if (baseTextStyle.font != kDefaultTheme.baseTextStyle.font) {
-      values['baseTextStyle.font'] = baseTextStyle.font;
+      header['base-text-style.font'] = baseTextStyle.font;
+    } else {
+      header.remove('base-text-style.font');
     }
-    putIfDifferent(
-      'baseTextStyle.size',
+    header.put(
+      'base-text-style.size',
       '${baseTextStyle.size}',
       '${kDefaultTheme.baseTextStyle.size}',
     );
     baseTextStyle.baseStyle.forEach((key, value) {
-      final defaultValue = kDefaultTheme.baseTextStyle.baseStyle[key];
-      if ('$value' != '$defaultValue') {
-        values['baseTextStyle.$key'] = '$value';
-      }
+      final kDefaultValue = kDefaultTheme.baseTextStyle.baseStyle[key];
+      header.put('base-text-style.$key', '$value', '$kDefaultValue');
     });
 
-    final defaultStyles = kDefaultTheme.textStyles;
+    final kDefaultStyles = kDefaultTheme.textStyles;
     textStyles.forEach((name, style) {
-      if (style == defaultStyles[name]) return;
+      if (style == kDefaultStyles[name]) {
+        // Remove any previously serialized properties for this style.
+        header.keys
+            .where((key) => key.startsWith('text-style.$name.'))
+            .toList()
+            .forEach(header.remove);
+        return;
+      }
       style.toMap().forEach(
-        (property, value) => values['textStyle.$name.$property'] = value,
+        (property, value) => header['text-style.$name.$property'] = value,
       );
     });
-
-    return values;
   }
 
-  factory ChantTheme.fromGabcHeader(GabcHeader header) =>
-      fromHeaderValues(header.toMap());
-
-  /// Deserializes a theme from header values produced by [toHeaderValues].
-  static ChantTheme fromHeaderValues(Map<String, dynamic> values) {
-    Color readColor(String key, Color fallback) =>
-        parseColor(values[key]) ?? fallback;
-
-    double readDouble(String key, double fallback) =>
-        double.tryParse(values[key] ?? '') ?? fallback;
-
+  /// Deserializes a theme from header values.
+  factory ChantTheme.fromGabcHeader(GabcHeader header) {
+    final values = header.toMap();
     final base = <String, dynamic>{};
     values.forEach((key, value) {
-      if (key.startsWith('baseTextStyle.')) {
-        base[key.substring('baseTextStyle.'.length)] = value;
+      if (key.startsWith('base-text-style.')) {
+        base[key.substring('base-text-style.'.length)] = value;
       }
     });
     final baseTextStyle = base.isEmpty
-        ? defaultBaseTextStyle
+        ? kDefaultBaseTextStyle
         : BaseTextStyle(
-            font: base['font'] as String? ?? defaultBaseTextStyle.font,
+            font: base['font'] as String? ?? kDefaultBaseTextStyle.font,
             size:
-                double.tryParse('${base['size']}') ?? defaultBaseTextStyle.size,
+                Scalar.tryParse('${base['size']}') ??
+                kDefaultBaseTextStyle.size,
             baseStyle: Map.from(base)
               ..remove('font')
               ..remove('size'),
@@ -330,7 +327,7 @@ class ChantTheme {
     final styles = <String, Map<String, dynamic>>{};
     values.forEach((key, value) {
       final match = RegExp(
-        r'^textStyle\.([a-zA-Z]+)\.([a-zA-Z]+)$',
+        r'^text-style\.([a-zA-Z]+)\.([a-zA-Z]+)$',
       ).firstMatch(key);
       if (match == null) return;
       styles.putIfAbsent(match.group(1)!, () => {})[match.group(2)!] = value;
@@ -339,32 +336,38 @@ class ChantTheme {
     TextStyleDefinition style(String name) {
       final map = styles[name];
       return map == null
-          ? defaultTextStyles[name] ?? const TextStyleDefinition()
+          ? kDefaultTextStyles[name] ?? const TextStyleDefinition()
           : TextStyleDefinition.fromMap(map);
     }
 
     return ChantTheme(
       baseTextStyle: baseTextStyle,
-      textColor: readColor('textColor', ChantColors.nigric),
-      rubricColor: readColor('rubricColor', ChantColors.rubric),
-      neumeColor: readColor('neumeColor', ChantColors.nigric),
-      staffLineColor: readColor('staffLineColor', ChantColors.rubric),
-      dividerLineColor: readColor('dividerLineColor', ChantColors.nigric),
-      selectionColor: readColor('selectionColor', ChantColors.caeruleus),
-      minLedgerSeparation: readDouble(
-        'minLedgerSeparation',
+      textColor: header.readColor('text-color', ChantColors.nigric),
+      rubricColor: header.readColor('rubric-color', ChantColors.rubric),
+      neumeColor: header.readColor('neume-color', ChantColors.nigric),
+      staffLineColor: header.readColor('staff-line-color', ChantColors.rubric),
+      dividerLineColor: header.readColor(
+        'divider-line-color',
+        ChantColors.nigric,
+      ),
+      selectionColor: header.readColor(
+        'selection-color',
+        ChantColors.caeruleus,
+      ),
+      minLedgerSeparation: header.readDouble(
+        'min-ledger-separation',
         kDefaultMinLedgerSeparation,
       ),
-      minSpaceAboveStaff: readDouble(
-        'minSpaceAboveStaff',
+      minSpaceAboveStaff: header.readDouble(
+        'min-space-above-staff',
         kDefaultMinSpaceAboveStaff,
       ),
-      minSpaceBelowStaff: readDouble(
-        'minSpaceBelowStaff',
+      minSpaceBelowStaff: header.readDouble(
+        'min-space-below-staff',
         kDefaultMinSpaceBelowStaff,
       ),
-      spaceBetweenSystems: readDouble(
-        'spaceBetweenSystems',
+      spaceBetweenSystems: header.readDouble(
+        'space-between-systems',
         kDefaultSpaceBetweenSystems,
       ),
       supertitle: style('supertitle'),
@@ -388,9 +391,9 @@ const double kDefaultMinSpaceAboveStaff = 2;
 const double kDefaultMinSpaceBelowStaff = 1;
 const double kDefaultSpaceBetweenSystems = 1.5;
 
-const defaultBaseTextStyle = BaseTextStyle(
+const kDefaultBaseTextStyle = BaseTextStyle(
   font: "'Palatino Linotype', 'Book Antiqua', Palatino, serif",
-  size: 16,
+  size: Scalar(16),
 );
 
 class ChantColors {
@@ -404,15 +407,15 @@ class ChantColors {
   static const Color caeruleus = Color(0xFF007BA7);
 }
 
-final Map<String, TextStyleDefinition> defaultTextStyles = {
-  'supertitle': const TextStyleDefinition(size: RelativeFontSize(7 / 6)),
-  'title': const TextStyleDefinition(size: RelativeFontSize(3 / 2)),
-  'subtitle': const TextStyleDefinition(),
-  'leftRight': const TextStyleDefinition(size: RelativeFontSize(0.9)),
-  'annotation': const TextStyleDefinition(size: RelativeFontSize(2 / 3)),
-  'dropCap': const TextStyleDefinition(size: RelativeFontSize(4)),
-  'al': const TextStyleDefinition(),
-  'choralSign': const TextStyleDefinition(size: StaffIntervalFontSize(1.5)),
-  'lyric': const TextStyleDefinition(size: RelativeFontSize(0.9)),
-  'translation': const TextStyleDefinition(size: RelativeFontSize(0.75)),
+final Map<String, TextStyleDefinition> kDefaultTextStyles = const {
+  'supertitle': TextStyleDefinition(size: RelativeFontSize(7 / 6)),
+  'title': TextStyleDefinition(size: RelativeFontSize(3 / 2)),
+  'subtitle': TextStyleDefinition(),
+  'leftRight': TextStyleDefinition(size: RelativeFontSize(0.9)),
+  'annotation': TextStyleDefinition(size: RelativeFontSize(2 / 3)),
+  'dropCap': TextStyleDefinition(size: RelativeFontSize(4)),
+  'al': TextStyleDefinition(),
+  'choralSign': TextStyleDefinition(size: StaffIntervalFontSize(1.5)),
+  'lyric': TextStyleDefinition(size: RelativeFontSize(0.9)),
+  'translation': TextStyleDefinition(size: RelativeFontSize(0.75)),
 };

@@ -1,47 +1,106 @@
 import 'dart:math' as math;
 
-enum UnitsType { deviceIndependent, centimeters, millimeters, inches }
+enum Unit {
+  deviceIndependent("di", 1.0),
+  centimeters("cm", 96.0 / 2.54),
+  millimeters("mm", 96.0 / 2.54 / 10.0),
+  inches("in", 96.0),
+  points("pt", 72.0);
 
-class Units {
+  final String label;
+  final double diuPerUnit;
+
+  const Unit(this.label, this.diuPerUnit);
+
   static const double diuPerInch = 96.0;
   static const double diuPerCentimeter = 96.0 / 2.54;
 
-  static double toDeviceIndependent(double n, UnitsType inputUnits) {
-    return switch (inputUnits) {
-      UnitsType.centimeters => n * diuPerCentimeter,
-      UnitsType.millimeters => n * diuPerCentimeter / 10.0,
-      UnitsType.inches => n * diuPerInch,
-      UnitsType.deviceIndependent => n,
-    };
-  }
+  double toDeviceIndependent(double n) => n * diuPerUnit;
 
-  static double fromDeviceIndependent(double n, UnitsType outputUnits) {
-    return switch (outputUnits) {
-      UnitsType.centimeters => n / diuPerCentimeter,
-      UnitsType.millimeters => n / diuPerCentimeter * 10.0,
-      UnitsType.inches => n / diuPerInch,
-      UnitsType.deviceIndependent => n,
-    };
-  }
+  double fromDeviceIndependent(double n) => n / diuPerUnit;
 
-  static UnitsType stringToUnitsType(String s) {
+  static Unit fromString(String s) {
     return switch (s.toLowerCase()) {
-      "in" || "inches" => UnitsType.inches,
-      "cm" || "centimeters" => UnitsType.centimeters,
-      "mm" || "millimeters" => UnitsType.millimeters,
-      "di" || "device-independent" => UnitsType.deviceIndependent,
-      _ => UnitsType.deviceIndependent,
+      "in" || "inches" => Unit.inches,
+      "cm" || "centimeters" => Unit.centimeters,
+      "mm" || "millimeters" => Unit.millimeters,
+      "di" || "device-independent" => Unit.deviceIndependent,
+      "pt" || "points" => Unit.points,
+      _ => Unit.deviceIndependent,
     };
   }
 
-  static String unitsTypeToString(UnitsType units) {
-    return switch (units) {
-      UnitsType.inches => "in",
-      UnitsType.centimeters => "cm",
-      UnitsType.millimeters => "mm",
-      UnitsType.deviceIndependent => "device-independent",
-    };
+  @override
+  String toString() => label;
+}
+
+class Scalar {
+  final double value;
+  final Unit unit;
+
+  const Scalar(this.value, [this.unit = Unit.deviceIndependent]);
+
+  double get deviceIndependent => unit.toDeviceIndependent(value);
+
+  Scalar toUnit(Unit target) =>
+      Scalar(target.fromDeviceIndependent(deviceIndependent), target);
+
+  Scalar clone() => Scalar(value, unit);
+
+  Scalar copyWith({double? value, Unit? unit}) =>
+      Scalar(value ?? this.value, unit ?? this.unit);
+
+  /// Parses strings like `"124.3mm"`, `"2in"`, `"96"`.
+  /// No unit suffix means [Unit.deviceIndependent].
+  static Scalar parse(String s) {
+    final Scalar? result = tryParse(s);
+    if (result == null) {
+      throw FormatException('Invalid scalar: "$s"');
+    }
+    return result;
   }
+
+  /// Like [parse] but returns `null` instead of throwing.
+  static Scalar? tryParse(String s) {
+    final String trimmed = s.trim();
+    if (trimmed.isEmpty) return null;
+
+    final RegExpMatch? match = RegExp(
+      r'^([+-]?(?:\d+\.?\d*|\.\d+))\s*([a-zA-Z]*)$',
+    ).firstMatch(trimmed);
+    if (match == null) return null;
+
+    final double? value = double.tryParse(match.group(1)!);
+    if (value == null) return null;
+
+    final suffix = match.group(2)!.toLowerCase();
+    final unit = Unit.fromString(suffix);
+    return Scalar(value, unit);
+  }
+
+  /// Adds [other], converting it to this scalar's unit first.
+  Scalar operator +(Scalar other) =>
+      Scalar(value + other.toUnit(unit).value, unit);
+
+  /// Subtracts [other], converting it to this scalar's unit first.
+  Scalar operator -(Scalar other) =>
+      Scalar(value - other.toUnit(unit).value, unit);
+
+  /// Multiplies by a unitless factor.
+  Scalar operator *(num factor) => Scalar(value * factor, unit);
+
+  /// Divides by a unitless factor.
+  Scalar operator /(num factor) => Scalar(value / factor, unit);
+
+  @override
+  bool operator ==(covariant Scalar other) =>
+      value == other.value && unit == other.unit;
+
+  @override
+  int get hashCode => Object.hash(value, unit);
+
+  @override
+  String toString() => '$value$unit';
 }
 
 interface class Geom {}

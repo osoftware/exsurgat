@@ -82,7 +82,7 @@ ChantScoreView(
     dividerLineColor: Colors.blueGrey,
     baseTextStyle: BaseTextStyle(
       font: GoogleFonts.imFellDwPica().fontFamily!,
-      size: 16,
+      size: Scalar(16, .deviceIndependent),
     ),
     supertitle: TextStyleDefinition(sizing: FontSize.relative(7 / 6)),
     title: TextStyleDefinition(sizing: FontSize.relative(3 / 2)),

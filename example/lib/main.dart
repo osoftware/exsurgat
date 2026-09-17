@@ -45,7 +45,7 @@ class _EditorPageState extends State<EditorPage> {
     dividerLineColor: Colors.blueGrey,
     baseTextStyle: BaseTextStyle(
       font: GoogleFonts.imFellDwPica().fontFamily!,
-      size: 16,
+      size: Scalar(16),
     ),
     supertitle: TextStyleDefinition(size: FontSize.relative(7 / 6)),
     title: TextStyleDefinition(size: FontSize.relative(3 / 2)),
@@ -65,7 +65,7 @@ class _EditorPageState extends State<EditorPage> {
   final normalTheme = ChantTheme(
     baseTextStyle: BaseTextStyle(
       font: GoogleFonts.crimsonPro().fontFamily!,
-      size: 16,
+      size: Scalar(16),
     ),
   );
   @override
