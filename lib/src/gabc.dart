@@ -49,7 +49,7 @@ final RegExp _trailingSpaceSpec = RegExp(
 );
 final RegExp regexHeaderEnd = RegExp(r'(?:^|\n)%%\s?\n');
 final RegExp regexHeaderLine = RegExp(
-  r'^([\w-_.]+):\s*((?:[^;\r\n]|;[ \t])*)(?:;|$)',
+  r'^([\w\-_.]+):\s*((?:[^;\r\n]|;[ \t])*)(?:;|$)',
   caseSensitive: false,
 );
 final RegExp regexHeaderComment = RegExp(r'^%.*');
@@ -165,6 +165,14 @@ class GabcHeader {
       }
     }
     return '${result.join('\n')}\n%%\n';
+  }
+
+  Map<String, dynamic> toMap() => Map.from(_values);
+
+  void merge(Map<String, dynamic> other) {
+    other.forEach((key, value) {
+      this[key] = value;
+    });
   }
 }
 

@@ -1,5 +1,7 @@
 import 'dart:ui';
 
+import 'chant_theme.dart';
+
 extension CanvasPathExtensions on Canvas {
   CanvasPathBuilder beginPath({
     required double strokeWidth,
@@ -54,6 +56,39 @@ extension Svg on Color {
     final hex = toARGB32().toRadixString(16);
     return "#${hex.substring(2)}${hex.substring(0, 2)}";
   }
+}
+
+/// Parses a CSS/SVG hex color (`#RGB`, `#RRGGBB`, or `#RRGGBBAA`).
+/// Supported named colors:
+/// `red` → [ChantColors.rubric],
+/// `black` → [ChantColors.nigric].
+Color? parseColor(String? value) {
+  if (value == null) return null;
+  switch (value.toLowerCase()) {
+    case 'red':
+      return ChantColors.rubric;
+    case 'black':
+      return ChantColors.nigric;
+  }
+  var hex = value.startsWith('#') ? value.substring(1) : value;
+  switch (hex.length) {
+    case 3: // #RGB -> expand each digit, opaque alpha
+      final r = hex[0], g = hex[1], b = hex[2];
+      hex = '$r$r$g$g$b${b}ff';
+      break;
+    case 6:
+      hex = '${hex}ff';
+      break;
+    case 8:
+      break;
+    default:
+      return null;
+  }
+  // Convert RGBA to Flutter's ARGB.
+  final rgba = int.parse(hex, radix: 16);
+  final rgb = rgba >> 8;
+  final a = rgba & 0xff;
+  return Color((a << 24) | rgb);
 }
 
 Path parseSvgPath(String data) {

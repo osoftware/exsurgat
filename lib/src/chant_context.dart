@@ -155,8 +155,7 @@ class ChantContext {
       final textStyle = textStyles[entry.key] ?? <String, dynamic>{};
       textStyles[entry.key] = textStyle;
       textStyle['size'] =
-          entry.value.relativeSize?.call(theme.baseTextStyle.size) ??
-          entry.value.size?.call(this) ??
+          entry.value.size?.resolve(theme.baseTextStyle.size, this) ??
           theme.baseTextStyle.size;
       textStyle['font'] = entry.value.font ?? theme.baseTextStyle.font;
       textStyle['fill'] = entry.value.color;
