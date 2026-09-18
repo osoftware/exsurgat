@@ -172,7 +172,7 @@ class ChantDocument extends ChangeNotifier {
         ctxt: ctxt,
         header: header,
         words: Gabc.fromSource(ctxt, source),
-        useDropCap: true,
+        useDropCap: !(header['initial-style'] == 0),
       ),
     );
   }
@@ -181,6 +181,7 @@ class ChantDocument extends ChangeNotifier {
     _layout = ChantDocumentLayout.fromGabcHeader(GabcHeader.fromSource(source));
     _theme = ChantTheme.fromGabcHeader(GabcHeader.fromSource(source));
     Gabc.updateAstFromSource(ctxt, score.words, source);
+    score.useDropCap = !(_header['initial-style'] == 0);
     score.updateNotations(ctxt);
   }
 

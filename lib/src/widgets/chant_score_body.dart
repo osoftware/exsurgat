@@ -7,29 +7,47 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 
-import '../ast.dart';
 import '../chant_context.dart';
+import '../chant_document.dart';
 import '../chant_score.dart';
 import '../chant_theme.dart';
 import '../core.dart';
 import '../elements/annotations.dart';
 import '../elements/notation/neumes/neume.dart';
 import '../elements/text/drop_cap.dart';
-import '../gabc.dart';
 
 /// Chant score fitting the width constraints of the parent widget.
 /// For scrollable widget see [ChantScoreView]
 class ChantScoreBody extends LeafRenderObjectWidget {
+  /// Creates a read-only chant score body parsed from [gabc].
   const ChantScoreBody({
     super.key,
     required this.gabc,
     this.useDropCap = true,
     this.theme,
-    this.tool,
-  });
+  }) : document = null,
+       tool = null;
 
+  /// Creates an editable chant score body backed by [document].
+  const ChantScoreBody.editable({
+    super.key,
+    required this.document,
+    this.theme,
+    this.tool,
+  }) : gabc = '',
+       useDropCap = null;
+
+  /// The gabc source. Only used by the default constructor, which creates
+  /// a [ChantDocument] from it.
   final String gabc;
-  final bool useDropCap;
+
+  /// The document to edit. Only used by [ChantScoreBody.editable].
+  final ChantDocument? document;
+
+  /// Whether to display the initial.
+  /// Overrides `initial-style` property in GABC header.
+  final bool? useDropCap;
+
   final ChantTheme? theme;
   final Tool? tool;
 
@@ -37,8 +55,9 @@ class ChantScoreBody extends LeafRenderObjectWidget {
   RenderBox createRenderObject(BuildContext context) {
     return RenderChantScore(
       gabc: gabc,
+      document: document,
       useDropCap: useDropCap,
-      theme: theme ?? ChantTheme.kDefaultTheme,
+      theme: theme,
       tool: tool,
     );
   }
@@ -48,8 +67,9 @@ class ChantScoreBody extends LeafRenderObjectWidget {
     super.updateRenderObject(context, renderObject);
     renderObject
       ..gabc = gabc
+      ..document = document
       ..useDropCap = useDropCap
-      ..theme = theme ?? ChantTheme.kDefaultTheme
+      ..theme = theme
       ..tool = tool;
   }
 }
@@ -57,40 +77,71 @@ class ChantScoreBody extends LeafRenderObjectWidget {
 class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
   RenderChantScore({
     required String gabc,
-    required bool useDropCap,
-    required ChantTheme theme,
+    required ChantDocument? document,
+    required bool? useDropCap,
+    required ChantTheme? theme,
     required Tool? tool,
   }) : _gabc = gabc,
-       _chantContext = ChantContext(theme: theme),
+       _ownsDocument = document == null,
        _useDropCap = useDropCap,
        _tool = tool {
-    _buildScore();
+    if (theme != null) _chantContext.theme = theme;
+    _document = document ?? ChantDocument.fromSource(gabc, _chantContext);
+    // A provided theme overrides the document's theme.
+    if (theme != null) _document.theme = theme;
+    if (useDropCap != null) _document.score.useDropCap = useDropCap;
+    _document.addListener(_handleDocumentChanged);
     _tool?._attachTo(this);
   }
 
   String _gabc;
-  bool _useDropCap;
+  bool? _useDropCap;
   Tool? _tool;
 
-  final ChantContext _chantContext;
-  late ChantScore _score;
-  bool _needsRebuild = true;
+  final ChantContext _chantContext = ChantContext();
+  late ChantDocument _document;
+  final bool _ownsDocument;
+  bool _inLayout = false;
 
   String get gabc => _gabc;
   set gabc(String value) {
     if (value == _gabc) return;
     _gabc = value;
-    _score.updateHeader(_chantContext, GabcHeader.fromSource(_gabc));
-    Gabc.updateAstFromSource(_chantContext, _score.words, _gabc);
-    _score.updateNotations(_chantContext);
+    // Only the default constructor parses gabc; an editable body is backed
+    // by an externally provided document and ignores gabc updates.
+    if (_ownsDocument) {
+      document = ChantDocument.fromSource(value, _chantContext);
+    }
+  }
+
+  /// The document whose score is rendered and edited.
+  ChantDocument get document => _document;
+  set document(ChantDocument? value) {
+    if (value == null || value == _document) return;
+    _document.removeListener(_handleDocumentChanged);
+    _document = value;
+    _document.addListener(_handleDocumentChanged);
+    _tool?.handleScoreUpdated();
     markNeedsLayout();
   }
 
-  bool get useDropCap => _useDropCap;
-  set useDropCap(bool value) {
+  /// The score held by [document].
+  ChantScore get score => _document.score;
+
+  void _handleDocumentChanged() {
+    if (_inLayout) return;
+    markNeedsLayout();
+  }
+
+  bool? get useDropCap => _useDropCap;
+  set useDropCap(bool? value) {
     if (value == _useDropCap) return;
     _useDropCap = value;
-    _needsRebuild = true;
+    if (value != null) {
+      score.useDropCap = value;
+    } else {
+      score.useDropCap = document.header['initial-style'] != 0;
+    }
     markNeedsLayout();
   }
 
@@ -102,35 +153,30 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
   }
 
   ChantTheme get theme => _chantContext.theme;
-  set theme(ChantTheme value) {
-    if (value == _chantContext.theme) return;
+  set theme(ChantTheme? value) {
+    if (value == null || value == _chantContext.theme) return;
     _chantContext.theme = value;
-    _needsRebuild = true;
+    _document.theme = value;
+    score.needsLayout = true;
     markNeedsLayout();
   }
 
-  void _buildScore() {
-    final List<Word> mappings = Gabc.fromSource(_chantContext, _gabc);
-    _score = ChantScore(
-      ctxt: _chantContext,
-      words: mappings,
-      header: GabcHeader.fromSource(_gabc),
-      useDropCap: _useDropCap,
-    );
-    _needsRebuild = false;
+  @override
+  void dispose() {
+    _document.score.removeListener(_handleDocumentChanged);
+    super.dispose();
   }
 
   @override
   void performLayout() {
-    if (_needsRebuild) _buildScore();
-    final selection = _score.selection;
-    _score.performLayout(_chantContext);
-    _score.layoutChantLines(_chantContext, constraints.maxWidth);
-    _score.updateSelection(selection);
+    _inLayout = true;
+    final selection = score.selection;
+    score.performLayout(_chantContext);
+    score.layoutChantLines(_chantContext, constraints.maxWidth);
+    score.updateSelection(selection);
+    _inLayout = false;
     _tool?.handleScoreUpdated();
-    size = constraints.constrain(
-      Size(_score.bounds.width, _score.bounds.height),
-    );
+    size = constraints.constrain(Size(score.bounds.width, score.bounds.height));
   }
 
   @override
@@ -139,7 +185,7 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     canvas.save();
     canvas.translate(offset.dx, offset.dy);
     _chantContext.attachCanvas(canvas);
-    _score.draw(_chantContext);
+    score.draw(_chantContext);
     canvas.restore();
   }
 
@@ -201,7 +247,7 @@ abstract class Tool {
   RenderChantScore get renderObject => _renderObject;
 
   /// Score this tool is editing.
-  ChantScore get score => _renderObject._score;
+  ChantScore get score => renderObject.score;
 
   /// Chant context of the edited score.
   ChantContext get chantContext => _renderObject._chantContext;
