@@ -78,19 +78,26 @@ class ChantDocumentLayout {
 
 /// A document containing a chant score, along with layout and theme settings.
 class ChantDocument extends ChangeNotifier {
-  ChantDocument({
+  ChantDocument._({
+    required String source,
     required GabcHeader header,
     required ChantDocumentLayout layout,
     required ChantTheme theme,
     required ChantContext ctxt,
     required ChantScore score,
-  }) : _score = score,
+  }) : _source = source,
+       _score = score,
        _header = header,
        _theme = theme,
        _layout = layout,
        _ctxt = ctxt {
     score.addListener(_handleScoreChanged);
   }
+
+  String _source;
+
+  /// The raw GABC source from which other properties have been derived.
+  String get source => _source;
 
   ChantContext _ctxt;
 
@@ -163,7 +170,8 @@ class ChantDocument extends ChangeNotifier {
     ctxt = ctxt ?? ChantContext();
 
     final header = GabcHeader.fromSource(source);
-    return ChantDocument(
+    return ChantDocument._(
+      source: source,
       ctxt: ctxt,
       header: header,
       layout: ChantDocumentLayout.fromGabcHeader(GabcHeader.fromSource(source)),
@@ -177,6 +185,7 @@ class ChantDocument extends ChangeNotifier {
     );
   }
   void updateSource(String source) {
+    _source = source;
     _header = GabcHeader.fromSource(source);
     _layout = ChantDocumentLayout.fromGabcHeader(GabcHeader.fromSource(source));
     _theme = ChantTheme.fromGabcHeader(GabcHeader.fromSource(source));
