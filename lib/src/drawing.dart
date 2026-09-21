@@ -6,10 +6,48 @@ extension CanvasPathExtensions on Canvas {
   CanvasPathBuilder beginPath({
     required double strokeWidth,
     required Color color,
-  }) => CanvasPathBuilder(this, strokeWidth: strokeWidth, color: color);
+    List<double>? dashPattern,
+  }) => CanvasPathBuilder(
+    this,
+    strokeWidth: strokeWidth,
+    color: color,
+    dashPattern: dashPattern,
+  );
 
   void drawSvgPath(String path, Paint paint) =>
       drawPath(parseSvgPath(path), paint);
+
+  /// Draws a straight dashed line from [from] to [to].
+  void drawDashedLine({
+    required Offset from,
+    required Offset to,
+    required double strokeWidth,
+    required Color color,
+    required List<double> dashPattern,
+  }) =>
+      beginPath(
+          strokeWidth: strokeWidth,
+          color: color,
+          dashPattern: dashPattern,
+        )
+        ..moveTo(from.dx, from.dy)
+        ..lineTo(to.dx, to.dy)
+        ..stroke();
+
+  /// Draws a dashed rectangle outline.
+  void drawDashedRect({
+    required Rect rect,
+    required double strokeWidth,
+    required Color color,
+    required List<double> dashPattern,
+  }) =>
+      beginPath(
+          strokeWidth: strokeWidth,
+          color: color,
+          dashPattern: dashPattern,
+        )
+        ..rect(rect)
+        ..stroke();
 }
 
 /// Mimic HTML5 canvas
@@ -21,32 +59,103 @@ class CanvasPathBuilder {
   double strokeWidth;
   Color color;
 
+  /// Dash lengths alternating on/off, in logical pixels.
+  /// `null` or empty means a solid stroke.
+  List<double>? dashPattern;
+
+  /// The path actually drawn by [stroke] (dash segments or the full path).
+  /// Exposed for testing.
+  Path get debugDashPath => _lastDrawnPath ?? _path;
+
+  Path? _lastDrawnPath;
+
   CanvasPathBuilder(
     this._canvas, {
     required this.strokeWidth,
     required this.color,
+    this.dashPattern,
   });
 
   void moveTo(double x, double y) {
     _path.moveTo(x, y);
   }
 
+  /// Starts the path at the top-left corner of [rect].
+  void moveToRect(Rect rect) => moveTo(rect.left, rect.top);
+
   void lineTo(double x, double y) {
     _path.lineTo(x, y);
+  }
+
+  /// Draws a line to the top-left corner of [rect].
+  void lineToRect(Rect rect) => lineTo(rect.left, rect.top);
+
+  /// Traces the outline of [rect] as a closed subpath, starting at its
+  /// top-left corner.
+  void rect(Rect rect) {
+    moveTo(rect.left, rect.top);
+    lineTo(rect.right, rect.top);
+    lineTo(rect.right, rect.bottom);
+    lineTo(rect.left, rect.bottom);
+    close();
+  }
+
+  void close() {
+    _path.close();
   }
 
   void stroke() {
     if (_disposed) {
       throw StateError('This path has already been drawn.');
     }
-    _canvas.drawPath(
-      _path,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..color = color
-        ..strokeWidth = strokeWidth,
-    );
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..color = color
+      ..strokeWidth = strokeWidth;
+    final pattern = dashPattern;
+    if (pattern == null || pattern.isEmpty) {
+      _canvas.drawPath(_path, paint);
+      _lastDrawnPath = _path;
+    } else {
+      final dashed = _dashify(pattern);
+      _canvas.drawPath(dashed, paint);
+      _lastDrawnPath = dashed;
+    }
     _disposed = true;
+  }
+
+  /// Splits the path into dash segments following [pattern]
+  /// (alternating on/off lengths, starting with an "on" segment).
+  Path _dashify(List<double> pattern) {
+    final result = Path();
+    final metrics = _path.computeMetrics().toList();
+    if (metrics.isEmpty) {
+      return result;
+    }
+    // Carry leftover pattern position across subpaths so dashes stay
+    // continuous along the whole shape.
+    var patternOffset = 0.0;
+    for (final metric in metrics) {
+      var distance = -patternOffset;
+      var isOn = true;
+      var segmentIndex = 0;
+      while (distance < metric.length) {
+        final length = pattern[segmentIndex % pattern.length];
+        final start = distance.clamp(0.0, metric.length);
+        final end = (distance + length).clamp(0.0, metric.length);
+        if (isOn && end > start) {
+          result.addPath(metric.extractPath(start, end), Offset.zero);
+        }
+        patternOffset = (distance + length) - metric.length;
+        if (patternOffset < 0) {
+          patternOffset = 0;
+        }
+        distance += length;
+        isOn = !isOn;
+        segmentIndex++;
+      }
+    }
+    return result;
   }
 }
 
