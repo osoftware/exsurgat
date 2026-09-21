@@ -581,7 +581,9 @@ abstract class TextElement extends ChantLayoutElement {
       ...getExtraStyleProperties(ctxt),
       'base-font-family': fontFamily(ctxt),
       'base-font-size': fontSize(ctxt),
-      'fill': ?ctxt.textStyles[cssClass]!['fill'],
+      'fill': selected || highlighted
+          ? ctxt.theme.selectionColor
+          : ctxt.textStyles[cssClass]!['fill'],
     };
     for (final span in spans) {
       final xOffset = span.xOffset ?? 0.0;

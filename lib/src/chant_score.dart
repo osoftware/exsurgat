@@ -17,6 +17,7 @@ import 'elements/notation/neumes/neume.dart';
 import 'elements/notation/neumes/note.dart';
 import 'elements/notation/text_only.dart';
 import 'elements/text/drop_cap.dart';
+import 'elements/text/text_element.dart';
 import 'elements/text/titles.dart';
 import 'gabc.dart';
 import 'quick_svg.dart';
@@ -27,6 +28,7 @@ class Selection {
   Selection({
     this.element = const ElementSelection(),
     this.line = const LineSelection(),
+    this.text = const TextElementSelection(),
   });
 
   /// The element-level selection, containing the indices of elements in [ChantScore.notes].
@@ -34,6 +36,9 @@ class Selection {
 
   /// The line-level selection, containing indices of lines in [ChantScore.lines]
   final LineSelection line;
+
+  /// Text selection, containing references to [TextElement]s.
+  final TextElementSelection text;
 
   dynamic get insertion => element.insertion;
 }
@@ -53,6 +58,12 @@ class LineSelection {
   const LineSelection({this.indices = const {}});
 
   final Set<int> indices;
+}
+
+class TextElementSelection {
+  const TextElementSelection({this.elements = const {}});
+
+  final Set<TextElement> elements;
 }
 
 /// A chant score, the main document type produced by parsing gabc source.
@@ -186,6 +197,7 @@ class ChantScore extends ChangeNotifier {
 
   /// Updates the selection state of the score.
   void updateSelection(Selection? selection) {
+    final previousSelection = this.selection ?? Selection();
     this.selection = selection;
     final elementSelection = selection?.element ?? ElementSelection();
     final selectedIndices = elementSelection.indices;
@@ -237,6 +249,14 @@ class ChantScore extends ChangeNotifier {
         insertionLine!.insertionCursor = InsertionCursor();
       }
     }
+
+    for (final e in previousSelection.text.elements) {
+      e.selected = false;
+    }
+    for (final e in selection?.text.elements ?? <TextElement>{}) {
+      e.selected = true;
+    }
+
     notifyListeners();
   }
 
