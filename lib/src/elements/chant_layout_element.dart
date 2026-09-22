@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:xml/xml.dart';
 
 import '../chant_context.dart';
@@ -8,7 +10,14 @@ abstract class ChantLayoutElement {
   Rect bounds = const Rect.fromXYWH(0, 0, 0, 0);
   Point origin = const Point(0, 0);
   bool selected = false;
-  bool highlighted = false;
+  Color? _highlight;
+
+  Color? get highlight => _highlight;
+
+  set highlight(Color? value) {
+    _highlight = value;
+  }
+
   bool ignoreBounds = false;
 
   Rect get boundsForHitTest => bounds.copyWith(y: bounds.y - origin.y);

@@ -32,11 +32,11 @@ class TextOnly extends ChantNotationElement {
   @override
   void draw(ChantContext ctxt) {
     super.draw(ctxt);
-    if (selected || highlighted) {
+    if (selected || highlight != null) {
       ctxt.canvas.beginPath(
           strokeWidth: 1,
           dashPattern: [4, 4],
-          color: ctxt.theme.selectionColor,
+          color: highlight ?? ctxt.theme.selectionColor,
         )
         ..rect(
           ui.Rect.fromLTWH(bounds.x, bounds.y, bounds.width, bounds.height),

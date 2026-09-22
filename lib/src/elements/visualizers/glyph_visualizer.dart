@@ -109,7 +109,7 @@ class GlyphVisualizer extends ChantLayoutElement {
       return paint..color = const Color(0xFFFFFFFF);
     }
     late final selectedColor = ctxt.theme.selectionColor;
-    late final unselectedColor = ctxt.theme.neumeColor;
+    late final defaultColor = ctxt.theme.neumeColor;
     bool porrectus = <GlyphCode>[
       .porrectus1,
       .porrectus2,
@@ -117,37 +117,44 @@ class GlyphVisualizer extends ChantLayoutElement {
       .porrectus4,
     ].contains(glyphCode);
     if (porrectus) {
-      var notes = (parent as Note).neume!.notes;
-      var noteIndex = notes.indexOf(parent as Note);
-      var nextNote = noteIndex < notes.length - 1 ? notes[noteIndex + 1] : null;
-      switch ((parent.selected, nextNote?.selected ?? false)) {
-        case (true, true):
-          return paint..color = selectedColor;
-        case (false, false):
-          return paint..color = unselectedColor;
-        case (final left, final right):
-          return paint
-            ..shader = Gradient.linear(
-              Offset((bounds.x - origin.x) / ctxt.glyphScaling, 0),
-              Offset((bounds.right - origin.x) / ctxt.glyphScaling, 0),
-              [
-                left ? selectedColor : unselectedColor,
-                right ? selectedColor : unselectedColor,
-              ],
-              [0.5, 0.5],
-            );
+      final current = parent as Note;
+      final notes = current.neume!.notes;
+      final noteIndex = notes.indexOf(current);
+      final next = noteIndex < notes.length - 1 ? notes[noteIndex + 1] : null;
+
+      final leftColor =
+          current.highlight ??
+          (current.selected ? selectedColor : defaultColor);
+      final rightColor = next != null
+          ? next.highlight ?? (next.selected ? selectedColor : defaultColor)
+          : null;
+
+      if (leftColor == rightColor || rightColor == null) {
+        return paint..color = leftColor;
+      } else {
+        return paint
+          ..shader = Gradient.linear(
+            Offset((bounds.x - origin.x) / ctxt.glyphScaling, 0),
+            Offset((bounds.right - origin.x) / ctxt.glyphScaling, 0),
+            [leftColor, rightColor],
+            [0.5, 0.5],
+          );
       }
     } else {
-      bool selected = switch (parent) {
-        Clef c => newMethod(c),
+      late bool selected = switch (parent) {
+        Clef c => c.model?.selected ?? c.selected,
         ChantLayoutElement e => e.selected,
       };
-      return paint..color = selected ? selectedColor : unselectedColor;
+      final highlight = switch (parent) {
+        Clef c => c.model?.highlight ?? c.highlight,
+        ChantLayoutElement e => e.highlight,
+      };
+      if (parent is Clef) {
+        print('');
+      }
+      return paint
+        ..color = highlight ?? (selected ? selectedColor : defaultColor);
     }
-  }
-
-  bool newMethod(Clef c) {
-    return c.model?.selected ?? c.selected;
   }
 
   @override

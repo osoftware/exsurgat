@@ -264,6 +264,7 @@ abstract class Tool {
       for (final t in score.titles!.elements) {
         if (t.boundsForHitTest.containsPoint(globalPosition)) {
           result.add(ChantHitTestEntry(t, renderObject));
+          result.add(ChantHitTestEntry(score, renderObject));
           result.add(BoxHitTestEntry(renderObject, position));
           return true;
         }
@@ -276,6 +277,7 @@ abstract class Tool {
       );
       if (dropCapBounds.containsPoint(globalPosition)) {
         result.add(ChantHitTestEntry(score.dropCap!, renderObject));
+        result.add(ChantHitTestEntry(score, renderObject));
         result.add(BoxHitTestEntry(renderObject, position));
         return true;
       }
@@ -287,6 +289,7 @@ abstract class Tool {
           );
           if (aBounds.containsPoint(globalPosition)) {
             result.add(ChantHitTestEntry(a, renderObject));
+            result.add(ChantHitTestEntry(score, renderObject));
             result.add(BoxHitTestEntry(renderObject, position));
             return true;
           }

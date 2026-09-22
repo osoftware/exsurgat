@@ -23,14 +23,7 @@ abstract class TextElement extends ChantLayoutElement {
     required this.textAnchor,
     required this.sourceIndex,
     required this.sourceGabc,
-  }) {
-    bounds = const core.Rect.fromXYWH(0, 0, 0, 0);
-    origin = const core.Point(0, 0);
-    selected = false;
-    highlighted = false;
-
-    dominantBaseline = 'baseline';
-
+  }) : dominantBaseline = 'baseline' {
     generateSpansFromText(ctxt, text);
     recalculateMetrics(ctxt);
   }
@@ -581,9 +574,11 @@ abstract class TextElement extends ChantLayoutElement {
       ...getExtraStyleProperties(ctxt),
       'base-font-family': fontFamily(ctxt),
       'base-font-size': fontSize(ctxt),
-      'fill': selected || highlighted
-          ? ctxt.theme.selectionColor
-          : ctxt.textStyles[cssClass]!['fill'],
+      'fill':
+          highlight ??
+          (selected
+              ? ctxt.theme.selectionColor
+              : ctxt.textStyles[cssClass]!['fill']),
     };
     for (final span in spans) {
       final xOffset = span.xOffset ?? 0.0;

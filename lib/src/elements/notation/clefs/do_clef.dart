@@ -64,6 +64,7 @@ class DoClef extends Clef {
     clone.sourceIndex = sourceIndex;
     clone.sourceLength = sourceLength;
     clone.elementIndex = elementIndex;
+    clone.highlight = highlight;
     clone.model = this;
     return clone;
   }

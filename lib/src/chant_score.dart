@@ -29,6 +29,7 @@ class Selection {
     this.element = const ElementSelection(),
     this.line = const LineSelection(),
     this.text = const TextElementSelection(),
+    this.highlight,
   });
 
   /// The element-level selection, containing the indices of elements in [ChantScore.notes].
@@ -39,6 +40,23 @@ class Selection {
 
   /// Text selection, containing references to [TextElement]s.
   final TextElementSelection text;
+
+  final ElementHighlight? highlight;
+
+  /// Returns a copy of this selection with the given fields replaced.
+  /// Passing `null` for [highlight] clears it; other fields fall back to the
+  /// current values when the argument is omitted.
+  Selection copyWith({
+    ElementSelection? element,
+    LineSelection? line,
+    TextElementSelection? text,
+    ElementHighlight? highlight,
+  }) => Selection(
+    element: element ?? this.element,
+    line: line ?? this.line,
+    text: text ?? this.text,
+    highlight: highlight,
+  );
 
   dynamic get insertion => element.insertion;
 }
@@ -64,6 +82,13 @@ class TextElementSelection {
   const TextElementSelection({this.elements = const {}});
 
   final Set<TextElement> elements;
+}
+
+class ElementHighlight {
+  const ElementHighlight(this.element, this.color);
+
+  final ChantLayoutElement element;
+  final ui.Color color;
 }
 
 /// A chant score, the main document type produced by parsing gabc source.
@@ -256,6 +281,12 @@ class ChantScore extends ChangeNotifier {
     for (final e in selection?.text.elements ?? <TextElement>{}) {
       e.selected = true;
     }
+
+    if (selection?.highlight?.element is Note) {
+      print('');
+    }
+    previousSelection.highlight?.element.highlight = null;
+    selection?.highlight?.element.highlight = selection.highlight?.color;
 
     notifyListeners();
   }
