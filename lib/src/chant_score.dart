@@ -59,6 +59,35 @@ class Selection {
   );
 
   dynamic get insertion => element.insertion;
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! Selection) return false;
+    if (!_sameIndices(element.indices, other.element.indices)) return false;
+    if (!_sameIndices(line.indices, other.line.indices)) return false;
+    if (!_sameIndices(text.elements, other.text.elements)) return false;
+    final ha = highlight;
+    final hb = other.highlight;
+    if ((ha == null) != (hb == null)) return false;
+    if (ha != null && (ha.element != hb!.element || ha.color != hb.color)) {
+      return false;
+    }
+    return insertion == other.insertion;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    Object.hashAllUnordered(element.indices),
+    Object.hashAllUnordered(line.indices),
+    Object.hashAllUnordered(text.elements),
+    highlight?.element,
+    highlight?.color,
+    insertion,
+  );
+
+  static bool _sameIndices(Set<Object?> a, Set<Object?> b) =>
+      a.length == b.length && a.every(b.contains);
 }
 
 /// The element-level portion of a [Selection].
@@ -180,17 +209,23 @@ class ChantScore extends ChangeNotifier {
   /// Make a copy of the score, only including the specified lines.
   ///
   /// [startLine] is the starting index (inclusive) and [endLine] is the
-  /// ending index (exclusive).
-  ChantScore copyLines(int startLine, int endLine) {
+  /// ending index (exclusive). The lines are shared, not copied, and their
+  /// bounds are never modified.
+  ///
+  /// [pageTop] is the score-relative y of the page's first line top
+  /// (`firstLine.bounds.y - firstLine.origin.y`). The page's bounds.y is set
+  /// to cancel that offset so the page renders starting at the top.
+  ChantScore copyLines(int startLine, int endLine, [double pageTop = 0]) {
     final result = ChantScore()
       ..lines = lines.sublist(startLine, endLine)
       ..bounds = bounds.clone();
     final lastLine = result.lines.isEmpty ? null : result.lines.last;
-    if (lastLine != null) {
-      result.bounds = result.bounds.copyWith(
-        height: lastLine.bounds.bottom - lastLine.origin.y,
-      );
-    }
+    result.bounds = result.bounds.copyWith(
+      y: -pageTop,
+      height: lastLine == null
+          ? 0
+          : lastLine.bounds.bottom - pageTop - lastLine.origin.y,
+    );
     if (startLine == 0) {
       result.titles = titles;
       result.dropCap = dropCap;
@@ -221,7 +256,12 @@ class ChantScore extends ChangeNotifier {
   }
 
   /// Updates the selection state of the score.
+  ///
+  /// Selection is paint-only state: this does not notify listeners (which
+  /// would trigger a full relayout). Callers that need a repaint should call
+  /// `markNeedsPaint` on the render object afterwards.
   void updateSelection(Selection? selection) {
+    if (this.selection == selection) return;
     final previousSelection = this.selection ?? Selection();
     this.selection = selection;
     final elementSelection = selection?.element ?? ElementSelection();
@@ -282,13 +322,8 @@ class ChantScore extends ChangeNotifier {
       e.selected = true;
     }
 
-    if (selection?.highlight?.element is Note) {
-      print('');
-    }
     previousSelection.highlight?.element.highlight = null;
     selection?.highlight?.element.highlight = selection.highlight?.color;
-
-    notifyListeners();
   }
 
   /// Updates the internal notations arrays from the current [words].
@@ -530,26 +565,26 @@ class ChantScore extends ChangeNotifier {
   }
 
   /// Paginates the score into pages that fit within [height].
+  ///
+  /// Pages share the original lines (bounds untouched). Each page's bounds.y
+  /// cancels its first line's score-relative offset so the page renders
+  /// starting at the top. Idempotent.
   void paginate(double height) {
     pages = [];
-    var pageHeightOffset = 0.0;
+    var pageTop = 0.0;
     var startLineIndex = 0;
     for (var i = 1; i < lines.length; ++i) {
       final line = lines[i];
-      final pageHeight = line.bounds.bottom - pageHeightOffset - line.origin.y;
+      final pageHeight = line.bounds.bottom - pageTop - line.origin.y;
 
       if (pageHeight > height) {
         // this line will be the first on the new page
-        pages.add(copyLines(startLineIndex, i));
+        pages.add(copyLines(startLineIndex, i, pageTop));
         startLineIndex = i;
-        pageHeightOffset = line.bounds.y - line.origin.y;
-        line.bounds = line.bounds.copyWith(y: line.origin.y);
-      } else {
-        // not a new page yet...update the bounds:
-        line.bounds = line.bounds.copyWith(y: line.bounds.y - pageHeightOffset);
+        pageTop = line.bounds.y - line.origin.y;
       }
     }
-    pages.add(copyLines(startLineIndex, lines.length));
+    pages.add(copyLines(startLineIndex, lines.length, pageTop));
   }
 
   /// Draws the score to the canvas in [ctxt].
@@ -564,6 +599,28 @@ class ChantScore extends ChangeNotifier {
 
     for (var i = 0; i < lines.length; i++) {
       lines[i].draw(ctxt);
+    }
+
+    canvas.restore();
+  }
+
+  /// Draws a single page (created by [paginate]) to the canvas.
+  ///
+  /// The page shares the original lines whose bounds are score-relative; the
+  /// page's bounds.y cancels the first line's offset, so translating by
+  /// -bounds.y renders the page starting at the top.
+  void drawPage(ChantContext ctxt, ChantScore page, {double scale = 1}) {
+    final canvas = ctxt.canvas;
+
+    canvas.save();
+    canvas.scale(scale, scale);
+    canvas.translate(bounds.x, bounds.y);
+    canvas.translate(0, page.bounds.y);
+
+    if (identical(page, pages.first)) titles?.draw(ctxt);
+
+    for (final line in page.lines) {
+      line.draw(ctxt);
     }
 
     canvas.restore();

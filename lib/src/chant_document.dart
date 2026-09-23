@@ -8,12 +8,12 @@ import 'gabc.dart';
 
 /// The layout settings for a [ChantDocument].
 class ChantDocumentLayout {
-  static const kDefaultPageWidth = Scalar(8.5, Unit.inches);
-  static const kDefaultPageHeight = Scalar(11, Unit.inches);
-  static const kDefaultMarginLeft = Scalar(0);
-  static const kDefaultMarginTop = Scalar(0);
-  static const kDefaultMarginRight = Scalar(0);
-  static const kDefaultMarginBottom = Scalar(0);
+  static const kDefaultPageWidth = Scalar(148, Unit.millimeters);
+  static const kDefaultPageHeight = Scalar(210, Unit.millimeters);
+  static const kDefaultMarginLeft = Scalar(10, Unit.millimeters);
+  static const kDefaultMarginTop = Scalar(10, Unit.millimeters);
+  static const kDefaultMarginRight = Scalar(10, Unit.millimeters);
+  static const kDefaultMarginBottom = Scalar(10, Unit.millimeters);
 
   const ChantDocumentLayout({
     this.pageWidth = kDefaultPageWidth,
