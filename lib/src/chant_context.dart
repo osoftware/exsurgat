@@ -140,6 +140,20 @@ class ChantContext {
   bool editable = false;
   bool startExtraTextOnlyFromFirst = false;
 
+  /// Whether chant lines cache their rendered output as `ui.Picture`s.
+  ///
+  /// When enabled, each [ChantLine] records its drawing into a picture and
+  /// replays it on subsequent frames unless its paint state (selection,
+  /// highlight, insertion cursor/preview) changed. This makes repaints
+  /// during tool hovering and pan/zoom cheap. Only affects canvas drawing;
+  /// SVG generation is unaffected.
+  bool usePictureCache = true;
+
+  /// Monotonic counter bumped whenever the score's layout-affecting state
+  /// changes. Chant lines include this in their picture-cache signature so
+  /// cached pictures are discarded after any relayout.
+  int layoutEpoch = 0;
+
   late Canvas canvas;
 
   BracePoint? lastStartBrace;

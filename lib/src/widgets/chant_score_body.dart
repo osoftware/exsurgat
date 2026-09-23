@@ -403,6 +403,7 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     _pagePainter?.dispose();
     _document.removeListener(_handleDocumentChanged);
     _document.score.removeListener(_handleDocumentChanged);
+    _document.score.disposePictureCaches();
     super.dispose();
   }
 

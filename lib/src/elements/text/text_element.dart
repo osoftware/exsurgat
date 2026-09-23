@@ -599,7 +599,12 @@ abstract class TextElement extends ChantLayoutElement {
         textAnchor,
         resize,
       );
-      paragraph.layout(ParagraphConstraints(width: bounds.width));
+      // Re-layout only when the constraint width changed; the paragraph
+      // itself is cached on the span and reused across frames.
+      if (span._lastLayoutWidth != bounds.width) {
+        paragraph.layout(ParagraphConstraints(width: bounds.width));
+        span._lastLayoutWidth = bounds.width;
+      }
       canvas.drawParagraph(paragraph, Offset(bounds.x - alignOffset, bounds.y));
 
       final metricsWidth = paragraph.maxIntrinsicWidth;
@@ -620,20 +625,44 @@ abstract class TextElement extends ChantLayoutElement {
 }
 
 class TextSpan {
+  String _text;
+
+  /// The text content of this span.
+  ///
+  /// Mutating this invalidates the cached [Paragraph] built by
+  /// [buildParagraph], so the next draw rebuilds it.
+  String get text => _text;
+  set text(String value) {
+    if (value == _text) return;
+    _text = value;
+    _cachedParagraph = null;
+    _cachedParagraphKey = null;
+    _lastLayoutWidth = -1;
+  }
+
+  /// Cached paragraph from the last [buildParagraph] call, plus the key it
+  /// was built with. Text drawing happens every frame (hover, pan/zoom),
+  /// but the built paragraph only depends on the text and its style inputs,
+  /// so it is reused across frames and rebuilt only when they change.
+  Paragraph? _cachedParagraph;
+  Object? _cachedParagraphKey;
+
+  /// Width the cached paragraph was last laid out with.
+  double _lastLayoutWidth = -1;
+
   TextSpan(
-    this.text,
+    String text,
     this.propertyArray,
     this.activeTags, [
     this.index = 0,
     Map<String, dynamic>? extraProps,
-  ]) {
+  ]) : _text = text {
     if (extraProps != null) {
       xOffset = extraProps['xOffset'] as double?;
       newLine = extraProps['newLine'];
     }
   }
 
-  String text;
   final List<Map<String, dynamic>> propertyArray;
   final List<String> activeTags;
   final int index;
@@ -652,7 +681,7 @@ class TextSpan {
 
   TextSpan clone() {
     final result = TextSpan(
-      text,
+      _text,
       List<Map<String, dynamic>>.from(propertyArray),
       List<String>.from(activeTags),
       index,
@@ -668,6 +697,25 @@ class TextSpan {
     TextAlign textAlign, [
     double? resize,
   ]) {
+    // The paragraph depends only on the text and its style inputs; cache it
+    // so repeated draws (hover, pan/zoom) skip ParagraphBuilder entirely.
+    final key = Object.hash(
+      _text,
+      textAlign,
+      resize,
+      extraProps['fill'],
+      extraProps['font-size'],
+      extraProps['base-font-size'],
+      extraProps['font-family'],
+      extraProps['base-font-family'],
+      extraProps['font-style'],
+      extraProps['font-weight'],
+      extraProps['font-variant'],
+      extraProps['line-height'],
+    );
+    final cached = _cachedParagraph;
+    if (cached != null && _cachedParagraphKey == key) return cached;
+
     final builder =
         ParagraphBuilder(
             ParagraphStyle(
@@ -676,9 +724,15 @@ class TextSpan {
             ),
           )
           ..pushStyle(getTextStyle(extraProps, ctxt, resize))
-          ..addText(text);
+          ..addText(_text);
 
-    return builder.build();
+    final paragraph = builder.build();
+    _cachedParagraph = paragraph;
+    _cachedParagraphKey = key;
+    // A freshly built paragraph has never been laid out; force the next
+    // draw to run layout before drawParagraph (which asserts _needsLayout).
+    _lastLayoutWidth = -1;
+    return paragraph;
   }
 
   static TextStyle getTextStyle(

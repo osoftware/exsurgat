@@ -514,6 +514,13 @@ class ChantScore extends ChangeNotifier {
     double width, [
     void Function(ChantScore)? finishedCallback,
   ]) {
+    // Any relayout invalidates cached line pictures: bump the epoch (so
+    // surviving lines' signatures mismatch) and dispose the old lines'
+    // pictures.
+    ctxt.layoutEpoch++;
+    for (final line in lines) {
+      line.disposePictureCache();
+    }
     lines = [];
 
     if (ctxt.mergeAnnotationWithTextLeft != null &&
@@ -585,6 +592,16 @@ class ChantScore extends ChangeNotifier {
       }
     }
     pages.add(copyLines(startLineIndex, lines.length, pageTop));
+  }
+
+  /// Disposes the cached pictures of all chant lines.
+  ///
+  /// Call when the score is no longer rendered (e.g. the owning render
+  /// object is disposed) to release native picture resources.
+  void disposePictureCaches() {
+    for (final line in lines) {
+      line.disposePictureCache();
+    }
   }
 
   /// Draws the score to the canvas in [ctxt].

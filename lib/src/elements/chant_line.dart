@@ -95,6 +95,71 @@ class ChantLine extends ChantLayoutElement {
   InsertionCursor? insertionCursor;
   ChantNotationElement? insertionPreview;
 
+  /// Cached rendered picture of this line, and the paint-state signature it
+  /// was recorded with. See [_paintSignature].
+  ui.Picture? _cachedPicture;
+  Object? _cachedPictureSignature;
+
+  /// Whether a cached picture exists for the current paint state.
+  /// Exposed for tests.
+  bool get debugHasCachedPicture => _cachedPicture != null;
+
+  /// Signature of the current cached picture, or null when uncached.
+  /// Exposed for tests.
+  Object? get debugPictureSignature => _cachedPictureSignature;
+
+  /// Discards the cached picture, if any.
+  void disposePictureCache() {
+    _cachedPicture?.dispose();
+    _cachedPicture = null;
+    _cachedPictureSignature = null;
+  }
+
+  /// Signature of everything that affects how this line paints: the layout
+  /// epoch (bumped on any relayout), this line's selection state, the
+  /// selection/highlight of every notation on the line (including the
+  /// starting clef, whose state may live on its `model`), the
+  /// selection/highlight of every note inside neumes (hover highlights are
+  /// set on notes), the lyrics/text of each notation, the drop cap and
+  /// annotation (first line), and the insertion cursor/preview identity.
+  Object _paintSignature(ChantContext ctxt) {
+    final notationStates = <Object?>[
+      for (final n in notations) ...[
+        n.selected,
+        n.highlight,
+        for (final text in [
+          ...n.lyrics,
+          ...n.translationText,
+          ...n.alText,
+        ]) ...[text.selected, text.highlight],
+        if (n case Neume(:final notes))
+          for (final note in notes) ...[note.selected, note.highlight],
+      ],
+    ];
+    final clef = startingClef;
+    final clefModel = clef?.model;
+    final firstLineStates = <Object?>[
+      if (notationsStartIndex == 0) ...[
+        score.dropCap?.selected,
+        score.dropCap?.highlight,
+        score.annotation?.selected,
+        score.annotation?.highlight,
+      ],
+    ];
+    return Object.hash(
+      ctxt.layoutEpoch,
+      selected,
+      insertionCursor != null,
+      insertionPreview,
+      clef?.selected,
+      clef?.highlight,
+      clefModel?.selected,
+      clefModel?.highlight,
+      Object.hashAll(firstLineStates),
+      Object.hashAll(notationStates),
+    );
+  }
+
   ChantLine(this.score);
 
   int get staffSpaces => score.staffLineCount - 1;
@@ -406,6 +471,30 @@ class ChantLine extends ChantLayoutElement {
 
   @override
   void draw(ChantContext ctxt) {
+    if (ctxt.usePictureCache) {
+      final signature = _paintSignature(ctxt);
+      final cached = _cachedPicture;
+      if (cached != null && _cachedPictureSignature == signature) {
+        ctxt.canvas.drawPicture(cached);
+        return;
+      }
+      final outputCanvas = ctxt.canvas;
+      final recorder = ui.PictureRecorder();
+      final recordingCanvas = ui.Canvas(recorder);
+      ctxt.attachCanvas(recordingCanvas);
+      _drawFresh(ctxt);
+      _cachedPicture?.dispose();
+      final picture = recorder.endRecording();
+      _cachedPicture = picture;
+      _cachedPictureSignature = signature;
+      ctxt.attachCanvas(outputCanvas);
+      outputCanvas.drawPicture(picture);
+      return;
+    }
+    _drawFresh(ctxt);
+  }
+
+  void _drawFresh(ChantContext ctxt) {
     final canvas = ctxt.canvas;
 
     canvas.save();

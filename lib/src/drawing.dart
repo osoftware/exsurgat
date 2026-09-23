@@ -200,7 +200,25 @@ Color? parseColor(String? value) {
   return Color((a << 24) | rgb);
 }
 
+/// Cache of parsed SVG path data. Glyph path data strings are static
+/// constants (see `glyphs.dart`), so the set of keys is finite and paths are
+/// never mutated after parsing — safe to share across draws.
+final Map<String, Path> _svgPathCache = {};
+
+/// Parses an SVG path data string into a [Path].
+///
+/// Results are memoized: repeated calls with the same [data] (e.g. drawing
+/// the same glyph every frame) return the cached [Path] instead of
+/// re-tokenizing the string.
 Path parseSvgPath(String data) {
+  final cached = _svgPathCache[data];
+  if (cached != null) return cached;
+  final path = _parseSvgPathUncached(data);
+  _svgPathCache[data] = path;
+  return path;
+}
+
+Path _parseSvgPathUncached(String data) {
   final path = Path();
   if (data.trim().isEmpty) {
     return path;

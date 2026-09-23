@@ -149,9 +149,6 @@ class GlyphVisualizer extends ChantLayoutElement {
         Clef c => c.model?.highlight ?? c.highlight,
         ChantLayoutElement e => e.highlight,
       };
-      if (parent is Clef) {
-        print('');
-      }
       return paint
         ..color = highlight ?? (selected ? selectedColor : defaultColor);
     }
