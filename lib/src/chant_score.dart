@@ -426,8 +426,6 @@ class ChantScore extends ChangeNotifier {
     }
   }
 
-  /// Shared layout initialization method for [performLayout] and
-  /// [performLayoutAsync].
   void initializeLayout(ChantContext ctxt) {
     // setup the context
     ctxt.activeClef = startingClef;
@@ -440,10 +438,7 @@ class ChantScore extends ChangeNotifier {
     if (annotation != null) annotation!.recalculateMetrics(ctxt);
   }
 
-  /// The synchronous version of layout that processes everything without
-  /// yielding to any other workers/threads.
-  ///
-  /// Good for server side processing or very small chant pieces.
+  /// Lays out the score.
   void performLayout(ChantContext ctxt, [bool force = false]) {
     if (!force && needsLayout == false) return; // nothing to do here!
 
@@ -462,53 +457,9 @@ class ChantScore extends ChangeNotifier {
     needsLayout = false;
   }
 
-  /// For web applications, [performLayoutAsync] is more appropriate than
-  /// [performLayout], since it will process the notations without locking up
-  /// the UI thread.
-  Future<void> performLayoutAsync(ChantContext ctxt) async {
-    if (needsLayout == false) {
-      return; // nothing to do here!
-    }
-
-    // check for sane value of hyphen width:
-    ctxt.updateHyphenWidth();
-    if (ctxt.hyphenWidth == 0 ||
-        ctxt.hyphenWidth / ctxt.textStyles['lyric']['size'] > 0.6) {
-      await Future<void>.delayed(const Duration(milliseconds: 100));
-      return;
-    }
-
-    initializeLayout(ctxt);
-
-    await _layoutElementsAsync(ctxt, 0);
-  }
-
-  Future<void> _layoutElementsAsync(ChantContext ctxt, int index) async {
-    if (index >= notations.length) {
-      needsLayout = false;
-      return;
-    }
-
-    if (index == 0) ctxt.activeClef = startingClef;
-
-    // process for up to 50 milliseconds
-    final timeout = DateTime.now().millisecondsSinceEpoch + 50;
-    do {
-      final notation = notations[index];
-      if (notation.needsLayout) {
-        ctxt.currNotationIndex = index;
-        notation.performLayout(ctxt);
-      }
-      index++;
-    } while (index < notations.length &&
-        DateTime.now().millisecondsSinceEpoch < timeout);
-
-    // schedule the next block of processing
-    await Future<void>.delayed(Duration.zero);
-    await _layoutElementsAsync(ctxt, index);
-  }
-
   /// Lays out the chant lines (systems) of the score to fit within [width].
+  ///
+  /// Call [performLayout] before calling this one.
   void layoutChantLines(
     ChantContext ctxt,
     double width, [

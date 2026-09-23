@@ -151,8 +151,10 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
        _pageIndex = pageIndex,
        _pageGap = pageGap,
        _pageDecoration = pageDecoration {
-    if (theme != null) _chantContext.theme = theme;
-    _document = document ?? ChantDocument.fromSource(gabc, _chantContext);
+    _document = document ?? ChantDocument.fromSource(gabc, ChantContext());
+    // Reuse the document's context so layout state (fonts, hyphen width,
+    // notation list) survives render object recreation, e.g. on tab switches.
+    if (theme != null) _document.ctxt.theme = theme;
     // A provided theme overrides the document's theme.
     if (theme != null) _document.theme = theme;
     if (useDropCap != null) _document.score.useDropCap = useDropCap;
@@ -182,7 +184,10 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
   /// Size of a single page slot, valid after layout in paginated mode.
   Size _pageSize = Size.zero;
 
-  final ChantContext _chantContext = ChantContext();
+  /// The chant context of the rendered document, shared across render
+  /// objects so layout state survives render object recreation.
+  ChantContext get _chantContext => _document.ctxt;
+
   late ChantDocument _document;
   final bool _ownsDocument;
   bool _inLayout = false;
