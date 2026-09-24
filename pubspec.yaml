@@ -1,6 +1,6 @@
 name: exsurgat
-description: "GABC renderer for Flutter."
-version: 0.1.0
+description: "Flutter package for rendering Gregorian chant scores from GABC notation. Provides display widgets, SVG and PNG export, layout and style customization."
+version: 0.2.0
 repository: https://github.com/osoftware/exsurgat
 homepage: https://github.com/osoftware/exsurgat
 issue_tracker: https://github.com/osoftware/exsurgat/issues
