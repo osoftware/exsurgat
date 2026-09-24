@@ -10,13 +10,7 @@ abstract class ChantLayoutElement {
   Rect bounds = const Rect.fromXYWH(0, 0, 0, 0);
   Point origin = const Point(0, 0);
   bool selected = false;
-  Color? _highlight;
-
-  Color? get highlight => _highlight;
-
-  set highlight(Color? value) {
-    _highlight = value;
-  }
+  Color? highlight;
 
   bool ignoreBounds = false;
 
