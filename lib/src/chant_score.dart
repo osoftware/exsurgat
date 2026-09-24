@@ -1,3 +1,6 @@
+/// @docImport 'widgets/chant_score_body.dart';
+library;
+
 import 'dart:async';
 import 'dart:ui' as ui;
 
@@ -94,29 +97,37 @@ class Selection {
 class ElementSelection {
   const ElementSelection({this.indices = const {}, this.insertion});
 
-  /// The indices of the selected elements within the score's `notes` array.
+  /// The indices of the selected elements in [ChantScore.notes] array.
   final Set<int> indices;
 
   /// The insertion cursor location, if any.
   final dynamic insertion;
 }
 
+/// The line-level portion of a [Selection].
 class LineSelection {
   const LineSelection({this.indices = const {}});
 
+  /// The indices of the selected lines in [ChantScore.lines] array.
   final Set<int> indices;
 }
 
+/// Text element portion of a [Selection].
 class TextElementSelection {
   const TextElementSelection({this.elements = const {}});
 
+  /// Selected text elements.
   final Set<TextElement> elements;
 }
 
+/// Which element to highlight without selecting and in what color.
 class ElementHighlight {
   const ElementHighlight(this.element, this.color);
 
+  /// Highlighted element.
   final ChantLayoutElement element;
+
+  /// Color to set in [ChantLayoutElement.highlight].
   final ui.Color color;
 }
 
@@ -234,6 +245,7 @@ class ChantScore extends ChangeNotifier {
     return result;
   }
 
+  /// Updates text elements horming the header.
   void updateHeader(ChantContext ctxt, GabcHeader? header) {
     if (header != null) {
       titles = Titles(
@@ -259,7 +271,7 @@ class ChantScore extends ChangeNotifier {
   ///
   /// Selection is paint-only state: this does not notify listeners (which
   /// would trigger a full relayout). Callers that need a repaint should call
-  /// `markNeedsPaint` on the render object afterwards.
+  /// [RenderChantScore.markNeedsPaint] afterwards.
   void updateSelection(Selection? selection) {
     if (this.selection == selection) return;
     final previousSelection = this.selection ?? Selection();
@@ -426,7 +438,7 @@ class ChantScore extends ChangeNotifier {
     }
   }
 
-  void initializeLayout(ChantContext ctxt) {
+  void _initializeLayout(ChantContext ctxt) {
     // setup the context
     ctxt.activeClef = startingClef;
     ctxt.notations = notations;
@@ -444,7 +456,7 @@ class ChantScore extends ChangeNotifier {
 
     ctxt.updateHyphenWidth();
 
-    initializeLayout(ctxt);
+    _initializeLayout(ctxt);
 
     for (var i = 0; i < notations.length; i++) {
       final notation = notations[i];
@@ -594,6 +606,7 @@ class ChantScore extends ChangeNotifier {
     canvas.restore();
   }
 
+  /// Draws the score as a raster image with optional [scale].
   Future<ui.Image> createImage(ChantContext ctxt, {double scale = 1}) {
     final recorder = ui.PictureRecorder();
     ctxt.attachCanvas(ui.Canvas(recorder));
@@ -691,39 +704,5 @@ class ChantScore extends ChangeNotifier {
       top += height;
     }
     return node;
-  }
-
-  /// Unserializes the score from a JSON-compatible map.
-  void unserializeFromJson(Map<String, dynamic> data, ChantContext ctxt) {
-    autoColoring = data['auto-coloring'] as bool? ?? true;
-
-    if (data['annotation'] != null && data['annotation'] != '') {
-      // create the annotation
-      annotation = Annotations(ctxt, data['annotation'] as List<String>);
-    } else {
-      annotation = null;
-    }
-
-    final createDropCap = data['drop-cap'] == 'auto';
-
-    Gabc.parseChantNotations(data['notations'] as String, this, createDropCap);
-  }
-
-  /// Serializes the score to a JSON-compatible map.
-  Map<String, dynamic> serializeToJson() {
-    final data = <String, dynamic>{};
-
-    data['type'] = 'score';
-    data['auto-coloring'] = true;
-
-    if (annotation != null) {
-      data['annotation'] = annotation!.annotations
-          .map((a) => a.unsanitizedText)
-          .toList();
-    } else {
-      data['annotation'] = [];
-    }
-
-    return data;
   }
 }

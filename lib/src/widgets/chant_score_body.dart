@@ -44,8 +44,9 @@ enum PageArrangement {
   facingPairs,
 }
 
-/// Chant score fitting the width constraints of the parent widget.
-/// For scrollable widget see [ChantScoreView]
+/// Renders a read-only chant score from [gabc] source or externally owned
+/// [document] editable with [tool].
+/// For a scrollable wrapper see [ChantScoreView].
 class ChantScoreBody extends LeafRenderObjectWidget {
   /// Creates a read-only chant score body parsed from [gabc].
   const ChantScoreBody({
@@ -73,25 +74,37 @@ class ChantScoreBody extends LeafRenderObjectWidget {
   }) : gabc = '',
        useDropCap = null;
 
-  /// The gabc source. Only used by the default constructor, which creates
-  /// a [ChantDocument] from it.
+  /// The gabc source.
+  ///
+  /// Only used by the default constructor, which creates a [ChantDocument] from
+  /// it.
   final String gabc;
 
-  /// The document to edit. Only used by [ChantScoreBody.editable].
+  /// The document to edit.
+  ///
+  /// Only used by [ChantScoreBody.editable].
   final ChantDocument? document;
 
   /// Whether to display the initial.
+  ///
   /// Overrides `initial-style` property in GABC header.
   final bool? useDropCap;
 
+  /// Theme to apply on the score.
+  ///
+  /// If provided, overrides the theme defined in [gabc] header.
   final ChantTheme? theme;
+
+  /// Interactive tool for manipulating the editable score.
+  ///
+  /// Only used by [ChantScoreBody.editable].
   final Tool? tool;
 
-  /// How pages are arranged. Defaults to [PageArrangement.auto], the legacy
-  /// single-score behavior.
+  /// How pages are arranged. Defaults to [PageArrangement.auto].
   final PageArrangement arrangement;
 
   /// The page displayed when [arrangement] is [PageArrangement.single].
+  ///
   /// Ignored by other arrangements. Clamped to the valid page range.
   final int pageIndex;
 
@@ -99,6 +112,8 @@ class ChantScoreBody extends LeafRenderObjectWidget {
   final double pageGap;
 
   /// Decoration painted behind each page in paginated arrangements.
+  ///
+  /// Ignored in when [arrangement] is [PageArrangement.auto].
   final Decoration? pageDecoration;
 
   @override
@@ -132,6 +147,7 @@ class ChantScoreBody extends LeafRenderObjectWidget {
   }
 }
 
+/// Renders a score.
 class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
   RenderChantScore({
     required String gabc,
@@ -196,6 +212,7 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
   /// Width used for the last chant-line layout, to skip redundant relayouts.
   double? _lastLineWidth;
 
+  /// The gabc source.
   String get gabc => _gabc;
   set gabc(String value) {
     if (value == _gabc) return;
@@ -227,6 +244,9 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     markNeedsLayout();
   }
 
+  /// Whether to display the initial.
+  ///
+  /// Overrides `initial-style` property in GABC header.
   bool? get useDropCap => _useDropCap;
   set useDropCap(bool? value) {
     if (value == _useDropCap) return;
@@ -239,6 +259,9 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     markNeedsLayout();
   }
 
+  /// Interactive tool for manipulating the editable score.
+  ///
+  /// Only used by [ChantScoreBody.editable].
   Tool? get tool => _tool;
   set tool(Tool? value) {
     if (value == _tool) return;
@@ -247,6 +270,9 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     _tool?._attachTo(this);
   }
 
+  /// Theme to apply on the score.
+  ///
+  /// If provided, overrides the theme defined in [gabc] header.
   ChantTheme get theme => _chantContext.theme;
   set theme(ChantTheme? value) {
     if (value == null || value == _chantContext.theme) return;
@@ -256,6 +282,7 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     markNeedsLayout();
   }
 
+  /// How pages are arranged. Defaults to [PageArrangement.auto].
   PageArrangement get arrangement => _arrangement;
   set arrangement(PageArrangement value) {
     if (value == _arrangement) return;
@@ -263,6 +290,9 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     markNeedsLayout();
   }
 
+  /// The page displayed when [arrangement] is [PageArrangement.single].
+  ///
+  /// Ignored by other arrangements. Clamped to the valid page range.
   int get pageIndex => _pageIndex;
   set pageIndex(int value) {
     if (value == _pageIndex) return;
@@ -270,6 +300,7 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     markNeedsLayout();
   }
 
+  /// Gap between pages in paginated arrangements.
   double get pageGap => _pageGap;
   set pageGap(double value) {
     if (value == _pageGap) return;
@@ -277,6 +308,9 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     markNeedsLayout();
   }
 
+  /// Decoration painted behind each page in paginated arrangements.
+  ///
+  /// Ignored in when [arrangement] is [PageArrangement.auto].
   Decoration? get pageDecoration => _pageDecoration;
   set pageDecoration(Decoration? value) {
     if (value == _pageDecoration) return;
@@ -284,6 +318,39 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     _pagePainter?.dispose();
     _pagePainter = value?.createBoxPainter(markNeedsPaint);
     markNeedsPaint();
+  }
+
+  @override
+  void performLayout() {
+    _inLayout = true;
+    final selection = score.selection;
+    switch (_arrangement) {
+      case .auto:
+        _layoutScore(constraints.maxWidth);
+        score.updateSelection(selection);
+        _inLayout = false;
+        _tool?.handleScoreUpdated();
+        size = constraints.constrain(
+          Size(score.bounds.width, score.bounds.height),
+        );
+      case .slider:
+        _layoutScore(0);
+        score.updateSelection(selection);
+        _inLayout = false;
+        _tool?.handleScoreUpdated();
+        size = Size(score.bounds.width, score.bounds.height);
+      case .single:
+      case .row:
+      case .column:
+      case .facingPairs:
+        _layoutScore(_contentWidth);
+        score.paginate(_contentHeight);
+        score.updateSelection(selection);
+        _inLayout = false;
+        _tool?.handleScoreUpdated();
+        _layoutPageSlots(score.pages.length);
+        size = constraints.constrain(_paginatedSize);
+    }
   }
 
   /// The layout settings used in paginated mode, read from the document.
@@ -314,6 +381,18 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     _layout.marginLeft.deviceIndependent,
     _layout.marginTop.deviceIndependent,
   );
+
+  /// Lays out the score's notations and chant lines at [width], skipping the
+  /// expensive line rebuild when neither the score nor the width changed.
+  /// This makes [performLayout] idempotent for paint-only changes such as
+  /// selection or highlight updates.
+  void _layoutScore(double width) {
+    if (score.needsLayout || width != _lastLineWidth) {
+      score.performLayout(_chantContext);
+      score.layoutChantLines(_chantContext, width);
+      _lastLineWidth = width;
+    }
+  }
 
   /// Computes the slot offset of each page for the current arrangement.
   void _layoutPageSlots(int pageCount) {
@@ -357,104 +436,6 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     if (_pageOffsets.isEmpty) return _pageSize;
     final last = _pageOffsets.last;
     return Size(last.dx + _pageSize.width, last.dy + _pageSize.height);
-  }
-
-  /// Maps a local position to the page-local position for hit testing.
-  /// Returns null when the position is outside all page slots.
-  Offset? _positionToPageLocal(Offset position) {
-    if (_pageOffsets.isEmpty) return null;
-    final pageSize = _pageSize;
-    for (var i = _pageOffsets.length - 1; i >= 0; i--) {
-      final slot = _pageOffsets[i] & pageSize;
-      if (slot.contains(position)) {
-        return position - _pageOffsets[i];
-      }
-    }
-    return null;
-  }
-
-  /// Index of the page a hit test is targeting, or null when not paginated.
-  int? _hitTestPageIndex;
-
-  /// Top shift of the page last hit tested (`-page.bounds.y`), persisted
-  /// after the hit test so tools can convert pointer positions to
-  /// score-relative coordinates during event handling.
-  double _hitTestPageTop = 0;
-
-  /// Converts a global pointer position to content-local coordinates matching
-  /// element bounds (page slot offset and page margins removed). Returns null
-  /// when the position is outside all page slots in paginated mode.
-  Offset? pointerToContentLocal(Offset globalPosition) {
-    final local = globalToLocal(globalPosition);
-    if (!_isPaginated) return local;
-    final pageLocal = _positionToPageLocal(local);
-    if (pageLocal == null) return null;
-    return pageLocal - _contentOffset;
-  }
-
-  /// Converts a global pointer position to score-relative coordinates
-  /// (content-local plus the hit-test page's top shift), matching the
-  /// score-relative bounds of chant lines. Returns null when the position is
-  /// outside all page slots in paginated mode.
-  Offset? pointerToScoreLocal(Offset globalPosition) {
-    final contentLocal = pointerToContentLocal(globalPosition);
-    if (contentLocal == null) return null;
-    return Offset(contentLocal.dx, contentLocal.dy + _hitTestPageTop);
-  }
-
-  @override
-  void dispose() {
-    _disposed = true;
-    _pagePainter?.dispose();
-    _document.removeListener(_handleDocumentChanged);
-    _document.score.removeListener(_handleDocumentChanged);
-    _document.score.disposePictureCaches();
-    super.dispose();
-  }
-
-  @override
-  void performLayout() {
-    _inLayout = true;
-    final selection = score.selection;
-    switch (_arrangement) {
-      case .auto:
-        _layoutScore(constraints.maxWidth);
-        score.updateSelection(selection);
-        _inLayout = false;
-        _tool?.handleScoreUpdated();
-        size = constraints.constrain(
-          Size(score.bounds.width, score.bounds.height),
-        );
-      case .slider:
-        _layoutScore(0);
-        score.updateSelection(selection);
-        _inLayout = false;
-        _tool?.handleScoreUpdated();
-        size = Size(score.bounds.width, score.bounds.height);
-      case .single:
-      case .row:
-      case .column:
-      case .facingPairs:
-        _layoutScore(_contentWidth);
-        score.paginate(_contentHeight);
-        score.updateSelection(selection);
-        _inLayout = false;
-        _tool?.handleScoreUpdated();
-        _layoutPageSlots(score.pages.length);
-        size = constraints.constrain(_paginatedSize);
-    }
-  }
-
-  /// Lays out the score's notations and chant lines at [width], skipping the
-  /// expensive line rebuild when neither the score nor the width changed.
-  /// This makes [performLayout] idempotent for paint-only changes such as
-  /// selection or highlight updates.
-  void _layoutScore(double width) {
-    if (score.needsLayout || width != _lastLineWidth) {
-      score.performLayout(_chantContext);
-      score.layoutChantLines(_chantContext, width);
-      _lastLineWidth = width;
-    }
   }
 
   @override
@@ -515,6 +496,49 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
         super.hitTest(result, position: position);
   }
 
+  /// Index of the page a hit test is targeting, or null when not paginated.
+  int? _hitTestPageIndex;
+
+  /// Top shift of the page last hit tested (`-page.bounds.y`), persisted
+  /// after the hit test so tools can convert pointer positions to
+  /// score-relative coordinates during event handling.
+  double _hitTestPageTop = 0;
+
+  /// Maps a local position to the page-local position for hit testing.
+  /// Returns null when the position is outside all page slots.
+  Offset? _positionToPageLocal(Offset position) {
+    if (_pageOffsets.isEmpty) return null;
+    final pageSize = _pageSize;
+    for (var i = _pageOffsets.length - 1; i >= 0; i--) {
+      final slot = _pageOffsets[i] & pageSize;
+      if (slot.contains(position)) {
+        return position - _pageOffsets[i];
+      }
+    }
+    return null;
+  }
+
+  /// Converts a global pointer position to content-local coordinates matching
+  /// element bounds (page slot offset and page margins removed). Returns null
+  /// when the position is outside all page slots in paginated mode.
+  Offset? pointerToContentLocal(Offset globalPosition) {
+    final local = globalToLocal(globalPosition);
+    if (!_isPaginated) return local;
+    final pageLocal = _positionToPageLocal(local);
+    if (pageLocal == null) return null;
+    return pageLocal - _contentOffset;
+  }
+
+  /// Converts a global pointer position to score-relative coordinates
+  /// (content-local plus the hit-test page's top shift), matching the
+  /// score-relative bounds of chant lines. Returns null when the position is
+  /// outside all page slots in paginated mode.
+  Offset? pointerToScoreLocal(Offset globalPosition) {
+    final contentLocal = pointerToContentLocal(globalPosition);
+    if (contentLocal == null) return null;
+    return Offset(contentLocal.dx, contentLocal.dy + _hitTestPageTop);
+  }
+
   @override
   MouseCursor get cursor => tool?.cursor ?? MouseCursor.defer;
 
@@ -526,6 +550,16 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
 
   @override
   bool get validForMouseTracker => _tool != null;
+
+  @override
+  void dispose() {
+    _disposed = true;
+    _pagePainter?.dispose();
+    _document.removeListener(_handleDocumentChanged);
+    _document.score.removeListener(_handleDocumentChanged);
+    _document.score.disposePictureCaches();
+    super.dispose();
+  }
 }
 
 /// Provides pointer event handling for [ChantLayoutElement]

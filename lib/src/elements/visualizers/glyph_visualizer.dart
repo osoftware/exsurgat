@@ -12,6 +12,7 @@ import '../notation/chant_notation_element.dart';
 import '../notation/clefs/clef.dart';
 import '../notation/neumes/note.dart';
 
+/// Renders a single [Glyph].
 class GlyphVisualizer extends ChantLayoutElement {
   GlyphVisualizer(ChantContext ctxt, GlyphCode glyphCode, this.parent) {
     setGlyph(ctxt, glyphCode);

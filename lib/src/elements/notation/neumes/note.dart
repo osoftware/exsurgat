@@ -51,6 +51,7 @@ enum NoteShapeModifiers with Flags {
   const NoteShapeModifiers(this.value);
 }
 
+/// Single note in a neume.
 class Note extends ChantLayoutElement with BraceEnd {
   Pitch? pitch;
   GlyphVisualizer? glyphVisualizer;

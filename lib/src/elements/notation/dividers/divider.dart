@@ -3,7 +3,6 @@ import '../../visualizers/round_brace_visualizer.dart';
 import '../chant_notation_element.dart';
 
 class Divider extends ChantNotationElement {
-  bool isDivider = true;
   bool hasCarryover;
   bool resetsAccidentals = true;
 

@@ -14,6 +14,7 @@ import '../text/above_lines_text.dart';
 import '../text/lyric.dart';
 import '../text/translation_text.dart';
 
+/// Element that corresponds to a part of [sourceGabc] notation.
 class ChantNotationElement extends ChantLayoutElement {
   double leadingSpace = 0.0;
   TrailingSpace trailingSpace = TrailingSpace.defaultTrailingSpace;

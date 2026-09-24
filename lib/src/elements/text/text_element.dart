@@ -13,6 +13,7 @@ import '../chant_layout_element.dart';
 import 'drop_cap.dart';
 import 'lyric.dart';
 
+/// Base class for text elements.
 abstract class TextElement extends ChantLayoutElement {
   TextElement({
     required ChantContext ctxt,
@@ -53,6 +54,7 @@ abstract class TextElement extends ChantLayoutElement {
   Map<String, dynamic> getExtraStyleProperties(ChantContext ctxt) =>
       ctxt.baseTextStyle;
 
+  /// Parses markup in [text] to fill [spans] with styled [TextSpan]s.
   void generateSpansFromText(ChantContext ctxt, String text) {
     text = text.replaceAll(RegExp(r'\s+'), ' ');
     this.text = '';
@@ -624,6 +626,7 @@ abstract class TextElement extends ChantLayoutElement {
   String toGabcString() => spans.map((s) => s.toGabcString()).join('');
 }
 
+/// A chunk of [TextElement] with uniform text style.
 class TextSpan {
   String _text;
 
@@ -679,6 +682,7 @@ class TextSpan {
     return result;
   }
 
+  /// Create a deep copy of this span.
   TextSpan clone() {
     final result = TextSpan(
       _text,
@@ -691,6 +695,7 @@ class TextSpan {
     return result;
   }
 
+  /// Builds and caches the [Paragraph] for this span.
   Paragraph buildParagraph(
     ChantContext ctxt,
     Map<String, dynamic> extraProps,
@@ -735,6 +740,7 @@ class TextSpan {
     return paragraph;
   }
 
+  /// Computes the effective [TextStyle] for given CSS-ish styling [props].
   static TextStyle getTextStyle(
     Map<String, dynamic> props,
     ChantContext ctxt,
@@ -810,6 +816,7 @@ class TextSpan {
   }
 }
 
+/// Helper for parsing nested styling markup.
 class MarkupStackFrame {
   MarkupStackFrame(
     this.tagName,

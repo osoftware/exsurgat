@@ -4,12 +4,17 @@ import '../accidental.dart';
 import '../chant_notation_element.dart';
 import 'do_clef.dart';
 
+/// Clef base class.
 abstract class Clef extends ChantNotationElement {
   final int staffPosition;
   final int octave;
   final Accidental? defaultAccidental;
   Accidental? activeAccidental;
 
+  /// Reference to the original definition of this clef.
+  ///
+  /// Clefs are repeaded at the beginning of every line. Each line-starting clef
+  /// has a reference to the original one.
   Clef? model;
 
   Clef({

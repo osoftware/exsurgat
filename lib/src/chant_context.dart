@@ -281,10 +281,7 @@ class ChantContext {
     return null;
   }
 
-  void makeCanvas(PictureRecorder pictureRecorder) {
-    canvas = Canvas(pictureRecorder);
-  }
-
+  /// Attaches the canvas on which the chant will be painted.
   void attachCanvas(Canvas canvas) {
     this.canvas = canvas;
   }

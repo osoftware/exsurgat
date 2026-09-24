@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'chant_theme.dart';
 
 extension CanvasPathExtensions on Canvas {
+  /// Creates a path builder mimicking HTML canvas API.
   CanvasPathBuilder beginPath({
     required double strokeWidth,
     required Color color,
@@ -14,6 +15,7 @@ extension CanvasPathExtensions on Canvas {
     dashPattern: dashPattern,
   );
 
+  /// Draws a [path] provided in SVG syntax with [paint].
   void drawSvgPath(String path, Paint paint) =>
       drawPath(parseSvgPath(path), paint);
 

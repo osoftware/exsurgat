@@ -34,6 +34,7 @@ enum Unit {
   String toString() => label;
 }
 
+/// A scalar [value] expressed in [unit]s.
 class Scalar {
   final double value;
   final Unit unit;
@@ -42,11 +43,14 @@ class Scalar {
 
   double get deviceIndependent => unit.toDeviceIndependent(value);
 
+  /// Converts this [value] to a different [unit]s.
   Scalar toUnit(Unit target) =>
       Scalar(target.fromDeviceIndependent(deviceIndependent), target);
 
+  /// Creates a deep copy of this object.
   Scalar clone() => Scalar(value, unit);
 
+  /// Creates a copy with changed [value] or [unit].
   Scalar copyWith({double? value, Unit? unit}) =>
       Scalar(value ?? this.value, unit ?? this.unit);
 
@@ -105,6 +109,9 @@ class Scalar {
 
 interface class Geom {}
 
+/// Position of an element.
+///
+/// Used internaly by the rendering engine.
 class Point implements Geom {
   final double x;
   final double y;
@@ -119,6 +126,9 @@ class Point implements Geom {
   String toString() => '($x,$y)';
 }
 
+/// Bounding box of an element.
+///
+/// Used internaly by the rendering engine.
 class Rect implements Geom {
   final double x;
   final double y;
@@ -193,6 +203,7 @@ class Rect implements Geom {
   String toString() => '($x,$y,$width,$height)';
 }
 
+/// Steps of the musical scale.
 enum Step {
   ut(0),
   du(1),
@@ -211,6 +222,7 @@ enum Step {
   const Step(this.value);
 }
 
+/// Musical pitch.
 class Pitch {
   final Step step;
   final int octave;
@@ -219,6 +231,7 @@ class Pitch {
     : step = Step.values[octave == null ? step % 12 : step],
       octave = octave ?? (step ~/ 12);
 
+  /// Converts the pitch to the corresponding MIDI note.
   int toInt() => octave * 12 + step.value;
 
   Pitch transpose(int stepDelta) => Pitch(toInt() + stepDelta);
@@ -270,6 +283,7 @@ class Pitch {
   }
 }
 
+/// Bitfield capability for enums.
 mixin Flags on Enum {
   int get value;
 

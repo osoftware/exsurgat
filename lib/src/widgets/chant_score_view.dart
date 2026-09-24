@@ -14,10 +14,23 @@ class ChantScoreView extends StatelessWidget {
     this.theme,
   });
 
+  /// Source to render.
   final String gabc;
+
+  /// Whether to display the initial.
+  ///
+  /// Overrides `initial-style` property in GABC header.
   final bool useDropCap;
+
+  /// Width of the score sheet.
   final double? width;
+
+  /// Inner padding of the score sheet.
   final EdgeInsets padding;
+
+  /// Theme to apply on the score.
+  ///
+  /// If provided, overrides the theme defined in [gabc] header.
   final ChantTheme? theme;
 
   @override

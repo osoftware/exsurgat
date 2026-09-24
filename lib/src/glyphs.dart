@@ -1,5 +1,9 @@
+/// @docImport 'elements/visualizers/glyph_visualizer.dart';
+library;
+
 import 'core.dart';
 
+/// Glyphs that can be rendered by [GlyphVisualizer].
 enum GlyphCode {
   none('None'),
   acuteAccent('AcuteAccent'),
@@ -60,6 +64,10 @@ enum GlyphCode {
   String toString() => code;
 }
 
+/// A glyph defiition composed of shape defined in [paths] and layout-relevant
+/// parameters.
+///
+/// The [bounds] may differ from actual bounds of the [paths].
 final class Glyph {
   final String? align;
   final Rect bounds;
@@ -74,6 +82,7 @@ final class Glyph {
   });
 }
 
+/// A path definition in SVG syntax.
 final class GlyphPath {
   final String data;
   final String type; // 'positive' or 'negative'
@@ -81,6 +90,7 @@ final class GlyphPath {
   const GlyphPath({required this.data, required this.type});
 }
 
+/// All glyph definitions.
 const Map<GlyphCode, Glyph> glyphs = {
   .none: Glyph(
     paths: [GlyphPath(type: "positive", data: "")],

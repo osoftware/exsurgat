@@ -184,6 +184,8 @@ class ChantDocument extends ChangeNotifier {
       ),
     );
   }
+
+  /// Updates this document and notifies listeners.
   void updateSource(String source) {
     _source = source;
     _header = GabcHeader.fromSource(source);

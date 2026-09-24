@@ -6,6 +6,8 @@ import 'chant_context.dart';
 import 'drawing.dart';
 import 'gabc.dart';
 
+/// Default style for all texts, overriden by [TextStyleDefinition] for specific
+/// text classes.
 class BaseTextStyle {
   /// Font list using CSS syntax.
   final String font;
@@ -41,8 +43,7 @@ class BaseTextStyle {
   }
 }
 
-/// Base class for text-size resolution strategies. Replaces raw callbacks so
-/// that text styles remain serializable.
+/// Base class for text-size resolution strategies.
 sealed class FontSize {
   const FontSize();
 
@@ -111,6 +112,7 @@ class AbsoluteFontSize extends FontSize {
   Map<String, dynamic> toMap() => {'size': size};
 }
 
+/// Style for a text class.
 class TextStyleDefinition {
   const TextStyleDefinition({this.font, this.size, this.color});
 

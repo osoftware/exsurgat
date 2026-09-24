@@ -66,11 +66,13 @@ int _elementCountForNotations(List<ChantNotationElement> items) {
 
 /// Represents and parses the header of a gabc source string.
 class GabcHeader {
+  /// Returns the length of the header in [gabc] string including delimiter.
   static int getLength(String gabc) {
     final match = regexHeaderEnd.firstMatch(gabc);
     return match != null ? match.end : 0;
   }
 
+  /// Parses header values in a GABC [text].
   GabcHeader.fromSource(String text) {
     comments = {};
     cValues = {};

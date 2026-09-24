@@ -4,6 +4,8 @@ import '../chant_notation_element.dart';
 import 'neume_builder.dart';
 import 'note.dart';
 
+/// Short line added above or below the staff to notate pitches that fall
+/// outside the normal 4‑line range.
 class LedgerLine {
   final Note element;
   final Note endElem;

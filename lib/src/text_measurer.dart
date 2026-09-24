@@ -29,6 +29,7 @@ abstract class TextMeasurer {
   /// to top of the box (like in Flutter Canvas).
   TextBoundsAlign get align;
 
+  /// Retuns a width of [textElement] substring limited to [length].
   double measureSubstring(
     TextElement textElement,
     ChantContext ctxt, [
@@ -38,6 +39,7 @@ abstract class TextMeasurer {
     return measureTextBounds(textElement, ctxt, length).width;
   }
 
+  /// Returns bounds of [textElement] substring limited to [length].
   Rect measureTextBounds(
     TextElement textElement,
     ChantContext ctxt, [
@@ -62,6 +64,7 @@ abstract class TextMeasurer {
     return metrics.ascent;
   }
 
+  /// Returns width of [textElement] substring from [startIndex] to [endIndex].
   double getSubstringWidth(
     TextElement textElement,
     ChantContext ctxt, [
@@ -222,6 +225,7 @@ double _parseCssLength(dynamic value) {
 }
 
 extension on String {
+  /// Mimics JavaScript's Array.slice.
   String slice(int start, [int? end]) =>
       substring(start, (end ?? 0) > length ? null : end);
 }

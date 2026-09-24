@@ -4,6 +4,7 @@ import '../../chant_context.dart';
 import '../notation/neumes/note.dart';
 import 'text_element.dart';
 
+/// Little [text] above a [note].
 class ChoralSign extends TextElement {
   ChoralSign(ChantContext ctxt, String text, this.note, int sourceIndex)
     : positionHint = MarkingPositionHint.defaultHint,

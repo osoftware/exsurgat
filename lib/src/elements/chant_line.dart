@@ -27,6 +27,7 @@ import 'text/lyric.dart';
 import 'text/text_element.dart';
 import 'visualizers.dart';
 
+/// Helper to calculate even distances between justified neumes.
 class CondensableSpace {
   CondensableSpace({required this.notation});
 
@@ -42,6 +43,7 @@ extension CondensableSpaceListExtension on List<dynamic> {
   set sum(double value) => _condensableSpaceSums[this] = value;
 }
 
+/// A single line in [ChantScore].
 class ChantLine extends ChantLayoutElement {
   final ChantScore score;
 
