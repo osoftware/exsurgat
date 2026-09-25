@@ -1,31 +1,94 @@
 import 'chant_context.dart';
 
-/// A trailing space value that may be either a fixed double or a function
-/// computed from the [ChantContext].
-class TrailingSpace {
-  TrailingSpace(this._value, {this.isDefault = false});
+/// A trailing space value applied after a notation.
+sealed class TrailingSpace {
+  const TrailingSpace();
 
-  factory TrailingSpace.value(double value, {bool isDefault = false}) =>
-      TrailingSpace((_) => value, isDefault: isDefault);
+  /// Computes the effective space size within [ctxt].
+  double call(ChantContext ctxt);
 
-  factory TrailingSpace.multiple(double multiplier) =>
-      TrailingSpace((ctxt) => ctxt.intraNeumeSpacing * multiplier);
+  /// Whether this is the default trailing space applied to notations.
+  bool get isDefault => this is TrailingSpaceDefault;
 
-  final double Function(ChantContext ctxt) _value;
-  final bool isDefault;
+  /// Gabc string that produces this space.
+  String toGabcString() => '';
 
-  double call(ChantContext ctxt) => _value(ctxt);
+  /// Trailing space of fixed [value] regardless of [ChantContext].
+  const factory TrailingSpace.value(double value) = TrailingSpaceValue;
 
-  static final TrailingSpace zero = TrailingSpace.value(0);
+  /// No trailing space.
+  ///
+  /// Used in specific contexts, like end of score or befor quilisma.
+  static const TrailingSpace zero = TrailingSpace.value(0);
 
-  /// The default trailing space applied to notations, computed from the
-  /// [ChantContext].
-  static final defaultTrailingSpace = TrailingSpace(
-    (ctxt) => ctxt.intraNeumeSpacing * ctxt.interSyllabicMultiplier,
-    isDefault: true,
-  );
+  /// Default trailing space after a neume.
+  ///
+  /// Computed from [ChantContext].
+  static const TrailingSpace defaultTrailingSpace = TrailingSpaceDefault();
 
-  static final forAccidental = TrailingSpace(
-    (ctxt) => ctxt.intraNeumeSpacing * ctxt.accidentalSpaceMultiplier,
-  );
+  /// Default trailing space after an accidental or custos.
+  ///
+  /// Computed from [ChantContext].
+  static const TrailingSpace forAccidental = TrailingSpaceForAccidental();
+
+  /// A trailing space that is a multiple of [ChantContext.intraNeumeSpacing].
+  ///
+  /// The only type of trailing space that is forced by explicit notation
+  /// `!', `/`, `//`, ' ', `/0`, `/[n]` in gabc.
+  const factory TrailingSpace.multiple(double multiplier) =
+      TrailingSpaceMultiple;
+}
+
+/// Trailing space of fixed [value].
+final class TrailingSpaceValue extends TrailingSpace {
+  const TrailingSpaceValue(this.value);
+
+  final double value;
+
+  @override
+  double call(ChantContext ctxt) => value;
+}
+
+/// A trailing space that is a multiple of [ChantContext.intraNeumeSpacing].
+///
+/// The only type of trailing space that is forced by explicit notation
+/// `!', `/`, `//`, ' ', `/0`, `/[n]` in gabc.
+final class TrailingSpaceMultiple extends TrailingSpace {
+  const TrailingSpaceMultiple(this.multiplier);
+
+  final double multiplier;
+
+  @override
+  double call(ChantContext ctxt) => ctxt.intraNeumeSpacing * multiplier;
+
+  @override
+  String toGabcString() => switch (multiplier) {
+    0 => '!',
+    0.5 => '/0',
+    1 => '/',
+    2 => ' ',
+    _ => '/[$multiplier]',
+  };
+}
+
+/// Default trailing space after a neume.
+///
+/// Computed from [ChantContext].
+final class TrailingSpaceDefault extends TrailingSpace {
+  const TrailingSpaceDefault();
+
+  @override
+  double call(ChantContext ctxt) =>
+      ctxt.intraNeumeSpacing * ctxt.interSyllabicMultiplier;
+}
+
+/// Default trailing space after an accidental or custos.
+///
+/// Computed from [ChantContext].
+final class TrailingSpaceForAccidental extends TrailingSpace {
+  const TrailingSpaceForAccidental();
+
+  @override
+  double call(ChantContext ctxt) =>
+      ctxt.intraNeumeSpacing * ctxt.accidentalSpaceMultiplier;
 }

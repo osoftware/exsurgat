@@ -303,10 +303,17 @@ class Neume extends ChantNotationElement {
     final buf = StringBuffer(texts);
 
     buf.write('(');
+    buf.write(toGabcNotationString());
+    buf.write(')');
+    return buf.toString();
+  }
+
+  String toGabcNotationString() {
+    final buf = StringBuffer();
     for (final note in notes) {
       buf.write(note.sourceGabc);
     }
-    buf.write(')');
+    buf.write(trailingSpace.toGabcString());
     return buf.toString();
   }
 }

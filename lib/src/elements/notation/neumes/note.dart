@@ -281,8 +281,6 @@ class Note extends ChantLayoutElement with BraceEnd {
       buf.write(']');
     }
 
-    // TODO: trailing space
-
     return buf.toString();
   }
 }

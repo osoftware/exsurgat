@@ -1085,7 +1085,7 @@ class Gabc {
           break;
 
         case '!':
-          trailingSpace = TrailingSpace.zero;
+          trailingSpace = TrailingSpace.multiple(0);
           addToLastSourceGabc(atom);
           addNotation(null, match);
           break;
