@@ -1701,7 +1701,12 @@ class Gabc {
 
   /// Takes raw gabc text source and parses it into words.
   static List<String> splitWords(String gabcNotations) {
-    final wordDelimiter = RegExp(r'(?<=\)(?:\s{1,8}))(?=[^\)^\s]*(?:\(|$))');
+    // A new word starts after `)` followed by whitespace \s. The lookahead must
+    // accept lyric text containing spaces so it scans any non-`)` characters
+    // including spaces up to the next `(` or end.
+    final wordDelimiter = RegExp(
+      r'(?<=\)(?:\s{1,8}))(?=[^\)\s][^\)]*(?:\(|$))',
+    );
     return gabcNotations.split(wordDelimiter);
   }
 
@@ -1720,7 +1725,6 @@ class Gabc {
   static List<Syllable> parseWord(String gabcWord, int sourceIndex) {
     final syllables = <Syllable>[];
 
-    int sourceIndexOffset = 0;
     for (final match in _syllablesRegex.allMatches(gabcWord)) {
       final rawLyrics = match.group(1)!;
       final lyrics = rawLyrics.trim().split('|');
@@ -1732,10 +1736,9 @@ class Gabc {
           rawLyrics: rawLyrics,
           lyrics: lyrics,
           notations: [],
-          sourceIndex: sourceIndex + sourceIndexOffset,
+          sourceIndex: sourceIndex + match.start,
         ),
       );
-      sourceIndexOffset = match.end;
     }
 
     return syllables;
