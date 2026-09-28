@@ -202,6 +202,9 @@ class ChantContext {
     }
   }
 
+  /// Creates CSS stylesheet for text elements.
+  ///
+  /// Used when [stylingMode] is [StylingMode.css].
   String createStyleCss() {
     final buffer = StringBuffer();
     for (final entry in theme.textStyles.entries) {
@@ -233,6 +236,7 @@ class ChantContext {
 
   String createStyle() => '<style>${createStyleCss()}</style>';
 
+  /// Measures the width of the syllable connector for the current [theme].
   void updateHyphenWidth() {
     final hyphen = Lyric(this, syllableConnector, LyricType.singleSyllable);
     final multiplier =
@@ -242,13 +246,17 @@ class ChantContext {
     minLyricWordSpacing = multiplier * hyphenWidth;
   }
 
+  /// Sets the size of the staff and indirectly size of neumes.
   void setStaffHeight(double staffHeight) {
     setGlyphScaling(staffHeight / 600);
   }
 
-  void setGlyphScaling(double glyphScaling) {
-    this.glyphScaling = glyphScaling;
-    staffInterval = glyphPunctumWidth * glyphScaling;
+  /// Sets the size of the neumes as a [scale] factor of Punctum width.
+  ///
+  /// Indirectly affects the height of the staff.
+  void setGlyphScaling(double scale) {
+    glyphScaling = scale;
+    staffInterval = glyphPunctumWidth * scale;
     staffLineWeight = (5 * staffInterval / 8).ceil() / 5;
     neumeLineWeight = staffLineWeight;
     dividerLineWeight = neumeLineWeight;
@@ -264,6 +272,7 @@ class ChantContext {
   double calculateHeightFromStaffPosition(num staffPosition) =>
       -staffPosition * staffInterval;
 
+  /// Scans [notations] for the next element of [Neume] type.
   Neume? findNextNeume() {
     if (currNotationIndex < 0) {
       throw StateError(

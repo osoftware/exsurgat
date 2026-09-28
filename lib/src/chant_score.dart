@@ -538,7 +538,9 @@ class ChantScore extends ChangeNotifier {
   ///
   /// Pages share the original lines (bounds untouched). Each page's bounds.y
   /// cancels its first line's score-relative offset so the page renders
-  /// starting at the top. Idempotent.
+  /// starting at the top.
+  ///
+  /// Call [layoutChantLines] befor calling this one.
   void paginate(double height) {
     pages = [];
     var pageTop = 0.0;

@@ -1776,18 +1776,6 @@ class Gabc {
       note.staffPosition = staffPosition + offset.round();
     }
   }
-
-  /// Parses a string of gabc notations (as stored in the JSON serialization
-  /// format) and populates [score] with the resulting mappings.
-  ///
-  /// If [createDropCap] is `true`, then a drop cap is created for the score.
-  static void parseChantNotations(
-    String notations,
-    dynamic score,
-    bool createDropCap,
-  ) {
-    // TODO: implement full parsing of serialized notations into the score.
-  }
 }
 
 /// Base class for neume-building states in the finite state machine used by

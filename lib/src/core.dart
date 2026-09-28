@@ -1,3 +1,6 @@
+/// @docImport 'elements/notation/clefs/clef.dart';
+library;
+
 import 'dart:math' as math;
 
 enum Unit {
@@ -227,6 +230,10 @@ class Pitch {
   final Step step;
   final int octave;
 
+  /// Cerates a pitch.
+  ///
+  /// If [octave] is provided, [step] should be relative. Otherwise [octave]
+  /// will be computed from absolute [step] (equivalent to midi number).
   Pitch(int step, [int? octave])
     : step = Step.values[octave == null ? step % 12 : step],
       octave = octave ?? (step ~/ 12);
@@ -234,7 +241,8 @@ class Pitch {
   /// Converts the pitch to the corresponding MIDI note.
   int toInt() => octave * 12 + step.value;
 
-  Pitch transpose(int stepDelta) => Pitch(toInt() + stepDelta);
+  /// Transposes the pitch by a number of [semitones].
+  Pitch transpose(int semitones) => Pitch(toInt() + semitones);
 
   bool operator >(Pitch other) => toInt() > other.toInt();
 
@@ -270,10 +278,18 @@ class Pitch {
     Step.ti,
   ];
 
+  /// Converts a [step] to position on the staff (0 is the bottom).
+  ///
+  /// This method should not be used directly as it doesn't account for clef.
+  /// Use [Clef.pitchToStaffPosition] instead.
   static int stepToStaffOffset(Step step) {
     return _stepToStaffPosition[step.value];
   }
 
+  /// Converts staff position to a scale step.
+  ///
+  /// This method should not be used directly as it doesn't account for clef and
+  /// accidentals. Use [Clef.staffPositionToPitch] instead.
   static Step staffOffsetToStep(int offset) {
     int adjustedOffset = offset;
     while (adjustedOffset < 0) {

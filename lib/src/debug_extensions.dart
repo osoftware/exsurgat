@@ -6,6 +6,7 @@ import 'chant_context.dart';
 import 'elements/chant_layout_element.dart';
 
 extension DebugExtensions on ChantContext {
+  /// Draws [element]'s bounds and origin with [color].
   void debugRect(ChantLayoutElement element, ui.Color color) {
     if (kDebugMode) {
       canvas.drawRect(
