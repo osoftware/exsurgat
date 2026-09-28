@@ -1,3 +1,7 @@
+## 0.2.1
+
+* BUGFIX: Fixed sourceIndex of syllables containing spaces. 
+
 ## 0.2.0
 
 * Paginated score rendering: `ChantScore.paginate()` splits the score into
