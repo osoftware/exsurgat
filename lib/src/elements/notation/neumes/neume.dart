@@ -69,6 +69,8 @@ class Neume extends ChantNotationElement {
         addVisualizer(note.choralSign!);
       }
 
+      note.alText?.performLayout(ctxt);
+
       // braces are handled by the chant line, so we don't mess with them here
       // this is because brace size depends on chant line logic (neume spacing,
       // justification, etc.) so they are considered chant line level

@@ -1681,8 +1681,9 @@ class ChantLine extends ChantLayoutElement {
       ChantNotationElement neume, {
       double? rightX,
     }) {
+      final initialX = text.bounds.x;
       text.setMaxWidth(ctxt, staffRight);
-      text.bounds = text.bounds.copyWith(x: 0);
+      text.bounds = text.bounds.copyWith(x: initialX);
       if (rightX != null) {
         text.bounds = text.bounds.copyWith(
           x: (text.bounds.x + rightX - text.bounds.width) / 2,

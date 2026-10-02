@@ -684,6 +684,28 @@ abstract class Tool {
           result.add(ChantHitTestEntry(line.startingClef!, renderObject));
         } else {
           for (final element in line.notations) {
+            final elementPosition = Point(
+              linePosition.x - element.bounds.x,
+              linePosition.y,
+            );
+            if (element case Neume(:final notes)) {
+              var textWasHit = false;
+              for (final note in notes) {
+                for (final text in [?note.choralSign, ?note.alText]) {
+                  if (text.boundsForHitTest.containsPoint(elementPosition)) {
+                    result.add(ChantHitTestEntry(text, renderObject));
+                    result.add(ChantHitTestEntry(note, renderObject));
+                    textWasHit = true;
+                    break;
+                  }
+                }
+                if (textWasHit) break;
+              }
+              if (textWasHit) {
+                result.add(ChantHitTestEntry(element, renderObject));
+                break;
+              }
+            }
             if (element.boundsForHitTest.containsPoint(linePosition)) {
               if (element case Neume(:final notes)) {
                 for (final note in notes.reversed) {
@@ -700,16 +722,12 @@ abstract class Tool {
               result.add(ChantHitTestEntry(element, renderObject));
               break;
             }
-            final neumePosition = Point(
-              linePosition.x - element.bounds.x,
-              linePosition.y,
-            );
             for (final text in [
               ...element.lyrics,
               ...element.translationText,
               ...element.alText,
             ]) {
-              if (text.boundsForHitTest.containsPoint(neumePosition)) {
+              if (text.boundsForHitTest.containsPoint(elementPosition)) {
                 result.add(ChantHitTestEntry(text, renderObject));
                 result.add(ChantHitTestEntry(element, renderObject));
                 break;

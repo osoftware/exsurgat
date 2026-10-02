@@ -63,6 +63,88 @@ Ex(aba)ur(dcd)gat(fg.) de(ab)us(fg.)
 
       expect(ast[1].sourceIndex, equals(33));
     });
+
+    test('Text marker source indices include their syllable offsets', () {
+      const source = 'mode:5\n%%\n(c3)Ex[xx](e)súr[alt:aa](g)gat(h)';
+      final words = Gabc.fromSource(ctxt, source);
+      final translations = words
+          .expand((word) => word.notations)
+          .expand((notation) => notation.translationText)
+          .toList();
+      final aboveLine = words
+          .expand((word) => word.notations)
+          .expand((notation) => notation.alText)
+          .single;
+
+      expect(
+        translations.map(
+          (text) => source.substring(
+            text.sourceIndex,
+            text.sourceIndex + text.sourceGabc.length,
+          ),
+        ),
+        ['xx'],
+      );
+      expect(
+        source.substring(
+          aboveLine.sourceIndex,
+          aboveLine.sourceIndex + aboveLine.sourceGabc.length,
+        ),
+        'aa',
+      );
+    });
+
+    test('Updates sourceIndex for note-attached text', () {
+      const source = 'mode:5\n%%\nA(c) B(d[cs:s][alt:t])';
+      const updatedSource = 'mode:5\n%%\nA(cc) B(d[cs:s][alt:t])';
+      final ast = Gabc.fromSource(ctxt, source);
+      final note = (ast[1].notations.first as Neume).notes.first;
+      final originalChoralSignIndex = note.choralSign!.sourceIndex;
+      final originalAboveLineIndex = note.alText!.sourceIndex;
+
+      Gabc.updateAstFromSource(ctxt, ast, updatedSource);
+
+      final updatedNote = (ast[1].notations.first as Neume).notes.first;
+      expect(updatedNote.choralSign!.sourceIndex, originalChoralSignIndex + 1);
+      expect(updatedNote.alText!.sourceIndex, originalAboveLineIndex + 1);
+    });
+
+    test('Lays out note-attached above-line text', () {
+      final document = ChantDocument.fromSource(
+        'mode:5\n%%\nA[alt:rubric](c) B(m[alt:rubric])',
+      );
+      document.score.performLayout(document.ctxt);
+      final aboveLines = document.score.notations
+          .expand((notation) => notation.alText)
+          .toList();
+      final neume = document.score.notations.last as Neume;
+      final aboveLine = neume.notes.first.alText!;
+
+      expect(neume.alText, contains(aboveLine));
+      expect(neume.visualizers, isNot(contains(aboveLine)));
+      expect(aboveLine.bounds.width, greaterThan(0));
+      expect(aboveLines, hasLength(2));
+      expect(aboveLines[0].bounds.y, closeTo(aboveLines[1].bounds.y, 0.001));
+
+      document.score.layoutChantLines(document.ctxt, 600);
+      expect(aboveLines[0].bounds.y, closeTo(aboveLines[1].bounds.y, 0.001));
+    });
+
+    test('Keeps note-owned above-line text positioned over its note', () {
+      final document = ChantDocument.fromSource(
+        'mode:5\n%%\nA(c[alt:first]d[alt:second])',
+      );
+      document.score.performLayout(document.ctxt);
+      document.score.layoutChantLines(document.ctxt, 600);
+      final neume = document.score.notations.whereType<Neume>().firstWhere(
+        (element) => element.notes.length == 2,
+      );
+      final firstText = neume.notes[0].alText!;
+      final secondText = neume.notes[1].alText!;
+
+      expect(neume.notes[1].bounds.x, greaterThan(neume.notes[0].bounds.x));
+      expect(secondText.bounds.x, greaterThan(firstText.bounds.x));
+    });
   });
   group('Document', () {
     final gabcSource = '''

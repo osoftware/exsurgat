@@ -1,5 +1,8 @@
+import 'dart:math' as math;
+
 import '../../chant_context.dart';
 import '../chant_layout_element.dart';
+import '../notation/neumes/note.dart';
 import 'text_element.dart';
 
 class AboveLinesText extends TextElement {
@@ -20,6 +23,15 @@ class AboveLinesText extends TextElement {
 
   ChantLayoutElement notation;
   late double padding;
+
+  void performLayout(ChantContext ctxt) {
+    final owner = notation;
+    if (owner is! Note) return;
+    recalculateMetrics(ctxt);
+    bounds = bounds.copyWith(
+      x: owner.bounds.x + math.max(0, (ctxt.staffInterval - bounds.width) / 2),
+    );
+  }
 
   @override
   String toGabcString() => '[alt:${super.toGabcString()}]';

@@ -437,6 +437,14 @@ class Gabc {
               for (var l = 0; l < notes.length; ++l) {
                 final note = notes[l];
                 note.sourceIndex = (note.sourceIndex ?? 0) + sourceIndexDiff;
+                if (sourceIndexDiff != 0) {
+                  if (note.choralSign case final choralSign?) {
+                    choralSign.sourceIndex += sourceIndexDiff;
+                  }
+                  if (note.alText case final alText?) {
+                    alText.sourceIndex += sourceIndexDiff;
+                  }
+                }
                 note.pitch = ctxt.activeClef!.staffPositionToPitch(
                   note.staffPosition,
                 );
@@ -618,7 +626,7 @@ class Gabc {
         lyricText =
             lyricText.substring(0, index) +
             lyricText.substring(index + m[0]!.length);
-        final adjustedIndex = index + sourceIndex + indexOffset + 1;
+        final adjustedIndex = index + syllable.sourceIndex + indexOffset + 1;
         if (m[1] != null) {
           final elem = AboveLinesText(
             ctxt,
