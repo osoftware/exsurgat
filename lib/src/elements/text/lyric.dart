@@ -331,6 +331,7 @@ class Lyric extends TextElement {
     text = text.substring(1);
     centerStartIndex -= 1;
 
+    dropCap = generatedDropCap;
     return generatedDropCap;
   }
 
