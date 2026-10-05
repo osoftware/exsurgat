@@ -188,7 +188,10 @@ class Note extends ChantLayoutElement with BraceEnd {
       }
     }
     if (hasFlag(shapeModifiers, NoteShapeModifiers.cavum)) {
-      buf.write('r0');
+      buf.write('r');
+      if (hasFlag(shapeModifiers, NoteShapeModifiers.linea)) {
+        buf.write('0');
+      }
     }
 
     // 6. liquescent (non-initioDebilis)
