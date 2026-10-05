@@ -2,6 +2,7 @@ import '../../../chant_context.dart';
 import '../../../core.dart';
 import '../../../glyphs.dart';
 import '../../visualizers/glyph_visualizer.dart';
+import '../accidental.dart';
 import 'clef.dart';
 
 class DoClef extends Clef {
@@ -22,7 +23,10 @@ class DoClef extends Clef {
   }
 
   @override
-  String toGabcString() => '(c${(staffPosition + 1) ~/ 2})';
+  String toGabcString() {
+    final flat = defaultAccidental?.accidentalType == AccidentalType.flat;
+    return '(c${flat ? 'b' : ''}${(staffPosition + 1) ~/ 2})';
+  }
 
   @override
   Pitch staffPositionToPitch(int staffPosition) {
