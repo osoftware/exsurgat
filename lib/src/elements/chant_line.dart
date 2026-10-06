@@ -455,18 +455,10 @@ class ChantLine extends ChantLayoutElement {
   ChantNotationElement? layoutInsertionPreview(ChantContext ctxt) {
     final x = insertionPreview?.bounds.x;
     return switch (insertionPreview) {
-      Neume n =>
+      ChantNotationElement n =>
         n
           ..performLayout(ctxt)
           ..bounds = n.bounds.copyWith(x: x),
-      Divider d =>
-        d
-          ..performLayout(ctxt)
-          ..bounds = d.bounds.copyWith(x: x),
-      Clef c =>
-        c
-          ..performLayout(ctxt)
-          ..bounds = c.bounds.copyWith(x: x),
       _ => null,
     };
   }
