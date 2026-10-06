@@ -234,9 +234,20 @@ class Pitch {
   ///
   /// If [octave] is provided, [step] should be relative. Otherwise [octave]
   /// will be computed from absolute [step] (equivalent to midi number).
-  Pitch(int step, [int? octave])
-    : step = Step.values[octave == null ? step % 12 : step],
-      octave = octave ?? (step ~/ 12);
+  factory Pitch(int step, [int? octave]) => octave == null
+      ? Pitch._absolute(step)
+      : Pitch._relative(step, octave);
+
+  Pitch._relative(int step, int octave)
+    : step = Step.values[_normalizeStep(step)],
+      octave = octave + (step - _normalizeStep(step)) ~/ 12;
+
+  Pitch._absolute(int step) : this._relative(step, 0);
+
+  static int _normalizeStep(int step) {
+    final normalized = step % 12;
+    return normalized < 0 ? normalized + 12 : normalized;
+  }
 
   /// Converts the pitch to the corresponding MIDI note.
   int toInt() => octave * 12 + step.value;
