@@ -404,6 +404,10 @@ class ChantScore extends ChangeNotifier {
     // for good measure
     startingClef ??= Clef.defaultClef();
     startingClef!.elementIndex = -1;
+    // The starting clef is not part of notes, so its selection state must be
+    // re-applied here; updateSelection short-circuits when the Selection
+    // object is unchanged after a reparse.
+    startingClef!.selected = selectedIndices.contains(-1);
 
     // update drop cap
     if (useDropCap) {
