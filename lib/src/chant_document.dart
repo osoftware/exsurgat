@@ -165,7 +165,7 @@ class ChantDocument extends ChangeNotifier {
     to.layout = from.clone();
   }
 
-  /// Unserializes the document from a JSON-compatible map.
+  /// Creates the document from a GABC source.
   factory ChantDocument.fromSource(String source, [ChantContext? ctxt]) {
     ctxt = ctxt ?? ChantContext();
 
@@ -180,7 +180,7 @@ class ChantDocument extends ChangeNotifier {
         ctxt: ctxt,
         header: header,
         words: Gabc.fromSource(ctxt, source),
-        useDropCap: !(header['initial-style'] == 0),
+        useDropCap: !(header['initial-style'] == "0"),
       ),
     );
   }
@@ -189,11 +189,12 @@ class ChantDocument extends ChangeNotifier {
   void updateSource(String source) {
     _source = source;
     _header = GabcHeader.fromSource(source);
-    _layout = ChantDocumentLayout.fromGabcHeader(GabcHeader.fromSource(source));
-    _theme = ChantTheme.fromGabcHeader(GabcHeader.fromSource(source));
+    _layout = ChantDocumentLayout.fromGabcHeader(_header);
+    _theme = ChantTheme.fromGabcHeader(_header);
     Gabc.updateAstFromSource(ctxt, score.words, source);
-    score.useDropCap = !(_header['initial-style'] == 0);
+    score.useDropCap = !(_header['initial-style'] == "0");
     score.updateNotations(ctxt);
+    score.updateHeader(ctxt, _header);
   }
 
   /// Serializes the document to gabc source.

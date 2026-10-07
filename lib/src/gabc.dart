@@ -129,7 +129,9 @@ class GabcHeader {
   final Map<String, dynamic> _values = {};
 
   dynamic operator [](String key) => _values[key];
-  void operator []=(String key, dynamic value) => _values[key] = value;
+  void operator []=(String key, dynamic value) {
+    _values[key] = value;
+  }
 
   /// Parses scalar entry: either a number (interpreted in [defaultUnit])
   /// or a string like `"124.3mm"`.
@@ -153,7 +155,9 @@ class GabcHeader {
 
   bool containsKey(String key) => _values.containsKey(key);
 
-  void remove(String key) => _values.remove(key);
+  void remove(String key) {
+    _values.remove(key);
+  }
 
   /// Sets [key] to [value] if it differs from [kDefaultValue];
   /// removes [key] otherwise.
@@ -163,6 +167,27 @@ class GabcHeader {
     } else {
       remove(key);
     }
+  }
+
+  /// Sets a header entry, treating it as an array entry (`<key>Array`)
+  /// when [index] is given: the array is created from the scalar entry if
+  /// needed, and the element at [index] is replaced.
+  void setEntry(String key, String value, [int? index]) {
+    if (index == null) {
+      this[key] = value;
+      return;
+    }
+    final arrayKey = '${key}Array';
+    final existing = this[arrayKey] as List?;
+    final list = existing != null ? [...existing] : <String>[];
+    if (existing == null && this[key] != null) {
+      list.add('${this[key]}');
+    }
+    while (list.length <= index) {
+      list.add('');
+    }
+    list[index] = value;
+    this[arrayKey] = list;
   }
 
   Iterable<String> get keys => _values.keys;

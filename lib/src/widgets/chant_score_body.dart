@@ -254,7 +254,7 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     if (value != null) {
       score.useDropCap = value;
     } else {
-      score.useDropCap = document.header['initial-style'] != 0;
+      score.useDropCap = document.header['initial-style'] != "0";
     }
     markNeedsLayout();
   }
@@ -600,6 +600,9 @@ abstract class Tool {
 
   /// Render object that this tool is attached to.
   RenderChantScore get renderObject => _renderObject;
+
+  /// Document this tool is editing.
+  ChantDocument get document => _renderObject.document;
 
   /// Score this tool is editing.
   ChantScore get score => renderObject.score;
