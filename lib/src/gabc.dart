@@ -644,6 +644,20 @@ class Gabc {
 
       // process alt/translation text from lyricText
       var indexOffset = 0;
+      // Pipe-separated lyric segments and their source offsets relative to
+      // the syllable start. Markers stripped from lyricText below occupy
+      // source space, so each lyric's source index must be derived from
+      // rawLyrics rather than from the stripped text.
+      final rawSegments = syllable.rawLyrics.split('|');
+      final segmentOffsets = <int>[];
+      var segmentScan = 0;
+      for (final segment in rawSegments) {
+        segmentOffsets.add(segmentScan);
+        segmentScan += segment.length + 1;
+      }
+      // Length of markers leading each segment; the segment's lyric text
+      // starts after them in the source.
+      final leadingMarkers = List<int>.filled(rawSegments.length, 0);
       RegExpMatch? vMatch;
       while ((vMatch = _altTranslationRegex.firstMatch(lyricText)) != null) {
         final m = vMatch!;
@@ -652,6 +666,18 @@ class Gabc {
             lyricText.substring(0, index) +
             lyricText.substring(index + m[0]!.length);
         final adjustedIndex = index + syllable.sourceIndex + indexOffset + 1;
+        // Track markers leading their segment so the segment's lyric index
+        // can skip past them.
+        final markerOffset = index + indexOffset;
+        for (var s = 0; s < rawSegments.length; s++) {
+          final segmentStart = segmentOffsets[s];
+          if (markerOffset >= segmentStart &&
+              markerOffset < segmentStart + rawSegments[s].length &&
+              markerOffset == segmentStart + leadingMarkers[s]) {
+            leadingMarkers[s] += m[0]!.length;
+            break;
+          }
+        }
         if (m[1] != null) {
           final elem = AboveLinesText(
             ctxt,
@@ -722,13 +748,18 @@ class Gabc {
 
       currSyllable++;
 
+      final lyricSourceIndices = <int>[
+        for (var s = 0; s < rawSegments.length; s++)
+          syllable.sourceIndex + segmentOffsets[s] + leadingMarkers[s],
+      ];
+
       final lyrics = createSyllableLyrics(
         ctxt,
         lyricText,
         proposedLyricType,
         notationWithLyrics,
         items,
-        syllable.sourceIndex,
+        lyricSourceIndices,
       );
 
       if (lyrics == null || lyrics.isEmpty) continue;
@@ -745,13 +776,17 @@ class Gabc {
 
   /// Returns an array of lyrics (an array because each syllable can have
   /// multiple lyrics).
+  ///
+  /// [sourceIndices] holds the source index of each pipe-separated lyric
+  /// segment; markers stripped from [text] occupy source space, so indices
+  /// cannot be recovered from [text] alone.
   static List<Lyric>? createSyllableLyrics(
     ChantContext ctxt,
     String text,
     LyricType proposedLyricType,
     ChantNotationElement notation,
     List<ChantNotationElement> notations,
-    int sourceIndex,
+    List<int> sourceIndices,
   ) {
     final lyrics = <Lyric>[];
 
@@ -826,7 +861,7 @@ class Gabc {
         lyricType,
         notation,
         notations,
-        sourceIndex,
+        sourceIndices.elementAtOrNull(i) ?? sourceIndices.last,
       );
 
       if (centerStartIndex >= 0) {
@@ -862,7 +897,6 @@ class Gabc {
       }
 
       lyrics.add(lyric);
-      sourceIndex += lyricText.length + 1;
     }
     notation.lyrics = lyrics;
     return lyrics;
