@@ -658,10 +658,12 @@ abstract class Tool {
         return true;
       }
       if (score.annotation case Annotations(:final annotations)) {
+        final block = score.annotation!.bounds;
+        final lineY = score.lines.first.bounds.y;
         for (final a in annotations) {
           final aBounds = a.boundsForHitTest.copyWith(
-            y: a.boundsForHitTest.y + score.lines.first.boundsForHitTest.y,
-            x: a.boundsForHitTest.x + score.annotation!.bounds.x,
+            y: a.boundsForHitTest.y + block.y + lineY,
+            x: a.boundsForHitTest.x + block.x,
           );
           if (aBounds.containsPoint(globalPosition)) {
             result.add(ChantHitTestEntry(a, renderObject));
