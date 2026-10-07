@@ -155,8 +155,24 @@ class GabcHeader {
 
   bool containsKey(String key) => _values.containsKey(key);
 
+  /// Removes [key] and its variants: the `<key>Array` entry and both
+  /// kebab-case/camelCase spellings of the key and its array. The header
+  /// stores entries under multiple conventions, so removal always clears
+  /// all of them.
   void remove(String key) {
-    _values.remove(key);
+    final alternateKey = key.contains('-')
+        ? key.replaceAllMapped(
+            RegExp(r'-([a-z])'),
+            (m) => m.group(1)!.toUpperCase(),
+          )
+        : key.replaceAllMapped(
+            RegExp(r'[A-Z]'),
+            (m) => '-${m.group(0)!.toLowerCase()}',
+          );
+    for (final variant in {key, alternateKey}) {
+      _values.remove(variant);
+      _values.remove('${variant}Array');
+    }
   }
 
   /// Sets [key] to [value] if it differs from [kDefaultValue];
@@ -172,12 +188,34 @@ class GabcHeader {
   /// Sets a header entry, treating it as an array entry (`<key>Array`)
   /// when [index] is given: the array is created from the scalar entry if
   /// needed, and the element at [index] is replaced.
+  ///
+  /// An empty [value] removes the entry instead: the scalar entry, or the
+  /// array element at [index] (an array that becomes empty removes both the
+  /// array and the scalar entry).
   void setEntry(String key, String value, [int? index]) {
     if (index == null) {
-      this[key] = value;
+      if (value.isEmpty) {
+        remove(key);
+      } else {
+        this[key] = value;
+      }
       return;
     }
     final arrayKey = '${key}Array';
+    if (value.isEmpty) {
+      final existing = this[arrayKey] as List?;
+      if (existing == null) {
+        remove(key);
+        return;
+      }
+      final list = [...existing]..removeAt(index);
+      if (list.isEmpty) {
+        remove(key);
+      } else {
+        this[arrayKey] = list;
+      }
+      return;
+    }
     final existing = this[arrayKey] as List?;
     final list = existing != null ? [...existing] : <String>[];
     if (existing == null && this[key] != null) {
