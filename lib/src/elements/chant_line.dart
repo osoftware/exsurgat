@@ -250,7 +250,7 @@ class ChantLine extends ChantLayoutElement {
       }
 
       if (notation.translationText.isNotEmpty &&
-          notation.translationText[0].text.isEmpty) {
+          notation.translationText[0].text.isNotEmpty) {
         if (notation.translationText[0].origin.y > translationLineBaseline) {
           translationLineBaseline = notation.translationText[0].origin.y;
         }
