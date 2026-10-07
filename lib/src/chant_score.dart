@@ -262,6 +262,8 @@ class ChantScore extends ChangeNotifier {
           ...header['annotationArray'] ?? [?header['annotation']],
           ?header['mode'],
         ]);
+      } else {
+        annotation = null;
       }
     }
     notifyListeners();
