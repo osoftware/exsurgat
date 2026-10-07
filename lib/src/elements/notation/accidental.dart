@@ -23,6 +23,20 @@ class Accidental extends ChantNotationElement {
     keepWithNext = true;
   }
 
+  /// Returns gabc source code that, when parsed, produces an equivalent
+  /// [Accidental].
+  @override
+  String toGabcString() {
+    final heightLetter = String.fromCharCode(
+      'c'.codeUnitAt(0) + staffPosition.clamp(-2, 10),
+    );
+    return '$heightLetter${switch (accidentalType) {
+      AccidentalType.flat => 'x',
+      AccidentalType.sharp => '#',
+      AccidentalType.natural => 'y',
+    }}';
+  }
+
   @override
   void performLayout(ChantContext ctxt) {
     super.performLayout(ctxt);
