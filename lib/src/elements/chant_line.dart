@@ -13,6 +13,7 @@ import 'annotations.dart';
 import 'brace_point.dart';
 import 'chant_layout_element.dart';
 import 'horizontal_episema.dart';
+import 'mora.dart';
 import 'notation/accidental.dart';
 import 'notation/brace_end.dart';
 import 'notation/chant_line_break.dart';
@@ -95,7 +96,7 @@ class ChantLine extends ChantLayoutElement {
   int? maxNumNotationsOnLine;
 
   InsertionCursor? insertionCursor;
-  ChantNotationElement? insertionPreview;
+  ChantLayoutElement? insertionPreview;
 
   /// Cached rendered picture of this line, and the paint-state signature it
   /// was recorded with. See [_paintSignature].
@@ -452,13 +453,19 @@ class ChantLine extends ChantLayoutElement {
     return insertionCursor;
   }
 
-  ChantNotationElement? layoutInsertionPreview(ChantContext ctxt) {
+  ChantLayoutElement? layoutInsertionPreview(ChantContext ctxt) {
     final x = insertionPreview?.bounds.x;
     return switch (insertionPreview) {
       ChantNotationElement n =>
         n
           ..performLayout(ctxt)
           ..bounds = n.bounds.copyWith(x: x),
+      Mora m =>
+        m
+          ..performLayout(ctxt)
+          ..bounds = m.bounds.copyWith(
+            x: m.bounds.x + (m.note.neume!.bounds.x),
+          ),
       _ => null,
     };
   }

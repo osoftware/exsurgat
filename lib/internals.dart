@@ -3,6 +3,7 @@ export 'src/drawing.dart';
 export 'src/elements/annotations.dart';
 export 'src/elements/chant_layout_element.dart';
 export 'src/elements/chant_line.dart';
+export 'src/elements/mora.dart';
 export 'src/elements/notation/accidental.dart';
 export 'src/elements/notation/chant_notation_element.dart';
 export 'src/elements/notation/clefs.dart';
