@@ -469,6 +469,9 @@ class Gabc {
             elementIndex += elementCount;
           }
           mapping.sourceIndex += sourceIndexDiff;
+          for (final syllable in mapping.syllables) {
+            syllable.sourceIndex += sourceIndexDiff;
+          }
           for (var k = 0; k < mapping.notations.length; k++) {
             final curNotation = mapping.notations[k];
             final prevNotation = k > 0 ? mapping.notations[k - 1] : null;
@@ -558,7 +561,11 @@ class Gabc {
                   }
                 }
               }
-              lastTranslationNeumes[0] = curNotation;
+              if (lastTranslationNeumes.isEmpty) {
+                lastTranslationNeumes.add(curNotation);
+              } else {
+                lastTranslationNeumes[0] = curNotation;
+              }
             }
             if (sourceIndexDiff != 0) {
               if (curNotation.sourceIndex is int) {

@@ -109,6 +109,24 @@ Ex(aba)ur(dcd)gat(fg.) de(ab)us(fg.)
       expect(updatedNote.alText!.sourceIndex, originalAboveLineIndex + 1);
     });
 
+    test('Updates sourceIndex for syllables in unchanged later words', () {
+      const source = 'mode:5\n%%\nA(c) B(d)';
+      const updatedSource = 'mode:5\n%%\nA[alt:first](c) B(d)';
+      final ast = Gabc.fromSource(ctxt, source);
+
+      Gabc.updateAstFromSource(ctxt, ast, updatedSource);
+
+      final laterSyllable = ast[1].syllables.first;
+      expect(laterSyllable.sourceIndex, updatedSource.indexOf('B'));
+      expect(
+        updatedSource.substring(
+          laterSyllable.sourceIndex,
+          laterSyllable.sourceIndex + laterSyllable.rawLyrics.length,
+        ),
+        'B',
+      );
+    });
+
     test('Lays out note-attached above-line text', () {
       final document = ChantDocument.fromSource(
         'mode:5\n%%\nA[alt:rubric](c) B(m[alt:rubric])',

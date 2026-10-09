@@ -47,5 +47,5 @@ class Syllable {
   final List<ChantNotationElement> notations;
 
   /// The index of [rawLyrics] within the original gabc source string.
-  final int sourceIndex;
+  int sourceIndex;
 }
