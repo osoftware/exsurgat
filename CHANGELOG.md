@@ -1,3 +1,7 @@
+## 0.2.3
+
+* BUGFIX: Fixed stale sourceIndex of syllables after source update.
+
 ## 0.2.2
 
 * Insertion preview for any notation element, including note attachments
