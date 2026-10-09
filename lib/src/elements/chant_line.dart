@@ -460,6 +460,24 @@ class ChantLine extends ChantLayoutElement {
         n
           ..performLayout(ctxt)
           ..bounds = n.bounds.copyWith(x: x),
+      Accent a =>
+        a
+          ..performLayout(ctxt)
+          ..bounds = a.bounds.copyWith(
+            x: a.bounds.x + (a.note.neume!.bounds.x),
+          ),
+      HorizontalEpisema e =>
+        e
+          ..performLayout(ctxt)
+          ..bounds = e.bounds.copyWith(
+            x: e.bounds.x + (e.note.neume!.bounds.x),
+          ),
+      Ictus i =>
+        i
+          ..performLayout(ctxt)
+          ..bounds = i.bounds.copyWith(
+            x: i.bounds.x + (i.note.neume!.bounds.x),
+          ),
       Mora m =>
         m
           ..performLayout(ctxt)
