@@ -1,4 +1,5 @@
 import '../../../chant_context.dart';
+import '../../../core.dart';
 import '../../visualizers/round_brace_visualizer.dart';
 import '../chant_notation_element.dart';
 
@@ -7,6 +8,12 @@ class Divider extends ChantNotationElement {
   bool resetsAccidentals = true;
 
   Divider({this.hasCarryover = false});
+
+  @override
+  Rect get boundsForHitTest => super.boundsForHitTest.copyWith(
+    x: super.boundsForHitTest.x - 2,
+    width: super.boundsForHitTest.width + 4,
+  );
 
   @override
   void performLayout(ChantContext ctxt) {

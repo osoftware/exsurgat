@@ -95,6 +95,9 @@ class Note extends ChantLayoutElement with BraceEnd {
 
   Note({this.pitch});
 
+  @override
+  Rect get boundsForHitTest => bounds;
+
   void setGlyph(ChantContext ctxt, GlyphCode glyphCode) {
     if (glyphVisualizer != null) {
       glyphVisualizer!.setGlyph(ctxt, glyphCode);
