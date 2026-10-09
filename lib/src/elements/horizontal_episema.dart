@@ -18,7 +18,11 @@ class HorizontalEpisema extends ChantLayoutElement {
       false; // indicates if this episema should terminate itself or not
   HorizontalEpisemaAlignment alignment =
       HorizontalEpisemaAlignment.defaultValue;
-  MarkingPositionHint positionHint = MarkingPositionHint.defaultHint;
+  MarkingPositionHint positionHint = .defaultHint;
+  MarkingPositionHint computedPosition = .below;
+
+  int? sourceIndex;
+  int sourceLength = 0;
 
   HorizontalEpisema(this.note) : super();
 
@@ -49,7 +53,7 @@ class HorizontalEpisema extends ChantLayoutElement {
     final int staffLineCountParity = (ctxt.staffLineCount % 2);
     final int staffLineCountNonParity = (staffLineCountParity + 1) % 2;
 
-    if (positionHint == MarkingPositionHint.below) {
+    if (computedPosition == MarkingPositionHint.below) {
       y =
           note.bounds.bottom +
           minDistanceAway; // the highest the line could be at
@@ -196,5 +200,22 @@ class HorizontalEpisema extends ChantLayoutElement {
   @override
   SvgTreeNode createSvgTree(ChantContext ctxt, [ChantLayoutElement? source]) {
     return QuickSvg.createSvgTree('rect', getSvgProps(ctxt));
+  }
+
+  String toGabcString() {
+    final buf = StringBuffer('');
+    buf.write(switch (positionHint) {
+      MarkingPositionHint.defaultHint => '_',
+      MarkingPositionHint.below => '_0',
+      MarkingPositionHint.above => '_1',
+    });
+    if (terminating) buf.write('2');
+    buf.write(switch (alignment) {
+      .defaultValue => '',
+      .left => '3',
+      .center => '4',
+      .right => '5',
+    });
+    return buf.toString();
   }
 }

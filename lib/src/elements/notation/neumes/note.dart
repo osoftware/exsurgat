@@ -206,27 +206,12 @@ class Note extends ChantLayoutElement with BraceEnd {
 
     // 8. morae
     for (final mora in morae) {
-      buf.write(switch (mora.positionHint) {
-        .defaultHint => '.',
-        .below => '.0',
-        .above => '.1',
-      });
+      buf.write(mora.toGabcString());
     }
 
     // 9. episemata
     for (final episema in episemata) {
-      buf.write(switch (episema.positionHint) {
-        MarkingPositionHint.defaultHint => '_',
-        MarkingPositionHint.below => '_0',
-        MarkingPositionHint.above => '_1',
-      });
-      if (episema.terminating) buf.write('2');
-      buf.write(switch (episema.alignment) {
-        .defaultValue => '',
-        .left => '3',
-        .center => '4',
-        .right => '5',
-      });
+      buf.write(episema.toGabcString());
     }
 
     // 10. ictus

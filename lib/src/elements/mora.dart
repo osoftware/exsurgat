@@ -8,6 +8,10 @@ import 'visualizers/glyph_visualizer.dart';
 class Mora extends GlyphVisualizer {
   Note note;
   MarkingPositionHint positionHint = MarkingPositionHint.defaultHint;
+
+  int? sourceIndex;
+  int sourceLength = 0;
+
   late double horizontalOffset;
 
   Mora(ChantContext ctxt, this.note) : super(ctxt, GlyphCode.mora, note) {
@@ -88,4 +92,10 @@ class Mora extends GlyphVisualizer {
       y: bounds.y + verticalOffset,
     );
   }
+
+  String toGabcString() => switch (positionHint) {
+    .defaultHint => '.',
+    .below => '.0',
+    .above => '.1',
+  };
 }

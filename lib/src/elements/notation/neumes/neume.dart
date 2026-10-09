@@ -149,9 +149,9 @@ class Neume extends ChantNotationElement {
 
   int positionEpisemata(Note note, MarkingPositionHint position) {
     for (var episema in note.episemata) {
-      if (episema.positionHint == MarkingPositionHint.defaultHint) {
-        episema.positionHint = position;
-      }
+      episema.computedPosition = episema.positionHint == .defaultHint
+          ? position
+          : episema.positionHint;
     }
     if (note.choralSign != null) {
       note.choralSign!.positionHint = position;

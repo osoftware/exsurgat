@@ -507,6 +507,16 @@ class Gabc {
                   if (note.alText case final alText?) {
                     alText.sourceIndex += sourceIndexDiff;
                   }
+                  for (final mora in note.morae) {
+                    if (mora.sourceIndex case final moraIndex?) {
+                      mora.sourceIndex = moraIndex + sourceIndexDiff;
+                    }
+                  }
+                  for (final episema in note.episemata) {
+                    if (episema.sourceIndex case final episemaIndex?) {
+                      episema.sourceIndex = episemaIndex + sourceIndexDiff;
+                    }
+                  }
                 }
                 note.pitch = ctxt.activeClef!.staffPositionToPitch(
                   note.staffPosition,
@@ -1435,6 +1445,9 @@ class Gabc {
           }
 
           final mora = Mora(ctxt, note);
+          mora.sourceIndex = sourceIndex + i;
+          mora.sourceLength =
+              haveLookahead && (lookahead == '0' || lookahead == '1') ? 2 : 1;
           if (haveLookahead && lookahead == '1') {
             mora.positionHint = MarkingPositionHint.above;
           } else if (haveLookahead && lookahead == '0') {
@@ -1447,6 +1460,7 @@ class Gabc {
         case '_':
           var episemaHadModifier = false;
 
+          final episemaStart = i;
           final episema = HorizontalEpisema(episemaNote);
           while (haveLookahead) {
             if (lookahead == '0') {
@@ -1475,6 +1489,9 @@ class Gabc {
 
             if (haveLookahead) lookahead = data[i + 1];
           }
+
+          episema.sourceIndex = sourceIndex + episemaStart;
+          episema.sourceLength = i - episemaStart + 1;
 
           episemaNote.episemata.add(episema);
 
