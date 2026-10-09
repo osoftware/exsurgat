@@ -598,7 +598,7 @@ abstract class TextElement extends ChantLayoutElement {
       final paragraph = span.buildParagraph(
         ctxt,
         {...properties, ...span.properties, ...highlightOverride},
-        textAnchor,
+        .start,
         resize,
       );
       // Re-layout only when the constraint width changed; the paragraph
