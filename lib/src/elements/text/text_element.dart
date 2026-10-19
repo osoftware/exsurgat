@@ -868,6 +868,11 @@ String escapeForTspan(String string) {
 String getCssForProperties(Map<String, dynamic> properties) {
   return properties.entries
       .where((entry) => entry.key != 'class' && entry.value != null)
-      .map((entry) => '${entry.key}: ${entry.value};')
+      .map((e) => '${e.key}: ${cssString(e.value)};')
       .join();
 }
+
+String cssString(dynamic value) => switch (value) {
+  Color c => c.toSvgString(),
+  _ => value.toString(),
+};
