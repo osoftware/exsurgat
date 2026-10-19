@@ -3,6 +3,7 @@
 * BUGFIX: Fixed stale text and line metrics after theme or layout change: 
   `ChantDocument` forces a full relayout when the theme or layout is updated.
 * BUGFIX: Fixed styling of `TextSpan`s in SVG export.
+* BUGFIX: Fixed SVG export of paginated score. 
 
 ## 0.2.3
 

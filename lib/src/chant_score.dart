@@ -643,7 +643,7 @@ class ChantScore extends ChangeNotifier {
       'class': 'ChantScore${ctxt.editable ? ' EditableChantScore' : ''}',
       'width': width,
       'height': height,
-      'viewBox': [0, 0, bounds.width, bounds.height].join(' '),
+      'viewBox': [-bounds.x, -bounds.y, bounds.width, bounds.height].join(' '),
     };
   }
 
