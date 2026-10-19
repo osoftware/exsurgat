@@ -457,7 +457,7 @@ class ChantScore extends ChangeNotifier {
   }
 
   /// Lays out the score.
-  void performLayout(ChantContext ctxt, [bool force = false]) {
+  void performLayout(ChantContext ctxt, {bool force = false}) {
     if (!force && needsLayout == false) return; // nothing to do here!
 
     ctxt.updateHyphenWidth();

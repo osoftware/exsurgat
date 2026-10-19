@@ -1,80 +1,10 @@
 import 'package:flutter/foundation.dart';
 
 import 'chant_context.dart';
+import 'chant_document_layout.dart';
 import 'chant_score.dart';
 import 'chant_theme.dart';
-import 'core.dart';
 import 'gabc.dart';
-
-/// The layout settings for a [ChantDocument].
-class ChantDocumentLayout {
-  static const kDefaultPageWidth = Scalar(148, Unit.millimeters);
-  static const kDefaultPageHeight = Scalar(210, Unit.millimeters);
-  static const kDefaultMarginLeft = Scalar(10, Unit.millimeters);
-  static const kDefaultMarginTop = Scalar(10, Unit.millimeters);
-  static const kDefaultMarginRight = Scalar(10, Unit.millimeters);
-  static const kDefaultMarginBottom = Scalar(10, Unit.millimeters);
-
-  const ChantDocumentLayout({
-    this.pageWidth = kDefaultPageWidth,
-    this.pageHeight = kDefaultPageHeight,
-    this.marginLeft = kDefaultMarginLeft,
-    this.marginTop = kDefaultMarginTop,
-    this.marginRight = kDefaultMarginRight,
-    this.marginBottom = kDefaultMarginBottom,
-  });
-
-  /// The width of the page.
-  final Scalar pageWidth;
-
-  /// The height of the page.
-  final Scalar pageHeight;
-
-  /// The left margin of the page.
-  final Scalar marginLeft;
-
-  /// The top margin of the page.
-  final Scalar marginTop;
-
-  /// The right margin of the page.
-  final Scalar marginRight;
-
-  /// The bottom margin of the page.
-  final Scalar marginBottom;
-
-  /// Creates [ChantDocumentLayout] from [GabcHeader] values.
-  factory ChantDocumentLayout.fromGabcHeader(GabcHeader header) =>
-      ChantDocumentLayout(
-        pageWidth: header.readScalar('page-width', kDefaultPageWidth),
-        pageHeight: header.readScalar('page-height', kDefaultPageHeight),
-        marginLeft: header.readScalar('margin-left', kDefaultMarginLeft),
-        marginTop: header.readScalar('margin-top', kDefaultMarginTop),
-        marginRight: header.readScalar('margin-right', kDefaultMarginRight),
-        marginBottom: header.readScalar('margin-bottom', kDefaultMarginBottom),
-      );
-
-  ChantDocumentLayout clone() => ChantDocumentLayout(
-    pageWidth: pageWidth.clone(),
-    pageHeight: pageHeight.clone(),
-    marginLeft: marginLeft.clone(),
-    marginTop: marginTop.clone(),
-    marginRight: marginRight.clone(),
-    marginBottom: marginBottom.clone(),
-  );
-
-  /// Updates [header] with this layout's values, compatible with [GabcHeader].
-  ///
-  /// Values that differ from the kDefault layout are set; values that equal
-  /// the kDefault are removed from the header.
-  void updateHeader(GabcHeader header) {
-    header.put('page-width', '$pageWidth', '$kDefaultPageWidth');
-    header.put('page-height', '$pageHeight', '$kDefaultPageHeight');
-    header.put('margin-left', '$marginLeft', '$kDefaultMarginLeft');
-    header.put('margin-top', '$marginTop', '$kDefaultMarginTop');
-    header.put('margin-right', '$marginRight', '$kDefaultMarginRight');
-    header.put('margin-bottom', '$marginBottom', '$kDefaultMarginBottom');
-  }
-}
 
 /// A document containing a chant score, along with layout and theme settings.
 class ChantDocument extends ChangeNotifier {
@@ -127,6 +57,7 @@ class ChantDocument extends ChangeNotifier {
   set layout(ChantDocumentLayout value) {
     if (value == _layout) return;
     _layout = value;
+    _score.needsLayout = true;
     notifyListeners();
   }
 
@@ -137,6 +68,9 @@ class ChantDocument extends ChangeNotifier {
   set theme(ChantTheme value) {
     if (value == _theme) return;
     _theme = value;
+    _ctxt.theme = value;
+    score.performLayout(ctxt, force: true);
+    score.needsLayout = true;
     notifyListeners();
   }
 
@@ -189,12 +123,31 @@ class ChantDocument extends ChangeNotifier {
   void updateSource(String source) {
     _source = source;
     _header = GabcHeader.fromSource(source);
-    _layout = ChantDocumentLayout.fromGabcHeader(_header);
-    _theme = ChantTheme.fromGabcHeader(_header);
-    Gabc.updateAstFromSource(ctxt, score.words, source);
-    score.useDropCap = !(_header['initial-style'] == "0");
-    score.updateNotations(ctxt);
-    score.updateHeader(ctxt, _header);
+
+    Gabc.updateAstFromSource(_ctxt, _score.words, source);
+    _score.useDropCap = !(_header['initial-style'] == "0");
+    _score.updateNotations(ctxt);
+    _score.updateHeader(ctxt, _header);
+
+    final newTheme = ChantTheme.fromGabcHeader(_header);
+    final themeChanged = newTheme != _theme;
+    _theme = newTheme;
+    _ctxt.theme = _theme;
+    if (themeChanged) {
+      // Text metrics were measured with the old theme; force a full notation
+      // relayout. needsLayout stays set so chant lines are rebuilt too.
+      _score.performLayout(ctxt, force: true);
+      _score.needsLayout = true;
+    }
+
+    final newLayout = ChantDocumentLayout.fromGabcHeader(_header);
+    final layoutChanged = newLayout != _layout;
+    _layout = newLayout;
+    if (layoutChanged) {
+      // Page geometry changed; mark the score so the next layout pass rebuilds
+      // the chant lines at the new content width/margins.
+      _score.needsLayout = true;
+    }
   }
 
   /// Serializes the document to gabc source.

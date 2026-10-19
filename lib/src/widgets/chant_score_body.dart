@@ -9,6 +9,7 @@ import 'package:flutter/widgets.dart';
 
 import '../chant_context.dart';
 import '../chant_document.dart';
+import '../chant_document_layout.dart';
 import '../chant_score.dart';
 import '../chant_theme.dart';
 import '../core.dart';

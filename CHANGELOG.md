@@ -1,3 +1,8 @@
+## 0.2.4
+
+* BUGFIX: Fixed stale text and line metrics after theme or layout change: 
+  `ChantDocument` forces a full relayout when the theme or layout is updated.
+
 ## 0.2.3
 
 * BUGFIX: Fixed stale sourceIndex of syllables after source update.

@@ -41,6 +41,22 @@ class BaseTextStyle {
       baseStyle: values,
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      other is BaseTextStyle &&
+      font == other.font &&
+      size == other.size &&
+      _mapsEqual(baseStyle, other.baseStyle);
+
+  @override
+  int get hashCode => Object.hash(
+    font,
+    size,
+    Object.hashAllUnordered(
+      baseStyle.entries.map((e) => '${e.key}=${e.value}'),
+    ),
+  );
 }
 
 /// Base class for text-size resolution strategies.
@@ -83,6 +99,13 @@ class RelativeFontSize extends FontSize {
 
   @override
   Map<String, dynamic> toMap() => {'relative-size': factor};
+
+  @override
+  bool operator ==(Object other) =>
+      other is RelativeFontSize && factor == other.factor;
+
+  @override
+  int get hashCode => factor.hashCode;
 }
 
 /// Font size derived from the staff interval of the [ChantContext].
@@ -97,6 +120,13 @@ class StaffIntervalFontSize extends FontSize {
 
   @override
   Map<String, double> toMap() => {'staff-interval-size': multiplier};
+
+  @override
+  bool operator ==(Object other) =>
+      other is StaffIntervalFontSize && multiplier == other.multiplier;
+
+  @override
+  int get hashCode => multiplier.hashCode;
 }
 
 /// Fixed font size, independent of context.
@@ -110,6 +140,13 @@ class AbsoluteFontSize extends FontSize {
 
   @override
   Map<String, dynamic> toMap() => {'size': size};
+
+  @override
+  bool operator ==(Object other) =>
+      other is AbsoluteFontSize && size == other.size;
+
+  @override
+  int get hashCode => size.hashCode;
 }
 
 /// Style for a text class.
@@ -145,6 +182,16 @@ class TextStyleDefinition {
       color: parseColor(map['color'] as String?),
     );
   }
+
+  @override
+  bool operator ==(Object other) =>
+      other is TextStyleDefinition &&
+      font == other.font &&
+      size == other.size &&
+      color == other.color;
+
+  @override
+  int get hashCode => Object.hash(font, size, color);
 }
 
 /// All coloring, spacing and text styling that can be configured for a chant rendering.
@@ -217,6 +264,56 @@ class ChantTheme {
     'lyric': lyric,
     'translation': translation,
   };
+
+  @override
+  bool operator ==(Object other) =>
+      other is ChantTheme &&
+      baseTextStyle == other.baseTextStyle &&
+      textColor == other.textColor &&
+      rubricColor == other.rubricColor &&
+      neumeColor == other.neumeColor &&
+      staffLineColor == other.staffLineColor &&
+      dividerLineColor == other.dividerLineColor &&
+      selectionColor == other.selectionColor &&
+      minLedgerSeparation == other.minLedgerSeparation &&
+      minSpaceAboveStaff == other.minSpaceAboveStaff &&
+      minSpaceBelowStaff == other.minSpaceBelowStaff &&
+      spaceBetweenSystems == other.spaceBetweenSystems &&
+      supertitle == other.supertitle &&
+      title == other.title &&
+      subtitle == other.subtitle &&
+      leftRight == other.leftRight &&
+      annotation == other.annotation &&
+      dropCap == other.dropCap &&
+      aboveLine == other.aboveLine &&
+      choralSign == other.choralSign &&
+      lyric == other.lyric &&
+      translation == other.translation;
+
+  @override
+  int get hashCode => Object.hashAll([
+    baseTextStyle,
+    textColor,
+    rubricColor,
+    neumeColor,
+    staffLineColor,
+    dividerLineColor,
+    selectionColor,
+    minLedgerSeparation,
+    minSpaceAboveStaff,
+    minSpaceBelowStaff,
+    spaceBetweenSystems,
+    supertitle,
+    title,
+    subtitle,
+    leftRight,
+    annotation,
+    dropCap,
+    aboveLine,
+    choralSign,
+    lyric,
+    translation,
+  ]);
 
   /// Updates [header] with this theme's values, compatible with [GabcHeader].
   ///
@@ -421,3 +518,7 @@ final Map<String, TextStyleDefinition> kDefaultTextStyles = const {
   'lyric': TextStyleDefinition(size: RelativeFontSize(0.9)),
   'translation': TextStyleDefinition(size: RelativeFontSize(0.75)),
 };
+
+/// Deep-compares two CSS property maps used by [BaseTextStyle].
+bool _mapsEqual(Map<String, dynamic> a, Map<String, dynamic> b) =>
+    a.length == b.length && a.entries.every((e) => b[e.key] == e.value);
