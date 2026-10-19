@@ -5,10 +5,10 @@ import 'dart:math' as math;
 
 enum Unit {
   deviceIndependent("di", 1.0),
-  centimeters("cm", 96.0 / 2.54),
-  millimeters("mm", 96.0 / 2.54 / 10.0),
-  inches("in", 96.0),
-  points("pt", 72.0);
+  centimeters("cm", diuPerCentimeter),
+  millimeters("mm", diuPerCentimeter / 10.0),
+  inches("in", diuPerInch),
+  points("pt", diuPerInch / pointsPerInch);
 
   final String label;
   final double diuPerUnit;
@@ -17,6 +17,7 @@ enum Unit {
 
   static const double diuPerInch = 96.0;
   static const double diuPerCentimeter = 96.0 / 2.54;
+  static const pointsPerInch = 72.0;
 
   double toDeviceIndependent(double n) => n * diuPerUnit;
 
@@ -234,9 +235,8 @@ class Pitch {
   ///
   /// If [octave] is provided, [step] should be relative. Otherwise [octave]
   /// will be computed from absolute [step] (equivalent to midi number).
-  factory Pitch(int step, [int? octave]) => octave == null
-      ? Pitch._absolute(step)
-      : Pitch._relative(step, octave);
+  factory Pitch(int step, [int? octave]) =>
+      octave == null ? Pitch._absolute(step) : Pitch._relative(step, octave);
 
   Pitch._relative(int step, int octave)
     : step = Step.values[_normalizeStep(step)],
