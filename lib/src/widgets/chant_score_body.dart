@@ -593,23 +593,26 @@ class ChantHitTestEntry<T> extends HitTestEntry<ChantHitTestTarget<T>> {
 /// The inheriting class needs to implement [handleTargetEvent]
 /// and may override [hitTestElements].
 abstract class Tool {
-  late RenderChantScore _renderObject;
+  RenderChantScore? _renderObject;
   void _attachTo(RenderChantScore renderObject) {
     _renderObject = renderObject;
     handleAttach();
   }
 
+  /// Whether the tool is attached to a render object.
+  bool get attached => _renderObject != null;
+
   /// Render object that this tool is attached to.
-  RenderChantScore get renderObject => _renderObject;
+  RenderChantScore get renderObject => _renderObject!;
 
   /// Document this tool is editing.
-  ChantDocument get document => _renderObject.document;
+  ChantDocument get document => _renderObject!.document;
 
   /// Score this tool is editing.
   ChantScore get score => renderObject.score;
 
   /// Chant context of the edited score.
-  ChantContext get chantContext => _renderObject._chantContext;
+  ChantContext get chantContext => _renderObject!._chantContext;
 
   /// The page being hit tested, or null when not paginated. Set by
   /// [RenderChantScore.hitTest] before [hitTestElements] runs; tools should
