@@ -108,7 +108,8 @@ class Scalar {
   int get hashCode => Object.hash(value, unit);
 
   @override
-  String toString() => '$value$unit';
+  String toString() =>
+      '${value.toStringAsFixed(value.toInt() != value ? 1 : 0)}$unit';
 }
 
 interface class Geom {}
@@ -329,3 +330,10 @@ bool hasFlag(int flags, Flags flag) => (flags & flag.value) != 0;
 
 /// Returns true if [flags] (an int) has any of the given [mask] bits set.
 bool hasAnyFlag(int flags, int mask) => (flags & mask) != 0;
+
+extension Monad<T> on T? {
+  X? bind<X>(X? Function(T) map) => switch (this) {
+    null => null,
+    final v => map(v),
+  };
+}

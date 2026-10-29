@@ -12,8 +12,6 @@ class ChoralSign extends TextElement {
         ctxt: ctxt,
         text: (ctxt.textStyles['choralSign']?['prefix'] ?? '') + text,
         cssClass: 'choralSign',
-        fontFamily: (ctxt) => ctxt.textStyles['choralSign']?['font'],
-        fontSize: (ctxt) => ctxt.textStyles['choralSign']?['size'],
         textAnchor: .start,
         sourceIndex: sourceIndex,
         sourceGabc: text,

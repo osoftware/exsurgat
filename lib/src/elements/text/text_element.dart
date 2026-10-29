@@ -19,8 +19,6 @@ abstract class TextElement extends ChantLayoutElement {
     required ChantContext ctxt,
     required String text,
     required this.cssClass,
-    required this.fontFamily,
-    required this.fontSize,
     required this.textAnchor,
     required this.sourceIndex,
     required this.sourceGabc,
@@ -29,8 +27,6 @@ abstract class TextElement extends ChantLayoutElement {
     recalculateMetrics(ctxt);
   }
 
-  final String Function(ChantContext ctxt) fontFamily;
-  final double Function(ChantContext ctxt) fontSize;
   TextAlign textAnchor;
   int sourceIndex;
   String sourceGabc;
@@ -52,7 +48,7 @@ abstract class TextElement extends ChantLayoutElement {
 
   String getCssClasses() => cssClass;
   Map<String, dynamic> getExtraStyleProperties(ChantContext ctxt) =>
-      ctxt.baseTextStyle;
+      ctxt.extraTextStyle;
 
   /// Parses markup in [text] to fill [spans] with styled [TextSpan]s.
   void generateSpansFromText(ChantContext ctxt, String text) {
@@ -506,7 +502,8 @@ abstract class TextElement extends ChantLayoutElement {
     }
     if (resize != null) {
       options['font-size'] =
-          span.properties['font-size'] ?? fontSize(ctxt) * resize!;
+          span.properties['font-size'] ??
+          ctxt.textStyles[cssClass]!['font-size'] * resize!;
     }
     return options;
   }
@@ -523,10 +520,10 @@ abstract class TextElement extends ChantLayoutElement {
       options.addAll({
         for (final c in (options['class'] as String).split(" "))
           if (ts.containsKey(c)) ...{
-            'fill': (ts[c]['color'] as Color? ?? ctxt.theme.textColor)
+            'fill': (ts[c]!['color'] as Color? ?? ctxt.theme.textColor)
                 .toSvgString(),
-            'font-family': ts[c]['font'] ?? 'serif',
-            'font-size': ts[c]['size'] ?? 16,
+            'font-family': ts[c]!['font'] ?? 'serif',
+            'font-size': ts[c]!['size'] ?? 16,
           },
         for (final e in extraStyleProperties.entries)
           e.key: e.value is Color ? (e.value as Color).toSvgString() : e.value,
@@ -572,11 +569,15 @@ abstract class TextElement extends ChantLayoutElement {
 
     canvas.save();
 
+    final style = ctxt.textStyles[cssClass]!;
     final properties = <String, dynamic>{
       ...getExtraStyleProperties(ctxt),
-      'base-font-family': fontFamily(ctxt),
-      'base-font-size': fontSize(ctxt),
-      'fill': ctxt.textStyles[cssClass]!['fill'],
+      'base-font-family': style['font'],
+      'base-font-size': style['size'],
+      'font-weight': ?style['font-weight'],
+      'font-style': ?style['font-style'],
+      'font-variant': style['font-variant'],
+      'fill': ?style['fill'],
     };
     final highlightOverride = {
       if (selected || highlight != null)
@@ -587,7 +588,7 @@ abstract class TextElement extends ChantLayoutElement {
       if (span.newLine > 0) {
         canvas.translate(
           translateWidth + xOffset,
-          fontSize(ctxt) * span.newLine,
+          style['size'] * span.newLine,
         );
         translateWidth = -xOffset;
       } else if (xOffset != 0.0) {
@@ -746,29 +747,18 @@ class TextSpan {
     ChantContext ctxt,
     double? resize,
   ) {
-    final fontSize = _parseCssFontSize(
-      props['font-size'],
-      props['base-font-size'],
+    final fontSize = props['font-size'] ?? props['base-font-size'];
+    final fontFamily = parseFontFallback(
+      props['font-family'] ?? props['base-font-family'],
     );
-    final fontFamily = (props['font-family'] ?? props['base-font-family'])
-        .toString()
-        .split(RegExp(", ?"))
-        .map((f) => f.replaceAll(RegExp(r"^'|'$"), ''))
-        .toList();
     return TextStyle(
       color: _colorFromCss(props['fill'], ctxt.theme.textColor),
       fontFamilyFallback: fontFamily,
       fontSize: fontSize * (resize ?? 1),
       height: props['line-height'],
-      fontStyle: props['font-style'] == 'italic'
-          ? FontStyle.italic
-          : FontStyle.normal,
-      fontWeight: props['font-weight'] == 'bold'
-          ? FontWeight.bold
-          : FontWeight.normal,
-      fontFeatures: [
-        if (props['font-variant'] == 'small-caps') FontFeature.enable('smcp'),
-      ],
+      fontStyle: props['font-style'],
+      fontWeight: props['font-weight'],
+      fontFeatures: props['font-variant'],
     );
   }
 
@@ -791,16 +781,6 @@ class TextSpan {
       if (value.toLowerCase() == 'red') return ChantColors.rubric;
     }
     return defaultColor;
-  }
-
-  static double _parseCssFontSize(dynamic fontSizeValue, double baseFontSize) {
-    if (fontSizeValue is String && fontSizeValue.endsWith('%')) {
-      final percent =
-          double.tryParse(fontSizeValue.replaceAll('%', '')) ?? 100.0;
-      return baseFontSize * percent / 100.0;
-    }
-    if (fontSizeValue is num) return fontSizeValue.toDouble();
-    return baseFontSize;
   }
 
   String toGabcString() {
@@ -865,6 +845,7 @@ String escapeForTspan(String string) {
   );
 }
 
+/// Converts a map of text style [properties] into a list in CSS syntax.
 String getCssForProperties(Map<String, dynamic> properties) {
   return properties.entries
       .where((entry) => entry.key != 'class' && entry.value != null)
@@ -872,7 +853,11 @@ String getCssForProperties(Map<String, dynamic> properties) {
       .join();
 }
 
+/// Converts a [value] to it CSS representation.
 String cssString(dynamic value) => switch (value) {
   Color c => c.toSvgString(),
+  FontWeight w => w.toSvgString() ?? 'normal',
+  FontStyle s => s.toSvgString() ?? 'normal',
+  List<FontFeature> fs => fs.map((f) => f.toSvgString()).join(' '),
   _ => value.toString(),
 };

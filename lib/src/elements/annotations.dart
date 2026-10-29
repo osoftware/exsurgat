@@ -34,12 +34,13 @@ class Annotations extends ChantLayoutElement {
     origin = Point(0, 0);
 
     double y = 0;
+    final fontSize = ctxt.textStyles['annotation']!['size'];
     for (var a in annotations) {
       a.recalculateMetrics(ctxt, resetNewLines);
       bounds += Rect.fromXYWH(0, y, a.bounds.width, a.bounds.height);
       a.bounds = a.bounds.copyWith(y: a.bounds.y + y);
       origin = origin.copyWith(y: origin.y == 0 ? a.origin.y : origin.y);
-      y += a.fontSize(ctxt) * (a.resize ?? 1) * lineHeight;
+      y += fontSize * (a.resize ?? 1) * lineHeight;
     }
   }
 

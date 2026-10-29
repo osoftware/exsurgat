@@ -14,8 +14,6 @@ class TranslationText extends TextElement {
             ? ''
             : (ctxt.textStyles['translation']?['prefix'] ?? '') + text,
         cssClass: 'translation',
-        fontFamily: (ctxt) => ctxt.textStyles['translation']?['font'],
-        fontSize: (ctxt) => ctxt.textStyles['translation']?['size'],
         textAnchor: text == '/' ? .end : .start,
         sourceIndex: sourceIndex,
         sourceGabc: text,

@@ -7,8 +7,6 @@ class Supertitle extends TitleTextElement {
         ctxt: ctxt,
         text: (ctxt.textStyles['supertitle']?['prefix'] ?? '') + text,
         cssClass: 'supertitle',
-        fontFamily: (ctxt) => ctxt.textStyles['supertitle']?['font'],
-        fontSize: (ctxt) => ctxt.textStyles['supertitle']?['size'],
         textAnchor: .center,
         sourceIndex: sourceIndex,
         sourceGabc: text,

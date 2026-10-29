@@ -35,25 +35,30 @@ class ChantContext {
     specialCharText = (c) => c;
 
     fontStyleDictionary.addAll({
-      'b': {'font-weight': 'bold'},
-      'i': {'font-style': 'italic'},
+      'b': {'font-weight': FontWeight.bold},
+      'i': {'font-style': FontStyle.italic},
       'u': {'text-decoration': 'underline'},
       'ul': {'text-decoration': 'underline'},
       'c': {'class': 'rubric'},
-      'sc': {'font-variant': 'small-caps'},
+      'sc': {
+        'font-variant': [FontFeature('smcp')],
+      },
       'v': {},
-      'e': {'font-style': 'italic', 'font-size': '90%'},
+      'e': {
+        'font-style': FontStyle.italic,
+        'font-size': FontSize.relative(0.9),
+      },
     });
 
     textStyles['al'] ??= {};
-    textStyles['al']['prefix'] = '<i>';
+    textStyles['al']!['prefix'] = '<i>';
     textStyles['translation'] ??= {};
-    textStyles['translation']['prefix'] = '<i>';
+    textStyles['translation']!['prefix'] = '<i>';
 
     textStyles['dropCap'] ??= {};
-    textStyles['dropCap']['padding'] = 1;
+    textStyles['dropCap']!['padding'] = 1;
     textStyles['annotation'] ??= {};
-    textStyles['annotation']['padding'] = 1;
+    textStyles['annotation']!['padding'] = 1;
 
     glyphPunctumWidth = glyphs[GlyphCode.punctumQuadratum]!.bounds.width;
     glyphPunctumHeight = glyphs[GlyphCode.punctumQuadratum]!.bounds.height;
@@ -70,7 +75,7 @@ class ChantContext {
   ChantTheme get theme => _theme;
   set theme(ChantTheme value) {
     _theme = value;
-    _setFont(_theme);
+    _setStyles(_theme);
     _setRubricColor(_theme.rubricColor);
   }
 
@@ -82,7 +87,8 @@ class ChantContext {
   final List<SvgTreeNode Function()> makeDefs = [];
   late final XmlElement defsNode;
 
-  final Map<String, dynamic> textStyles = {};
+  /// Contains effective style descriptors computed from [theme].
+  final Map<String, Map<String, dynamic>> textStyles = {};
   final Map<String, dynamic> specialCharProperties = {};
   String textBeforeSpecialChar = '';
   String textAfterSpecialChar = '.';
@@ -136,7 +142,7 @@ class ChantContext {
   double minLyricWordSpacing = 1.0;
   List<dynamic> Function(List<List<TextSpan>> annotationSpans)?
   mergeAnnotationWithTextLeft;
-  Map<String, dynamic> baseTextStyle = {};
+  Map<String, dynamic> extraTextStyle = {};
   bool editable = false;
   bool startExtraTextOnlyFromFirst = false;
 
@@ -164,10 +170,9 @@ class ChantContext {
   int convertSymmetricStaffPosition(int staffPositionSymmetric) =>
       staffPositionSymmetric + staffLineCount;
 
-  void _setFont(ChantTheme theme) {
+  void _setStyles(ChantTheme theme) {
     for (final entry in theme.textStyles.entries) {
       final textStyle = textStyles[entry.key] ?? <String, dynamic>{};
-      textStyles[entry.key] = textStyle;
       textStyle['size'] =
           entry.value.size?.resolve(
             theme.baseTextStyle.size.deviceIndependent,
@@ -175,10 +180,13 @@ class ChantContext {
           ) ??
           theme.baseTextStyle.size.deviceIndependent;
       textStyle['font'] = entry.value.font ?? theme.baseTextStyle.font;
+      textStyle['font-weight'] = entry.value.fontWeight;
+      textStyle['font-style'] = entry.value.fontStyle;
+      textStyle['font-variant'] = entry.value.features;
       textStyle['fill'] = entry.value.color;
-    }
 
-    baseTextStyle = theme.baseTextStyle.baseStyle;
+      textStyles[entry.key] = textStyle;
+    }
   }
 
   set textMeasuringStrategy(TextMeasuringStrategy strategy) {

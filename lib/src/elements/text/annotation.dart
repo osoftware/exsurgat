@@ -11,8 +11,6 @@ class Annotation extends TextElement {
         ctxt: ctxt,
         text: (ctxt.textStyles['annotation']?['prefix'] ?? '') + text,
         cssClass: 'annotation',
-        fontFamily: (ctxt) => ctxt.textStyles['annotation']?['font'],
-        fontSize: (ctxt) => ctxt.textStyles['annotation']?['size'],
         textAnchor: .center,
         sourceIndex: 0, // sourceIndex not provided in JS constructor
         sourceGabc: text,

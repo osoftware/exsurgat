@@ -13,8 +13,6 @@ class TextLeftRight extends TitleTextElement {
          ctxt: ctxt,
          text: (ctxt.textStyles['leftRight']?['prefix'] ?? '') + text,
          cssClass: 'leftRight',
-         fontFamily: (ctxt) => ctxt.textStyles['leftRight']?['font'],
-         fontSize: (ctxt) => ctxt.textStyles['leftRight']?['size'],
          textAnchor: type == 'textLeft' ? .start : .end,
          sourceIndex: sourceIndex,
          sourceGabc: text,

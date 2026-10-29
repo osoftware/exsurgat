@@ -1,5 +1,7 @@
-## 0.2.4
+## 0.3.0
 
+* `ChantTheme` now supports advanced typographic features: 
+  small caps, historical forms and ligatures, contextual forms.
 * BUGFIX: Fixed stale text and line metrics after theme or layout change: 
   `ChantDocument` forces a full relayout when the theme or layout is updated.
 * BUGFIX: Fixed styling of `TextSpan`s in SVG export.

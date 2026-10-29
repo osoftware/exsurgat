@@ -5,8 +5,6 @@ class TitleTextElement extends TextElement {
     required super.ctxt,
     required super.text,
     required super.cssClass,
-    required super.fontFamily,
-    required super.fontSize,
     required super.textAnchor,
     required super.sourceIndex,
     required super.sourceGabc,

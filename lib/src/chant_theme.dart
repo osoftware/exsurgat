@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:exsurgat/src/core.dart';
+import 'package:flutter/foundation.dart';
 
 import 'chant_context.dart';
 import 'drawing.dart';
@@ -12,33 +13,43 @@ class BaseTextStyle {
   /// Font list using CSS syntax.
   final String font;
 
-  /// Fons size.
+  /// Font size.
   final Scalar size;
 
-  /// Additional CSS properties.
-  final Map<String, dynamic> baseStyle;
+  /// Font weight.
+  final FontWeight? fontWeight;
+
+  /// FontStyle.
+  final FontStyle? fontStyle;
+
+  /// Font features.
+  final List<FontFeature> features;
 
   const BaseTextStyle({
     required this.font,
     required this.size,
-    this.baseStyle = const {},
+    this.fontWeight,
+    this.fontStyle,
+    this.features = const [],
   });
 
   /// Serialized representation of this base text style.
   Map<String, String> toMap() => {
     'font': font,
     'size': '$size',
-    ...baseStyle.map((key, value) => MapEntry(key, '$value')),
+    'font-weight': ?fontWeight?.toSvgString(),
+    'font-style': ?fontStyle?.toSvgString(),
+    if (features.isNotEmpty)
+      'font-variant': features.map((f) => f.toSvgString()).join(' '),
   };
 
   factory BaseTextStyle.fromMap(Map<String, dynamic> map) {
-    final values = Map<String, dynamic>.from(map)
-      ..remove('font')
-      ..remove('size');
     return BaseTextStyle(
-      font: map['font'] as String,
-      size: Scalar.parse('${map['size']}'),
-      baseStyle: values,
+      font: map['font'] as String? ?? kDefaultBaseTextStyle.font,
+      size: Scalar.tryParse('${map['size']}') ?? kDefaultBaseTextStyle.size,
+      fontWeight: FontWeightSvg.tryParse(map['font-weight']),
+      fontStyle: FontStyleSvg.tryParse(map['font-style']),
+      features: FontFeatureSvg.parseVariants(map['font-variant']),
     );
   }
 
@@ -47,17 +58,25 @@ class BaseTextStyle {
       other is BaseTextStyle &&
       font == other.font &&
       size == other.size &&
-      _mapsEqual(baseStyle, other.baseStyle);
+      fontWeight == other.fontWeight &&
+      fontStyle == other.fontStyle &&
+      listEquals(features, other.features);
 
   @override
   int get hashCode => Object.hash(
     font,
     size,
-    Object.hashAllUnordered(
-      baseStyle.entries.map((e) => '${e.key}=${e.value}'),
-    ),
+    fontWeight,
+    fontStyle,
+    Object.hashAllUnordered(features),
   );
 }
+
+/// Splits a CSS font list into list of family names.
+List<String> parseFontFallback(String css) => css
+    .split(RegExp(", ?"))
+    .map((f) => f.replaceAll(RegExp(r"^'|'$"), ''))
+    .toList();
 
 /// Base class for text-size resolution strategies.
 sealed class FontSize {
@@ -72,19 +91,16 @@ sealed class FontSize {
   /// Resolves the concrete font size.
   double resolve(double baseSize, ChantContext ctxt);
 
-  /// Serialized representation, e.g. `{'relative-size': 1.5}`.
-  Map<String, dynamic> toMap();
-
-  factory FontSize.fromMap(Map<String, dynamic> map) {
-    final relative = map['relative-size'];
-    if (relative != null) {
-      return FontSize.relative(double.parse('$relative'));
+  static FontSize? tryParse(String text) {
+    if (text.endsWith('%')) {
+      final value = text.substring(0, text.length - 1);
+      return FontSize.relative(double.parse(value) / 100);
     }
-    final staffIntervalSize = map['staff-interval-size'];
-    if (staffIntervalSize != null) {
-      return FontSize.staffInterval(double.parse('$staffIntervalSize'));
+    if (text.endsWith('#')) {
+      final value = text.substring(0, text.length - 1);
+      return FontSize.staffInterval(double.parse(value));
     }
-    return FontSize.absolute(Scalar.parse('${map['size']}'));
+    return Scalar.tryParse(text).bind(FontSize.absolute);
   }
 }
 
@@ -98,14 +114,14 @@ class RelativeFontSize extends FontSize {
   double resolve(double baseSize, ChantContext ctxt) => baseSize * factor;
 
   @override
-  Map<String, dynamic> toMap() => {'relative-size': factor};
-
-  @override
   bool operator ==(Object other) =>
       other is RelativeFontSize && factor == other.factor;
 
   @override
   int get hashCode => factor.hashCode;
+
+  @override
+  String toString() => '${(factor * 100).toInt()}%';
 }
 
 /// Font size derived from the staff interval of the [ChantContext].
@@ -119,14 +135,14 @@ class StaffIntervalFontSize extends FontSize {
       ctxt.staffInterval * multiplier;
 
   @override
-  Map<String, double> toMap() => {'staff-interval-size': multiplier};
-
-  @override
   bool operator ==(Object other) =>
       other is StaffIntervalFontSize && multiplier == other.multiplier;
 
   @override
   int get hashCode => multiplier.hashCode;
+
+  @override
+  String toString() => '$multiplier#';
 }
 
 /// Fixed font size, independent of context.
@@ -139,22 +155,45 @@ class AbsoluteFontSize extends FontSize {
   double resolve(double baseSize, ChantContext ctxt) => size.deviceIndependent;
 
   @override
-  Map<String, dynamic> toMap() => {'size': size};
-
-  @override
   bool operator ==(Object other) =>
       other is AbsoluteFontSize && size == other.size;
 
   @override
   int get hashCode => size.hashCode;
+
+  @override
+  String toString() => size.toString();
 }
 
 /// Style for a text class.
 class TextStyleDefinition {
-  const TextStyleDefinition({this.font, this.size, this.color});
+  const TextStyleDefinition({
+    this.font,
+    this.fontWeight,
+    this.fontStyle,
+    this.size,
+    this.color,
+    this.features = const [],
+  });
+
+  factory TextStyleDefinition.fromMap(Map<String, dynamic> map) =>
+      TextStyleDefinition(
+        font: map['font'] as String?,
+        size: FontSize.tryParse(map['size']),
+        fontWeight: FontWeightSvg.tryParse(map['font-weight']),
+        fontStyle: FontStyleSvg.tryParse(map['font-style']),
+        features: FontFeatureSvg.parseVariants(map['font-variant']),
+        color: parseColor(map['color']),
+      );
 
   /// Font list using CSS syntax. Overrides font defined in baseTextStyle.
   final String? font;
+
+  /// Font weight.
+  final FontWeight? fontWeight;
+
+  /// FontStyle.
+  final FontStyle? fontStyle;
 
   /// Size resolution strategy. Falls back to the base text style size.
   final FontSize? size;
@@ -162,36 +201,97 @@ class TextStyleDefinition {
   /// Text color. Overrides [ChantTheme.textColor] but not [ChantTheme.rubricColor].
   final Color? color;
 
-  /// Serialized representation of this text style.
-  Map<String, String> toMap() {
-    final map = <String, String>{};
-    if (font != null) map['font'] = font!;
-    size?.toMap().forEach((key, value) => map[key] = '$value');
-    if (color != null) map['color'] = color!.toSvgString();
-    return map;
-  }
+  /// Font features.
+  final List<FontFeature> features;
 
-  static TextStyleDefinition fromMap(Map<String, dynamic> map) {
-    final hasSizing =
-        map.containsKey('relative-size') ||
-        map.containsKey('staff-interval-size') ||
-        map.containsKey('size');
-    return TextStyleDefinition(
-      font: map['font'] as String?,
-      size: hasSizing ? FontSize.fromMap(map) : null,
-      color: parseColor(map['color'] as String?),
-    );
-  }
+  /// Serialized representation of this text style.
+  Map<String, String> toMap() => {
+    'font': ?font,
+    'size': ?size?.toString(),
+    'color': ?color?.toSvgString(),
+    'font-weight': ?fontWeight?.toSvgString(),
+    'font-style': ?fontStyle?.toSvgString(),
+    if (features.isNotEmpty)
+      'font-variant': features.map((f) => f.toSvgString()).join(' '),
+  };
 
   @override
   bool operator ==(Object other) =>
       other is TextStyleDefinition &&
       font == other.font &&
       size == other.size &&
+      fontWeight == other.fontWeight &&
+      fontStyle == other.fontStyle &&
+      listEquals(features, other.features) &&
       color == other.color;
 
   @override
-  int get hashCode => Object.hash(font, size, color);
+  int get hashCode => Object.hash(
+    font,
+    size,
+    fontWeight,
+    fontStyle,
+    Object.hashAllUnordered(features),
+    color,
+  );
+}
+
+extension FontWeightSvg on FontWeight? {
+  String? toSvgString() => switch (this) {
+    null => null,
+    FontWeight.normal => null,
+    FontWeight.bold => 'bold',
+    FontWeight(:final value) => value.toString(),
+  };
+
+  static FontWeight? tryParse(String? value) => switch (value) {
+    null => null,
+    'normal' => FontWeight.normal,
+    'bold' => FontWeight.bold,
+    _ => int.tryParse(value).bind(FontWeight.new),
+  };
+}
+
+extension FontStyleSvg on FontStyle? {
+  String? toSvgString() => switch (this) {
+    null => null,
+    FontStyle.normal => null,
+    FontStyle.italic => 'italic',
+  };
+
+  static FontStyle? tryParse(String? value) => switch (value) {
+    'normal' => .normal,
+    'italic' => .italic,
+    _ => null,
+  };
+}
+
+extension FontFeatureSvg on FontFeature? {
+  String toSvgString() => switch (this?.feature) {
+    'smcp' => 'small-caps',
+    'hist' => 'historical-forms',
+    'hlig' => 'historical-ligatures',
+    'calt' => 'contextual',
+    _ => '',
+  };
+
+  static List<FontFeature> parseVariants(String? value) => switch (value) {
+    null => [],
+    final s =>
+      s
+          .split(' ')
+          .map(
+            (feature) => switch (feature) {
+              'small-caps' => FontFeature('smcp'),
+              'historical-forms' => FontFeature.historicalForms(),
+              'historical-ligatures' => FontFeature.historicalLigatures(),
+              'contextual' => FontFeature.contextualAlternates(),
+              _ => null,
+            },
+          )
+          .whereType<FontFeature>()
+          .toList(),
+  };
 }
 
 /// All coloring, spacing and text styling that can be configured for a chant rendering.
@@ -371,29 +471,25 @@ class ChantTheme {
       '${kDefaultTheme.spaceBetweenSystems}',
     );
 
-    if (baseTextStyle.font != kDefaultTheme.baseTextStyle.font) {
-      header['base-text-style.font'] = baseTextStyle.font;
-    } else {
-      header.remove('base-text-style.font');
-    }
+    header.put(
+      'base-text-style.font',
+      baseTextStyle.font,
+      kDefaultTheme.baseTextStyle.font,
+    );
     header.put(
       'base-text-style.size',
       '${baseTextStyle.size}',
       '${kDefaultTheme.baseTextStyle.size}',
     );
-    baseTextStyle.baseStyle.forEach((key, value) {
-      final kDefaultValue = kDefaultTheme.baseTextStyle.baseStyle[key];
-      header.put('base-text-style.$key', '$value', '$kDefaultValue');
-    });
+
+    if (baseTextStyle == kDefaultTheme.baseTextStyle) {
+      header.removeAll('base-text-style.');
+    }
 
     final kDefaultStyles = kDefaultTheme.textStyles;
     textStyles.forEach((name, style) {
       if (style == kDefaultStyles[name]) {
-        // Remove any previously serialized properties for this style.
-        header.keys
-            .where((key) => key.startsWith('text-style.$name.'))
-            .toList()
-            .forEach(header.remove);
+        header.removeAll('text-style.$name.');
         return;
       }
       style.toMap().forEach(
@@ -413,20 +509,12 @@ class ChantTheme {
     });
     final baseTextStyle = base.isEmpty
         ? kDefaultBaseTextStyle
-        : BaseTextStyle(
-            font: base['font'] as String? ?? kDefaultBaseTextStyle.font,
-            size:
-                Scalar.tryParse('${base['size']}') ??
-                kDefaultBaseTextStyle.size,
-            baseStyle: Map.from(base)
-              ..remove('font')
-              ..remove('size'),
-          );
+        : BaseTextStyle.fromMap(base);
 
     final styles = <String, Map<String, dynamic>>{};
     values.forEach((key, value) {
       final match = RegExp(
-        r'^text-style\.([a-zA-Z]+)\.([a-zA-Z]+)$',
+        r'^text-style\.([a-zA-Z]+)\.([a-zA-Z-]+)$',
       ).firstMatch(key);
       if (match == null) return;
       styles.putIfAbsent(match.group(1)!, () => {})[match.group(2)!] = value;
@@ -518,7 +606,3 @@ final Map<String, TextStyleDefinition> kDefaultTextStyles = const {
   'lyric': TextStyleDefinition(size: RelativeFontSize(0.9)),
   'translation': TextStyleDefinition(size: RelativeFontSize(0.75)),
 };
-
-/// Deep-compares two CSS property maps used by [BaseTextStyle].
-bool _mapsEqual(Map<String, dynamic> a, Map<String, dynamic> b) =>
-    a.length == b.length && a.entries.every((e) => b[e.key] == e.value);

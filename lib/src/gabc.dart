@@ -156,9 +156,10 @@ class GabcHeader {
   bool containsKey(String key) => _values.containsKey(key);
 
   /// Removes [key] and its variants: the `<key>Array` entry and both
-  /// kebab-case/camelCase spellings of the key and its array. The header
-  /// stores entries under multiple conventions, so removal always clears
-  /// all of them.
+  /// kebab-case/camelCase spellings of the key and its array.
+  ///
+  /// The header stores entries under multiple conventions, so removal always
+  /// clears all of them.
   void remove(String key) {
     final alternateKey = key.contains('-')
         ? key.replaceAllMapped(
@@ -173,6 +174,17 @@ class GabcHeader {
       _values.remove(variant);
       _values.remove('${variant}Array');
     }
+  }
+
+  /// Removes all entries where the key matches [keys] pattern.
+  ///
+  /// The header stores entries under multiple conventions, so removal always
+  /// clears all of them: camelCase, kebab-case and `<key>Array`.
+  void removeAll(Pattern keys) {
+    _values.entries
+        .where((e) => keys.matchAsPrefix(e.key) != null)
+        .toList()
+        .forEach((e) => remove(e.key));
   }
 
   /// Sets [key] to [value] if it differs from [kDefaultValue];

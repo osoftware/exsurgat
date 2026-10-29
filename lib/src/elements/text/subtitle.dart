@@ -7,8 +7,6 @@ class Subtitle extends TitleTextElement {
         ctxt: ctxt,
         text: (ctxt.textStyles['subtitle']?['prefix'] ?? '') + text,
         cssClass: 'subtitle',
-        fontFamily: (ctxt) => ctxt.textStyles['subtitle']?['font'],
-        fontSize: (ctxt) => ctxt.textStyles['subtitle']?['size'],
         textAnchor: .center,
         sourceIndex: sourceIndex,
         sourceGabc: text,

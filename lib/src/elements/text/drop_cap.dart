@@ -10,8 +10,6 @@ class DropCap extends TextElement {
         ctxt: ctxt,
         text: (ctxt.textStyles['dropCap']?['prefix'] ?? '') + text,
         cssClass: 'dropCap',
-        fontFamily: (ctxt) => ctxt.textStyles['dropCap']?['font'],
-        fontSize: (ctxt) => ctxt.textStyles['dropCap']?['size'],
         textAnchor: .center,
         sourceIndex: sourceIndex,
         sourceGabc: text,
@@ -25,19 +23,22 @@ class DropCap extends TextElement {
 
   double baselineOffset(ChantContext ctxt) {
     if (ctxt.textMeasurer.align == .baseline) return 0;
+    final dcStyle = ctxt.textStyles[cssClass]!;
     final dcProps = <String, dynamic>{
       ...getExtraStyleProperties(ctxt),
-      'base-font-family': fontFamily(ctxt),
-      'base-font-size': fontSize(ctxt),
+      'base-font-family': dcStyle['font'],
+      'base-font-size': dcStyle['size'],
+      'fill': ?dcStyle['fill'],
       'line-height': 1.0,
     };
     final dc = spans.first.buildParagraph(ctxt, dcProps, .start)
       ..layout(ui.ParagraphConstraints(width: double.infinity));
     final lyric = Lyric(ctxt, 'M', .directive);
+    final lStyle = ctxt.textStyles['lyric']!;
     final lProps = <String, dynamic>{
       ...lyric.getExtraStyleProperties(ctxt),
-      'base-font-family': lyric.fontFamily(ctxt),
-      'base-font-size': lyric.fontSize(ctxt),
+      'base-font-family': lStyle['font'],
+      'base-font-size': lStyle['size'],
     };
     final l = lyric.spans.first.buildParagraph(ctxt, lProps, .start)
       ..layout(ui.ParagraphConstraints(width: double.infinity));

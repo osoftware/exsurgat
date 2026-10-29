@@ -203,8 +203,8 @@ class ChantLine extends ChantLayoutElement {
     notationBounds += startingClef!.bounds;
 
     lyricLineHeight =
-        ctxt.textStyles['lyric']['size'] *
-        (ctxt.textStyles['lyric']['lineHeight'] ?? 1.1);
+        ctxt.textStyles['lyric']!['size'] *
+        (ctxt.textStyles['lyric']!['lineHeight'] ?? 1.1);
     lyricLineBaseline = 0;
     numLyricLines = 0;
 
@@ -213,14 +213,14 @@ class ChantLine extends ChantLayoutElement {
     numAltLines = 0;
 
     translationLineHeight =
-        ctxt.textStyles['translation']['size'] *
-        (ctxt.textStyles['translation']['lineHeight'] ?? 1.1);
+        ctxt.textStyles['translation']!['size'] *
+        (ctxt.textStyles['translation']!['lineHeight'] ?? 1.1);
     translationLineBaseline = 0;
     numTranslationLines = 0;
 
     final aboveLinesLineHeight =
-        ctxt.textStyles['al']['size'] *
-        (ctxt.textStyles['al']['lineHeight'] ?? 1.1);
+        ctxt.textStyles['al']!['size'] *
+        (ctxt.textStyles['al']!['lineHeight'] ?? 1.1);
 
     for (int i = notationsStartIndex; i < lastNeumeIndex; i++) {
       notation = notations[i];

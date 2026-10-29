@@ -48,13 +48,15 @@ abstract class TextMeasurer {
 
   /// Returns M-height of a given text element.
   double measureMHeight(TextElement textElement, ChantContext ctxt) {
+    final style = ctxt.textStyles[textElement.cssClass]!;
     final paragraph = textElement.spans.first.buildParagraph(
       ctxt,
       {
+        'base-font-family': style['font'],
+        'base-font-size': style['size'],
+        ...style,
         ...textElement.getExtraStyleProperties(ctxt),
         ...textElement.spans.first.properties,
-        'base-font-family': textElement.fontFamily(ctxt),
-        'base-font-size': textElement.fontSize(ctxt),
         'line-height': 1.0,
       },
       ui.TextAlign.start,
@@ -100,13 +102,15 @@ final class CanvasTextMeasurerStrategy extends TextMeasurer {
 
     final builder = ui.ParagraphBuilder(ui.ParagraphStyle());
 
+    final style = ctxt.textStyles[textElement.cssClass]!;
     for (final span in textElement.spans) {
       final t = span.text.slice(0, length == null ? null : length - consumed);
       final props = {
+        'base-font-family': style['font'],
+        'base-font-size': style['size'],
+        ...style,
         ...textElement.getExtraStyleProperties(ctxt),
         ...span.properties,
-        'base-font-family': textElement.fontFamily(ctxt),
-        'base-font-size': textElement.fontSize(ctxt),
       };
       builder.addText('\n' * span.newLine);
       builder.addTextSpan(ctxt, t, props, textElement.resize);
@@ -150,16 +154,18 @@ final class SvgTextMeasurerStrategy extends TextMeasurer {
     Rect cur = Rect.fromXYWH(0, 0, 0, 0);
     Rect prev;
 
+    final style = ctxt.textStyles[textElement.cssClass]!;
     for (final span in textElement.spans) {
       prev = cur;
       final t = span.text.slice(0, length == null ? null : length - consumed);
       final p = span.buildParagraph(
         ctxt,
         {
+          'base-font-family': style['font'],
+          'base-font-size': style['size'],
+          ...style,
           ...textElement.getExtraStyleProperties(ctxt),
           ...span.properties,
-          'base-font-family': textElement.fontFamily(ctxt),
-          'base-font-size': textElement.fontSize(ctxt),
         },
         textElement.textAnchor,
         textElement.resize,

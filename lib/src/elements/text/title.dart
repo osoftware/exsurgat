@@ -7,8 +7,6 @@ class Title extends TitleTextElement {
         ctxt: ctxt,
         text: (ctxt.textStyles['title']?['prefix'] ?? '') + text,
         cssClass: 'title',
-        fontFamily: (ctxt) => ctxt.textStyles['title']?['font'],
-        fontSize: (ctxt) => ctxt.textStyles['title']?['size'],
         textAnchor: .center,
         sourceIndex: sourceIndex,
         sourceGabc: text,
