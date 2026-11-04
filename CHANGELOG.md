@@ -8,6 +8,8 @@
 * BUGFIX: Fixed SVG export of paginated score. 
 * BUGFIX: Fixed `TranslationText.endNeume` lost for `[/]` after incremental
   source update of a translation.
+* BUGFIX: Fixed translation text keeping a stale horizontal position when its
+  `[/]` end moved without the notation being laid out again.
 
 ## 0.2.3
 

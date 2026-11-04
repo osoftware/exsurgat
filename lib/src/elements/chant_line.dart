@@ -1736,6 +1736,9 @@ class ChantLine extends ChantLayoutElement {
       if (neume.translationText.isNotEmpty) {
         for (int j = 0; j < neume.translationText.length; j++) {
           final text = neume.translationText[j];
+          // The line may be laid out again without the notation being laid
+          // out, so start from the unaligned position, not the previous one.
+          text.bounds = text.bounds.copyWith(x: 0);
           if (text.endNeume != null) {
             double rightX = (text.endNeume!.hasLyrics)
                 ? text.endNeume!.bounds.x +

@@ -39,6 +39,67 @@ Ex(aba)ur(dcd)gat(fg.) de(ab)us(fg.)
       expect(translations[1].endNeume, isNotNull);
     });
 
+    test('Translation inserted before [/] takes over its end', () {
+      const header = 'mode:5\n%%\n';
+      final ast = Gabc.fromSource(
+        ctxt,
+        '$header(c3) A[x](g) b(g) c(g) d[/](g)',
+      );
+      List<TranslationText> translations() => ast
+          .expand((word) => word.notations)
+          .expand((notation) => notation.translationText)
+          .toList();
+      expect(translations().first.endNeume, isNotNull);
+      Gabc.updateAstFromSource(
+        ctxt,
+        ast,
+        '$header(c3) A[x](g) b[y](g) c(g) d[/](g)',
+      );
+      expect(translations()[0].endNeume, isNull);
+      expect(translations()[1].endNeume, isNotNull);
+      Gabc.updateAstFromSource(
+        ctxt,
+        ast,
+        '$header(c3) A[x](g) b[y](g) c(g) d[/](g)',
+      );
+      const current = '$header(c3) A[x](g) b[y](g) c(g) d[/](g)';
+      expect(translations()[1].sourceIndex, current.indexOf('[y]') + 1);
+      expect(translations()[2].sourceIndex, current.indexOf('[/]') + 1);
+      Gabc.updateAstFromSource(
+        ctxt,
+        ast,
+        '$header(c3) A[x](g) b[y](g) c[/](g) d(g)',
+      );
+      expect(translations()[1].endNeume, isNotNull);
+      expect(
+        translations()[1].endNeume,
+        same(translations()[2].notation),
+      );
+    });
+
+    test('Translation realigns when its end moves without relayout', () {
+      const header = 'mode:5\n%%\n';
+      TranslationText y(ChantDocument doc) => doc.score.words
+          .expand((word) => word.notations)
+          .expand((notation) => notation.translationText)
+          .firstWhere((text) => text.sourceGabc == 'yyyy');
+      final doc = ChantDocument.fromSource(
+        '$header(c3) A(g) b[yyyy](g) c(g) d[/](g)',
+      );
+      doc.score.performLayout(doc.ctxt);
+      doc.score.layoutChantLines(doc.ctxt, 400);
+      final before = y(doc).bounds.x;
+      doc.updateSource('$header(c3) A(g) b[yyyy](g) c[/](g) d(g)');
+      doc.score.performLayout(doc.ctxt);
+      doc.score.layoutChantLines(doc.ctxt, 400);
+      final shorter = y(doc).bounds.x;
+      doc.updateSource('$header(c3) A(g) b[yyyy](g) c(g) d[/](g)');
+      doc.score.performLayout(doc.ctxt);
+      doc.score.layoutChantLines(doc.ctxt, 400);
+      expect(shorter, isNot(before));
+      expect(y(doc).bounds.x, closeTo(before, 0.001));
+    });
+
     test('Word splitter preserves whitespace', () {
       final words = Gabc.splitWords(
         'Ex(ab)ur(dcd)gat(fg.) \nde(ab)us(fg.)\n et(ab)',
