@@ -793,7 +793,11 @@ class Gabc {
             }
           }
         }
-        lastTranslationNeumes.add(notationWithLyrics);
+        if (lastTranslationNeumes.isEmpty) {
+          lastTranslationNeumes.add(notationWithLyrics);
+        } else {
+          lastTranslationNeumes[0] = notationWithLyrics;
+        }
       }
 
       if (lyricText.isEmpty) continue;

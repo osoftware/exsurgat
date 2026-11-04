@@ -20,6 +20,25 @@ mode:5
 %%
 Ex(aba)ur(dcd)gat(fg.) de(ab)us(fg.)
 ''';
+    test('Keeps translation end after editing a later translation', () {
+      const header = 'mode:5\n%%\n';
+      final ast = Gabc.fromSource(
+        ctxt,
+        '${header}A[a](a) b(b) C[c](c) d(d) E[/](e)',
+      );
+      Gabc.updateAstFromSource(
+        ctxt,
+        ast,
+        '${header}A[a](a) b(b) C[cc](c) d(d) E[/](e)',
+      );
+      final translations = ast
+          .expand((word) => word.notations)
+          .expand((notation) => notation.translationText)
+          .toList();
+      expect(translations[1].sourceGabc, 'cc');
+      expect(translations[1].endNeume, isNotNull);
+    });
+
     test('Word splitter preserves whitespace', () {
       final words = Gabc.splitWords(
         'Ex(ab)ur(dcd)gat(fg.) \nde(ab)us(fg.)\n et(ab)',
