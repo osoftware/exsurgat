@@ -71,10 +71,7 @@ Ex(aba)ur(dcd)gat(fg.) de(ab)us(fg.)
         '$header(c3) A[x](g) b[y](g) c[/](g) d(g)',
       );
       expect(translations()[1].endNeume, isNotNull);
-      expect(
-        translations()[1].endNeume,
-        same(translations()[2].notation),
-      );
+      expect(translations()[1].endNeume, same(translations()[2].notation));
     });
 
     test('Translation realigns when its end moves without relayout', () {
@@ -248,7 +245,7 @@ Ex(aba)ur(dcd)gat(fg.) de(ab)us(fg.)
     final gabcSource = '''
 mode: 5;
 title: Exsurgat;
-page-width: 21.0cm;
+page-width: 21cm;
 text-color: #111111ff;
 %%
 Ex(ab)ur(dcd)gat(fg.) de(ab)us(fg.)
@@ -274,8 +271,8 @@ Et(abc)
         lyric: TextStyleDefinition(size: RelativeFontSize(1)),
       );
       final output = doc.toString();
-      expect(output, contains('base-text-style.size: 16.0pt'));
-      expect(output, contains('text-style.lyric.relative-size: 1.0'));
+      expect(output, contains('base-text-style.size: 16pt'));
+      expect(output, contains('text-style.lyric.size: 100%'));
     });
   });
 }
