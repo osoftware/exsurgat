@@ -318,6 +318,9 @@ class ChantTheme {
   final double minSpaceBelowStaff;
   final double spaceBetweenSystems;
 
+  /// Number of lines the drop cap spans, from 0 to 4. 0 disables the drop cap.
+  final int initialLines;
+
   /// Creates a new theme. Unspecified parameters fall back to the default theme.
   ChantTheme({
     this.baseTextStyle = kDefaultBaseTextStyle,
@@ -331,6 +334,7 @@ class ChantTheme {
     this.minSpaceAboveStaff = kDefaultMinSpaceAboveStaff,
     this.minSpaceBelowStaff = kDefaultMinSpaceBelowStaff,
     this.spaceBetweenSystems = kDefaultSpaceBetweenSystems,
+    int initialLines = kDefaultInitialLines,
     TextStyleDefinition? supertitle,
     TextStyleDefinition? title,
     TextStyleDefinition? subtitle,
@@ -341,7 +345,8 @@ class ChantTheme {
     TextStyleDefinition? choralSign,
     TextStyleDefinition? lyric,
     TextStyleDefinition? translation,
-  }) : supertitle = supertitle ?? kDefaultTextStyles['supertitle']!,
+  }) : initialLines = initialLines.clamp(0, 4),
+       supertitle = supertitle ?? kDefaultTextStyles['supertitle']!,
        title = title ?? kDefaultTextStyles['title']!,
        subtitle = subtitle ?? kDefaultTextStyles['subtitle']!,
        leftRight = leftRight ?? kDefaultTextStyles['leftRight']!,
@@ -365,6 +370,54 @@ class ChantTheme {
     'translation': translation,
   };
 
+  ChantTheme copyWith({
+    BaseTextStyle? baseTextStyle,
+    Color? textColor,
+    Color? rubricColor,
+    Color? neumeColor,
+    Color? staffLineColor,
+    Color? dividerLineColor,
+    Color? selectionColor,
+    double? minLedgerSeparation,
+    double? minSpaceAboveStaff,
+    double? minSpaceBelowStaff,
+    double? spaceBetweenSystems,
+    int? initialLines,
+    TextStyleDefinition? supertitle,
+    TextStyleDefinition? title,
+    TextStyleDefinition? subtitle,
+    TextStyleDefinition? leftRight,
+    TextStyleDefinition? annotation,
+    TextStyleDefinition? dropCap,
+    TextStyleDefinition? aboveLine,
+    TextStyleDefinition? choralSign,
+    TextStyleDefinition? lyric,
+    TextStyleDefinition? translation,
+  }) => ChantTheme(
+    baseTextStyle: baseTextStyle ?? this.baseTextStyle,
+    textColor: textColor ?? this.textColor,
+    rubricColor: rubricColor ?? this.rubricColor,
+    neumeColor: neumeColor ?? this.neumeColor,
+    staffLineColor: staffLineColor ?? this.staffLineColor,
+    dividerLineColor: dividerLineColor ?? this.dividerLineColor,
+    selectionColor: selectionColor ?? this.selectionColor,
+    minLedgerSeparation: minLedgerSeparation ?? this.minLedgerSeparation,
+    minSpaceAboveStaff: minSpaceAboveStaff ?? this.minSpaceAboveStaff,
+    minSpaceBelowStaff: minSpaceBelowStaff ?? this.minSpaceBelowStaff,
+    spaceBetweenSystems: spaceBetweenSystems ?? this.spaceBetweenSystems,
+    initialLines: initialLines ?? this.initialLines,
+    supertitle: supertitle ?? this.supertitle,
+    title: title ?? this.title,
+    subtitle: subtitle ?? this.subtitle,
+    leftRight: leftRight ?? this.leftRight,
+    annotation: annotation ?? this.annotation,
+    dropCap: dropCap ?? this.dropCap,
+    aboveLine: aboveLine ?? this.aboveLine,
+    choralSign: choralSign ?? this.choralSign,
+    lyric: lyric ?? this.lyric,
+    translation: translation ?? this.translation,
+  );
+
   @override
   bool operator ==(Object other) =>
       other is ChantTheme &&
@@ -379,6 +432,7 @@ class ChantTheme {
       minSpaceAboveStaff == other.minSpaceAboveStaff &&
       minSpaceBelowStaff == other.minSpaceBelowStaff &&
       spaceBetweenSystems == other.spaceBetweenSystems &&
+      initialLines == other.initialLines &&
       supertitle == other.supertitle &&
       title == other.title &&
       subtitle == other.subtitle &&
@@ -403,6 +457,7 @@ class ChantTheme {
     minSpaceAboveStaff,
     minSpaceBelowStaff,
     spaceBetweenSystems,
+    initialLines,
     supertitle,
     title,
     subtitle,
@@ -470,6 +525,11 @@ class ChantTheme {
       '$spaceBetweenSystems',
       '${kDefaultTheme.spaceBetweenSystems}',
     );
+    header.put(
+      'initial-lines',
+      '$initialLines',
+      '${kDefaultTheme.initialLines}',
+    );
 
     header.put(
       'base-text-style.font',
@@ -520,6 +580,10 @@ class ChantTheme {
       styles.putIfAbsent(match.group(1)!, () => {})[match.group(2)!] = value;
     });
 
+    final initialLines = header
+        .readInt('initial-lines', header.readInt('initial-style', 1))
+        .clamp(0, 4);
+
     TextStyleDefinition style(String name) {
       final map = styles[name];
       return map == null
@@ -557,6 +621,7 @@ class ChantTheme {
         'space-between-systems',
         kDefaultSpaceBetweenSystems,
       ),
+      initialLines: initialLines,
       supertitle: style('supertitle'),
       title: style('title'),
       subtitle: style('subtitle'),
@@ -577,6 +642,7 @@ const double kDefaultMinLedgerSeparation = 2;
 const double kDefaultMinSpaceAboveStaff = 2;
 const double kDefaultMinSpaceBelowStaff = 1;
 const double kDefaultSpaceBetweenSystems = 1.5;
+const int kDefaultInitialLines = 1;
 
 const kDefaultBaseTextStyle = BaseTextStyle(
   font: "'Palatino Linotype', 'Book Antiqua', Palatino, serif",

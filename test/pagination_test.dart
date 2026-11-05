@@ -67,7 +67,6 @@ Ky(gh)ri(gf)e(e.) (,) e(gvFD)le(ghg)í(gfe)son(f.) (,)
       final renderObject = RenderChantScore(
         gabc: '',
         document: doc,
-        useDropCap: null,
         theme: null,
         tool: null,
         arrangement: PageArrangement.row,
@@ -99,7 +98,6 @@ Ky(gh)ri(gf)e(e.) (,) e(gvFD)le(ghg)í(gfe)son(f.) (,)
       final renderObject = RenderChantScore(
         gabc: '',
         document: doc,
-        useDropCap: null,
         theme: null,
         tool: null,
         arrangement: PageArrangement.single,
@@ -122,7 +120,6 @@ Ky(gh)ri(gf)e(e.) (,) e(gvFD)le(ghg)í(gfe)son(f.) (,)
       final renderObject = RenderChantScore(
         gabc: '',
         document: doc,
-        useDropCap: null,
         theme: null,
         tool: null,
         arrangement: PageArrangement.facingPairs,
@@ -153,7 +150,6 @@ Ky(gh)ri(gf)e(e.) (,) e(gvFD)le(ghg)í(gfe)son(f.) (,)
       final renderObject = RenderChantScore(
         gabc: '',
         document: doc,
-        useDropCap: null,
         theme: null,
         tool: null,
         arrangement: PageArrangement.auto,

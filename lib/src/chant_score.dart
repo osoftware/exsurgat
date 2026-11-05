@@ -2,6 +2,7 @@
 library;
 
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:flutter/foundation.dart';
@@ -135,12 +136,11 @@ class ElementHighlight {
 class ChantScore extends ChangeNotifier {
   /// Creates a new [ChantScore] from the given [words].
   ///
-  /// If [useDropCap] is `true`, then a drop cap is created for the first
-  /// syllable of the score.
+  /// If `ctxt.theme.initialLines` is greater than 0, then a drop cap is
+  /// created for the first syllable of the score.
   ChantScore({
     ChantContext? ctxt,
     List<Word> words = const [],
-    this.useDropCap = false,
     GabcHeader? header,
   }) : words = List.of(words) {
     if (ctxt != null) updateHeader(ctxt, header);
@@ -168,9 +168,6 @@ class ChantScore extends ChangeNotifier {
 
   /// The starting clef for the score.
   Clef? startingClef;
-
-  /// Whether to use a drop cap for the first syllable.
-  bool useDropCap = false;
 
   /// The drop cap element, if any.
   DropCap? dropCap;
@@ -412,7 +409,7 @@ class ChantScore extends ChangeNotifier {
     startingClef!.selected = selectedIndices.contains(-1);
 
     // update drop cap
-    if (useDropCap) {
+    if (ctxt.theme.initialLines > 0) {
       recreateDropCap(ctxt);
     } else {
       dropCap = null;
@@ -432,7 +429,7 @@ class ChantScore extends ChangeNotifier {
       final notation = notations[i];
       if (notation.hasLyrics && notation.lyrics[0].spans.isNotEmpty) {
         final lyrics = notation.lyrics[0];
-        if (useDropCap) {
+        if (ctxt.theme.initialLines > 0) {
           dropCap = lyrics.generateDropCap(ctxt);
         } else {
           lyrics.dropCap = null;
@@ -451,9 +448,9 @@ class ChantScore extends ChangeNotifier {
     ctxt.currNotationIndex = 0;
     ctxt.staffLineCount = staffLineCount;
 
-    if (dropCap != null) dropCap?.recalculateMetrics(ctxt);
+    dropCap?.recalculateMetrics(ctxt);
 
-    if (annotation != null) annotation!.recalculateMetrics(ctxt);
+    annotation?.recalculateMetrics(ctxt);
   }
 
   /// Lays out the score.
@@ -516,7 +513,7 @@ class ChantScore extends ChangeNotifier {
     do {
       final line = ChantLine(this);
 
-      line.buildFromChantNotationIndex(ctxt, currIndex, width);
+      line.buildFromChantNotationIndex(ctxt, currIndex, width, lines.length);
       currIndex = line.notationsStartIndex + line.numNotationsOnLine;
       line.performLayout(ctxt);
       line.elementIndex = lines.length;
@@ -525,6 +522,10 @@ class ChantScore extends ChangeNotifier {
       line.bounds = line.bounds.copyWith(y: -line.bounds.y + y);
       y += line.bounds.height + spaceBetweenSystems;
     } while (currIndex < notations.length);
+
+    if (dropCap case final DropCap dc when ctxt.theme.initialLines > 1) {
+      y += _layoutMultiLineDropCap(ctxt, dc, y - spaceBetweenSystems);
+    }
 
     final firstLine = lines[0];
 
@@ -538,6 +539,61 @@ class ChantScore extends ChangeNotifier {
     }
 
     if (finishedCallback != null) finishedCallback(this);
+  }
+
+  /// Aligns [dc] to the baseline of the `ctxt.theme.initialLines`-th line and
+  /// places the annotation above it.
+  ///
+  /// When there are fewer lines than that, the baseline is
+  /// extrapolated as if the last line was repeated. Lines are shifted down
+  /// when the drop cap reaches above the first one.
+  ///
+  /// Returns how much the total height of the lines grew.
+  double _layoutMultiLineDropCap(
+    ChantContext ctxt,
+    DropCap dc,
+    double contentBottom,
+  ) {
+    final initialLines = ctxt.theme.initialLines;
+    final first = lines.first;
+    final lastIndex = math.min(initialLines, lines.length) - 1;
+    final last = lines[lastIndex];
+    final missingLines = initialLines - 1 - lastIndex;
+    final lineStride =
+        last.bounds.height +
+        ctxt.staffInterval * ctxt.theme.spaceBetweenSystems;
+    final baseline =
+        last.bounds.y +
+        missingLines * lineStride +
+        last.lyricLineBaseline -
+        first.bounds.y;
+
+    final top = baseline - dc.origin.y + dc.baselineOffset(ctxt);
+    dc.bounds = dc.bounds.copyWith(
+      y: ctxt.textMeasurer.align == .baseline ? baseline : top,
+    );
+
+    final annotationTop = first.layoutAnnotation(ctxt, baseline);
+    final newTop = math.min(top, annotationTop ?? top);
+    final extraTop = math.max(0.0, first.notationBounds.y - newTop);
+    if (extraTop > 0) {
+      first.notationBounds = first.notationBounds.copyWith(
+        y: newTop,
+        height: first.notationBounds.height + extraTop,
+      );
+      first.bounds = first.bounds.copyWith(
+        y: first.bounds.y + extraTop,
+        height: first.bounds.height + extraTop,
+      );
+      first.origin = core.Point(first.origin.x, first.origin.y + extraTop);
+      for (final line in lines.skip(1)) {
+        line.bounds = line.bounds.copyWith(y: line.bounds.y + extraTop);
+      }
+    }
+
+    final dropCapBottom = first.bounds.y + top + dc.bounds.height;
+    final extraBottom = math.max(0.0, dropCapBottom - contentBottom - extraTop);
+    return extraTop + extraBottom;
   }
 
   /// Paginates the score into pages that fit within [height].

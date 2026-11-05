@@ -53,7 +53,6 @@ class ChantScoreBody extends LeafRenderObjectWidget {
   const ChantScoreBody({
     super.key,
     required this.gabc,
-    this.useDropCap = true,
     this.theme,
     this.arrangement = PageArrangement.auto,
     this.pageIndex = 0,
@@ -72,8 +71,7 @@ class ChantScoreBody extends LeafRenderObjectWidget {
     this.pageIndex = 0,
     this.pageGap = 24,
     this.pageDecoration,
-  }) : gabc = '',
-       useDropCap = null;
+  }) : gabc = '';
 
   /// The gabc source.
   ///
@@ -85,11 +83,6 @@ class ChantScoreBody extends LeafRenderObjectWidget {
   ///
   /// Only used by [ChantScoreBody.editable].
   final ChantDocument? document;
-
-  /// Whether to display the initial.
-  ///
-  /// Overrides `initial-style` property in GABC header.
-  final bool? useDropCap;
 
   /// Theme to apply on the score.
   ///
@@ -122,7 +115,6 @@ class ChantScoreBody extends LeafRenderObjectWidget {
     return RenderChantScore(
       gabc: gabc,
       document: document,
-      useDropCap: useDropCap,
       theme: theme,
       tool: tool,
       arrangement: arrangement,
@@ -138,7 +130,6 @@ class ChantScoreBody extends LeafRenderObjectWidget {
     renderObject
       ..gabc = gabc
       ..document = document
-      ..useDropCap = useDropCap
       ..theme = theme
       ..tool = tool
       ..arrangement = arrangement
@@ -153,7 +144,6 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
   RenderChantScore({
     required String gabc,
     required ChantDocument? document,
-    required bool? useDropCap,
     required ChantTheme? theme,
     required Tool? tool,
     required PageArrangement arrangement,
@@ -162,26 +152,25 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     required Decoration? pageDecoration,
   }) : _gabc = gabc,
        _ownsDocument = document == null,
-       _useDropCap = useDropCap,
        _tool = tool,
        _arrangement = arrangement,
        _pageIndex = pageIndex,
        _pageGap = pageGap,
-       _pageDecoration = pageDecoration {
+       _pageDecoration = pageDecoration,
+       _themeOverride = theme {
     _document = document ?? ChantDocument.fromSource(gabc, ChantContext());
     // Reuse the document's context so layout state (fonts, hyphen width,
     // notation list) survives render object recreation, e.g. on tab switches.
     if (theme != null) _document.ctxt.theme = theme;
     // A provided theme overrides the document's theme.
     if (theme != null) _document.theme = theme;
-    if (useDropCap != null) _document.score.useDropCap = useDropCap;
     _document.addListener(_handleDocumentChanged);
     _tool?._attachTo(this);
   }
 
   String _gabc;
-  bool? _useDropCap;
   Tool? _tool;
+  ChantTheme? _themeOverride;
   PageArrangement _arrangement;
   int _pageIndex;
   double _pageGap;
@@ -221,7 +210,10 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     // Only the default constructor parses gabc; an editable body is backed
     // by an externally provided document and ignores gabc updates.
     if (_ownsDocument) {
-      document = ChantDocument.fromSource(value, _chantContext);
+      final newDocument = ChantDocument.fromSource(value, _chantContext);
+      // The provided theme keeps overriding the one defined in the header.
+      if (_themeOverride case final override?) newDocument.theme = override;
+      document = newDocument;
     }
   }
 
@@ -245,21 +237,6 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     markNeedsLayout();
   }
 
-  /// Whether to display the initial.
-  ///
-  /// Overrides `initial-style` property in GABC header.
-  bool? get useDropCap => _useDropCap;
-  set useDropCap(bool? value) {
-    if (value == _useDropCap) return;
-    _useDropCap = value;
-    if (value != null) {
-      score.useDropCap = value;
-    } else {
-      score.useDropCap = document.header['initial-style'] != "0";
-    }
-    markNeedsLayout();
-  }
-
   /// Interactive tool for manipulating the editable score.
   ///
   /// Only used by [ChantScoreBody.editable].
@@ -277,6 +254,7 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
   ChantTheme get theme => _chantContext.theme;
   set theme(ChantTheme? value) {
     if (value == null || value == _chantContext.theme) return;
+    _themeOverride = value;
     _chantContext.theme = value;
     _document.theme = value;
     score.needsLayout = true;

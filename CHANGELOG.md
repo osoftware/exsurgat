@@ -1,6 +1,11 @@
 ## 0.3.0
 
-* `ChantTheme` now supports advanced typographic features: 
+* FEATURE (BREAKING): `ChantTheme` now contains `initialLines` (gabc header 
+  `initial-lines`) determining how many lines the drop cap spans; 0 disables it. 
+  It supersedes the `initial-style` header and the `useDropCap` parameter of 
+  `ChantScore`, `ChantScoreBody` and `ChantScoreView`. 
+  Legacy `initial-style` is still read as a fallback.
+* FEATURE: `ChantTheme` now supports advanced typographic features: 
   small caps, historical forms and ligatures, contextual forms.
 * BUGFIX: Fixed stale text and line metrics after theme or layout change: 
   `ChantDocument` forces a full relayout when the theme or layout is updated.

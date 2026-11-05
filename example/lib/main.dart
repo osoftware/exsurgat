@@ -34,7 +34,7 @@ class EditorPage extends StatefulWidget {
 class _EditorPageState extends State<EditorPage> {
   final _gabcCtrl = TextEditingController(text: '(c3) ');
 
-  bool dropCap = true;
+  int initialLines = 1;
   bool fancy = false;
 
   final fancyTheme = ChantTheme(
@@ -70,7 +70,9 @@ class _EditorPageState extends State<EditorPage> {
   );
   @override
   Widget build(BuildContext context) {
-    final chantTheme = fancy ? fancyTheme : normalTheme;
+    final chantTheme = (fancy ? fancyTheme : normalTheme).copyWith(
+      initialLines: initialLines,
+    );
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
@@ -94,11 +96,18 @@ class _EditorPageState extends State<EditorPage> {
           ),
           Row(
             children: [
-              Switch.adaptive(
-                value: dropCap,
-                onChanged: (v) => setState(() => dropCap = v),
+              Text('Initial lines'),
+              SizedBox(
+                width: 160,
+                child: Slider(
+                  value: initialLines.toDouble(),
+                  min: 0,
+                  max: 4,
+                  divisions: 4,
+                  label: '$initialLines',
+                  onChanged: (v) => setState(() => initialLines = v.round()),
+                ),
               ),
-              Text('Drop Cap'),
               VerticalDivider(),
               Switch.adaptive(
                 value: fancy,
@@ -113,11 +122,8 @@ class _EditorPageState extends State<EditorPage> {
               color: Colors.amber.withAlpha(40),
               child: ListenableBuilder(
                 listenable: _gabcCtrl,
-                builder: (_, _) => ChantScoreView(
-                  gabc: _gabcCtrl.text,
-                  useDropCap: dropCap,
-                  theme: chantTheme,
-                ),
+                builder: (_, _) =>
+                    ChantScoreView(gabc: _gabcCtrl.text, theme: chantTheme),
               ),
             ),
           ),
@@ -135,14 +141,15 @@ class _EditorPageState extends State<EditorPage> {
     final renderingContext = ChantContext(
       textMeasuringStrategy: .svg,
       stylingMode: .attributes,
-      theme: fancy ? fancyTheme : ChantTheme.kDefaultTheme,
+      theme: (fancy ? fancyTheme : ChantTheme.kDefaultTheme).copyWith(
+        initialLines: initialLines,
+      ),
     );
     final score =
         ChantScore(
             ctxt: renderingContext,
             words: Gabc.fromSource(renderingContext, _gabcCtrl.text),
             header: GabcHeader.fromSource(_gabcCtrl.text),
-            useDropCap: true,
           )
           ..performLayout(renderingContext)
           ..layoutChantLines(renderingContext, 800);

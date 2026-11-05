@@ -8,7 +8,6 @@ class ChantScoreView extends StatelessWidget {
   const ChantScoreView({
     super.key,
     required this.gabc,
-    this.useDropCap = true,
     this.width,
     this.padding = const EdgeInsets.all(12),
     this.theme,
@@ -16,11 +15,6 @@ class ChantScoreView extends StatelessWidget {
 
   /// Source to render.
   final String gabc;
-
-  /// Whether to display the initial.
-  ///
-  /// Overrides `initial-style` property in GABC header.
-  final bool useDropCap;
 
   /// Width of the score sheet.
   final double? width;
@@ -40,11 +34,7 @@ class ChantScoreView extends StatelessWidget {
         width: width,
         child: Padding(
           padding: padding,
-          child: ChantScoreBody(
-            gabc: gabc,
-            useDropCap: useDropCap,
-            theme: theme,
-          ),
+          child: ChantScoreBody(gabc: gabc, theme: theme),
         ),
       ),
     );

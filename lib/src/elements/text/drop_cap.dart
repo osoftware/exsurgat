@@ -31,7 +31,7 @@ class DropCap extends TextElement {
       'fill': ?dcStyle['fill'],
       'line-height': 1.0,
     };
-    final dc = spans.first.buildParagraph(ctxt, dcProps, .start)
+    final dc = spans.first.buildParagraph(ctxt, dcProps, .start, resize)
       ..layout(ui.ParagraphConstraints(width: double.infinity));
     final lyric = Lyric(ctxt, 'M', .directive);
     final lStyle = ctxt.textStyles['lyric']!;

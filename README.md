@@ -51,7 +51,6 @@ text-right: <b>Ps 68 (67)</b>
 (c3)Ex(e)súr(g)gat(h) De(ihji)us,(i) *(,) et(i) dis(j)si(i)pén(hg)tur(ef) in(g)i(h)mí(f)ci(f) e(e)ius.(e) (::)
 ''';
 return ChantScoreView(
-  useDropCap: true,
   width: 800,
   padding: const EdgeInsets.all(12),
   gabc: source,
@@ -71,7 +70,6 @@ Use `ChantTheme` to customize fonts, sizes and colors of the sheet.
 ```dart
 ChantScoreView(
   gabc: source,
-  useDropCap: true,
   width: 800,
   padding: const EdgeInsets.all(12),
   theme: ChantTheme(
@@ -116,7 +114,6 @@ final score =
         ctxt: renderingContext,
         words: Gabc.fromSource(renderingContext, source),
         header: GabcHeader.fromSource(source),
-        useDropCap: true,
       )
       ..performLayout(renderingContext)
       ..layoutChantLines(renderingContext, 800);
@@ -136,7 +133,6 @@ final score =
         ctxt: renderingContext,
         words: Gabc.fromSource(renderingContext, source),
         header: GabcHeader.fromSource(source),
-        useDropCap: true,
       )
       ..performLayout(renderingContext)
       ..layoutChantLines(renderingContext, 800);

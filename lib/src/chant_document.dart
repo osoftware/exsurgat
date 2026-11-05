@@ -67,8 +67,10 @@ class ChantDocument extends ChangeNotifier {
   ChantTheme get theme => _theme;
   set theme(ChantTheme value) {
     if (value == _theme) return;
+    final hadDropCap = _theme.initialLines > 0;
     _theme = value;
     _ctxt.theme = value;
+    if (hadDropCap != value.initialLines > 0) score.recreateDropCap(ctxt);
     score.performLayout(ctxt, force: true);
     score.needsLayout = true;
     notifyListeners();
@@ -104,17 +106,18 @@ class ChantDocument extends ChangeNotifier {
     ctxt = ctxt ?? ChantContext();
 
     final header = GabcHeader.fromSource(source);
+    final theme = ChantTheme.fromGabcHeader(header);
+    ctxt.theme = ctxt.theme.copyWith(initialLines: theme.initialLines);
     return ChantDocument._(
       source: source,
       ctxt: ctxt,
       header: header,
-      layout: ChantDocumentLayout.fromGabcHeader(GabcHeader.fromSource(source)),
-      theme: ChantTheme.fromGabcHeader(GabcHeader.fromSource(source)),
+      layout: ChantDocumentLayout.fromGabcHeader(header),
+      theme: theme,
       score: ChantScore(
         ctxt: ctxt,
         header: header,
         words: Gabc.fromSource(ctxt, source),
-        useDropCap: !(header['initial-style'] == "0"),
       ),
     );
   }
@@ -124,15 +127,15 @@ class ChantDocument extends ChangeNotifier {
     _source = source;
     _header = GabcHeader.fromSource(source);
 
-    Gabc.updateAstFromSource(_ctxt, _score.words, source);
-    _score.useDropCap = !(_header['initial-style'] == "0");
-    _score.updateNotations(ctxt);
-    _score.updateHeader(ctxt, _header);
-
     final newTheme = ChantTheme.fromGabcHeader(_header);
     final themeChanged = newTheme != _theme;
     _theme = newTheme;
     _ctxt.theme = _theme;
+
+    Gabc.updateAstFromSource(_ctxt, _score.words, source);
+    _score.updateNotations(ctxt);
+    _score.updateHeader(ctxt, _header);
+
     if (themeChanged) {
       // Text metrics were measured with the old theme; force a full notation
       // relayout. needsLayout stays set so chant lines are rebuilt too.

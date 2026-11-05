@@ -9,7 +9,6 @@ import '../core.dart';
 import '../drawing.dart';
 import '../glyphs.dart';
 import '../quick_svg.dart';
-import 'annotations.dart';
 import 'brace_point.dart';
 import 'chant_layout_element.dart';
 import 'horizontal_episema.dart';
@@ -353,46 +352,31 @@ class ChantLine extends ChantLayoutElement {
     }
 
     if (notationsStartIndex == 0) {
-      if (score.annotation case Annotations a) {
-        a.bounds = a.bounds.copyWith(
-          x: staffLeft / 2,
-          y: -ctxt.staffInterval * (staffLineCount * 2 - 1),
+      // With a multi-line drop cap, the annotation is placed above it by
+      // ChantScore.layoutChantLines once the drop cap baseline is known.
+      final annotationTop = layoutAnnotation(
+        ctxt,
+        ctxt.theme.initialLines <= 1 ? lyricLineBaseline : null,
+      );
+      if (annotationTop != null && annotationTop < notationBounds.y) {
+        notationBounds = notationBounds.copyWith(
+          y: annotationTop,
+          height: notationBounds.height + notationBounds.y - annotationTop,
         );
-        if (score.dropCap case DropCap dc) {
-          final dcHeight = ctxt.textMeasurer.measureMHeight(dc, ctxt);
-          final lOffset = ctxt.textMeasurer.align == .baseline
-              ? 0
-              : lyricLineHeight;
-          final highestNonCollidingY =
-              lyricLineBaseline -
-              a.bounds.height +
-              a.origin.y +
-              lOffset -
-              a.padding -
-              dcHeight;
-          a.bounds = a.bounds.copyWith(
-            y: highestNonCollidingY < a.bounds.y
-                ? highestNonCollidingY
-                : (a.bounds.y + highestNonCollidingY) / 2,
-          );
-          if (a.bounds.y < notationBounds.y) {
-            notationBounds = notationBounds.copyWith(
-              y: score.annotation!.bounds.y,
-              height: notationBounds.height + notationBounds.y - a.bounds.y,
-            );
-          }
-        }
-        a.bounds = a.bounds.copyWith(y: a.bounds.y + a.origin.y);
       }
 
       if (score.dropCap case DropCap dc) {
-        dc.bounds = dc.bounds.copyWith(
-          x: staffLeft / 2,
-          y: lyricLineBaseline - dc.origin.y + dc.baselineOffset(ctxt),
-        );
-        notationBounds += dc.bounds;
-        if (ctxt.textMeasurer.align == .baseline) {
-          dc.bounds = dc.bounds.copyWith(y: lyricLineBaseline);
+        dc.bounds = dc.bounds.copyWith(x: staffLeft / 2);
+        // A drop cap spanning several lines is positioned by
+        // ChantScore.layoutChantLines once all those lines are known.
+        if (ctxt.theme.initialLines <= 1) {
+          dc.bounds = dc.bounds.copyWith(
+            y: lyricLineBaseline - dc.origin.y + dc.baselineOffset(ctxt),
+          );
+          notationBounds += dc.bounds;
+          if (ctxt.textMeasurer.align == .baseline) {
+            dc.bounds = dc.bounds.copyWith(y: lyricLineBaseline);
+          }
         }
       }
     }
@@ -437,6 +421,42 @@ class ChantLine extends ChantLayoutElement {
     );
 
     origin = Point(staffLeft, -notationBounds.y);
+  }
+
+  /// Places the annotation of the first line, above the drop cap whose
+  /// baseline is at [dropCapBaseline] (line coordinates), if there is one.
+  ///
+  /// Returns the top of the annotation, excluding its own origin offset, or
+  /// `null` when the score has no annotation. Safe to call repeatedly.
+  double? layoutAnnotation(ChantContext ctxt, double? dropCapBaseline) {
+    final a = score.annotation;
+    if (a == null) return null;
+
+    a.bounds = a.bounds.copyWith(
+      x: staffLeft / 2,
+      y: -ctxt.staffInterval * (score.staffLineCount * 2 - 1),
+    );
+    if (score.dropCap case DropCap dc when dropCapBaseline != null) {
+      final dcHeight = ctxt.textMeasurer.measureMHeight(dc, ctxt);
+      final lOffset = ctxt.textMeasurer.align == .baseline
+          ? 0
+          : lyricLineHeight;
+      final highestNonCollidingY =
+          dropCapBaseline -
+          a.bounds.height +
+          a.origin.y +
+          lOffset -
+          a.padding -
+          dcHeight;
+      a.bounds = a.bounds.copyWith(
+        y: highestNonCollidingY < a.bounds.y
+            ? highestNonCollidingY
+            : (a.bounds.y + highestNonCollidingY) / 2,
+      );
+    }
+    final top = a.bounds.y;
+    a.bounds = a.bounds.copyWith(y: top + a.origin.y);
+    return top;
   }
 
   InsertionCursor? layoutInsertionCursor(ChantContext ctxt) {
@@ -770,8 +790,9 @@ class ChantLine extends ChantLayoutElement {
   void buildFromChantNotationIndex(
     ChantContext ctxt,
     int newElementStart,
-    double width,
-  ) {
+    double width, [
+    int lineIndex = 0,
+  ]) {
     final notations = score.notations;
     List<dynamic> beginningLyrics = [];
     ChantNotationElement? prev;
@@ -793,15 +814,19 @@ class ChantLine extends ChantLayoutElement {
       staffRight = double.infinity;
     }
 
-    if (notationsStartIndex == 0) {
+    final dropCap = score.dropCap;
+    final reservesDropCapSpace =
+        dropCap != null && lineIndex < ctxt.theme.initialLines;
+
+    if (notationsStartIndex == 0 || reservesDropCapSpace) {
       double padding = 0;
 
-      if (score.dropCap != null) {
-        padding = score.dropCap!.bounds.width + score.dropCap!.padding * 2;
+      if (dropCap != null) {
+        padding = dropCap.bounds.width + dropCap.padding * 2;
       }
 
       if (score.annotation != null &&
-          (ctxt.mergeAnnotationWithTextLeft == null || score.dropCap != null)) {
+          (ctxt.mergeAnnotationWithTextLeft == null || dropCap != null)) {
         padding =
             (padding >
                 (score.annotation!.bounds.width +
@@ -811,10 +836,12 @@ class ChantLine extends ChantLayoutElement {
       }
 
       staffLeft += padding;
-      if (score.dropCap != null) {
-        paddingLeft = (padding - score.dropCap!.bounds.width) / 2;
+      if (dropCap != null) {
+        paddingLeft = (padding - dropCap.bounds.width) / 2;
       }
-    } else {
+    }
+
+    if (notationsStartIndex != 0) {
       prev = notations[newElementStart - 1];
       if (prev is DoubleBar &&
           prev.hasLyrics &&
@@ -1108,7 +1135,7 @@ class ChantLine extends ChantLayoutElement {
 
         if (numNotationsOnLine == 0) numNotationsOnLine = 1;
 
-        curr = findNeumesToJustify(prevLyrics)!;
+        curr = findNeumesToJustify(ctxt, prevLyrics)!;
         lastLyrics = prevLyrics;
         if (maxNumNotationsOnLine != null) {
           double extraSpace = getWhitespaceOnRight(ctxt);
@@ -1185,7 +1212,7 @@ class ChantLine extends ChantLayoutElement {
             curr.justify ||
             extraTextOnlyIndex != null ||
             getWhitespaceOnRight(ctxt) < 0;
-        if (justify) findNeumesToJustify(prevLyrics);
+        if (justify) findNeumesToJustify(ctxt, prevLyrics);
         break;
       }
 
@@ -1207,7 +1234,7 @@ class ChantLine extends ChantLayoutElement {
     bool isLastLine =
         notationsStartIndex + numNotationsOnLine == notations.length;
     if ((justify && extraTextOnlyIndex != null) || (width > 0 && isLastLine)) {
-      if (toJustify.isEmpty) findNeumesToJustify(prevLyrics);
+      if (toJustify.isEmpty) findNeumesToJustify(ctxt, prevLyrics);
       justify =
           (!isLastLine || last is Divider) &&
           getWhitespaceOnRight(ctxt) /
@@ -1358,7 +1385,10 @@ class ChantLine extends ChantLayoutElement {
     }
   }
 
-  ChantNotationElement? findNeumesToJustify(List<Lyric> prevLyrics) {
+  ChantNotationElement? findNeumesToJustify(
+    ChantContext ctxt,
+    List<Lyric> prevLyrics,
+  ) {
     toJustify = [];
     ChantNotationElement? prev;
     ChantNotationElement curr;
@@ -1397,7 +1427,7 @@ class ChantLine extends ChantLayoutElement {
 
       if (nextOrCurr == custos && !hasLyrics) continue;
 
-      if (i == 0 && score.useDropCap && hasLyrics) continue;
+      if (i == 0 && ctxt.theme.initialLines > 0 && hasLyrics) continue;
 
       toJustify.add(curr);
     }

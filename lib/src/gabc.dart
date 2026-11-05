@@ -133,6 +133,9 @@ class GabcHeader {
     _values[key] = value;
   }
 
+  int readInt(String key, int fallback) =>
+      int.tryParse(this[key] ?? '') ?? fallback;
+
   /// Parses scalar entry: either a number (interpreted in [defaultUnit])
   /// or a string like `"124.3mm"`.
   /// Returns [fallback] when entry at [key] is null or cannot be parsed.
