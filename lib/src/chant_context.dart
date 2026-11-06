@@ -50,11 +50,6 @@ class ChantContext {
       },
     });
 
-    textStyles['al'] ??= {};
-    textStyles['al']!['prefix'] = '<i>';
-    textStyles['translation'] ??= {};
-    textStyles['translation']!['prefix'] = '<i>';
-
     textStyles['dropCap'] ??= {};
     textStyles['dropCap']!['padding'] = 1;
     textStyles['annotation'] ??= {};

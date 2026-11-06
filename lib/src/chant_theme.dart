@@ -667,8 +667,11 @@ final Map<String, TextStyleDefinition> kDefaultTextStyles = const {
   'leftRight': TextStyleDefinition(size: RelativeFontSize(0.9)),
   'annotation': TextStyleDefinition(size: RelativeFontSize(2 / 3)),
   'dropCap': TextStyleDefinition(size: RelativeFontSize(4)),
-  'al': TextStyleDefinition(),
+  'al': TextStyleDefinition(fontStyle: FontStyle.italic),
   'choralSign': TextStyleDefinition(size: StaffIntervalFontSize(1.5)),
   'lyric': TextStyleDefinition(size: RelativeFontSize(0.9)),
-  'translation': TextStyleDefinition(size: RelativeFontSize(0.75)),
+  'translation': TextStyleDefinition(
+    size: RelativeFontSize(0.75),
+    fontStyle: FontStyle.italic,
+  ),
 };
