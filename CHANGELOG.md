@@ -7,6 +7,7 @@
   Legacy `initial-style` is still read as a fallback.
 * FEATURE: `ChantTheme` now supports advanced typographic features: 
   small caps, historical forms and ligatures, contextual forms.
+* BREAKING: Minimal Dart version increased to 3.13.7
 * BUGFIX: Fixed stale text and line metrics after theme or layout change: 
   `ChantDocument` forces a full relayout when the theme or layout is updated.
 * BUGFIX: Fixed styling of `TextSpan`s in SVG export.

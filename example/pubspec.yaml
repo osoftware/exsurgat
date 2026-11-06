@@ -12,8 +12,8 @@ dependencies:
 
   exsurgat:
     path: ../
-  google_fonts: ^8.2.1
-  file_picker: ^11.0.3
+  google_fonts: ^9.0.0
+  file_picker: ^13.3.2
 
 dev_dependencies:
   flutter_test:

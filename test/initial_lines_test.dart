@@ -128,34 +128,37 @@ initial-lines: 4
       expect(score.bounds.bottom, greaterThanOrEqualTo(dropCapBottom - 0.001));
     });
 
-    test('annotation sits above the multi-line drop cap inside line bounds', () {
-      // Gap between annotation bottom and the drop cap top at 1 line is the
-      // reference spacing; taller drop caps must not get closer than that.
-      double? referenceGap;
-      for (final count in [1, 2, 3]) {
-        final doc = layout('annotation: Ant\ninitial-lines: $count\n$body');
-        final score = doc.score;
-        final dc = score.dropCap!;
-        final a = score.annotation!;
-        final line = score.lines.first;
-        final baseline = count == 1
-            ? line.lyricLineBaseline
-            : score.lines[count - 1].bounds.y -
-                  line.bounds.y +
-                  score.lines[count - 1].lyricLineBaseline;
-        final annotationTop = a.bounds.y - a.origin.y;
-        final annotationBottom = annotationTop + a.bounds.height;
-        final mHeight = doc.ctxt.textMeasurer.measureMHeight(dc, doc.ctxt);
-        final gap = baseline - mHeight - annotationBottom;
-        referenceGap ??= gap;
-        expect(gap, greaterThanOrEqualTo(referenceGap - 0.001));
-        expect(
-          annotationTop,
-          greaterThanOrEqualTo(line.notationBounds.y - 0.001),
-          reason: 'initial-lines: $count',
-        );
-      }
-    });
+    test(
+      'annotation sits above the multi-line drop cap inside line bounds',
+      () {
+        // Gap between annotation bottom and the drop cap top at 1 line is the
+        // reference spacing; taller drop caps must not get closer than that.
+        double? referenceGap;
+        for (final count in [1, 2, 3]) {
+          final doc = layout('annotation: Ant\ninitial-lines: $count\n$body');
+          final score = doc.score;
+          final dc = score.dropCap!;
+          final a = score.annotation!;
+          final line = score.lines.first;
+          final baseline = count == 1
+              ? line.lyricLineBaseline
+              : score.lines[count - 1].bounds.y -
+                    line.bounds.y +
+                    score.lines[count - 1].lyricLineBaseline;
+          final annotationTop = a.bounds.y - a.origin.y;
+          final annotationBottom = annotationTop + a.bounds.height;
+          final mHeight = doc.ctxt.textMeasurer.measureMHeight(dc, doc.ctxt);
+          final gap = baseline - mHeight - annotationBottom;
+          referenceGap ??= gap;
+          expect(gap, greaterThanOrEqualTo(referenceGap - 0.001));
+          expect(
+            annotationTop,
+            greaterThanOrEqualTo(line.notationBounds.y - 0.001),
+            reason: 'initial-lines: $count',
+          );
+        }
+      },
+    );
 
     test('standalone score reads initialLines from context theme', () {
       final ctxt = ChantContext(theme: ChantTheme(initialLines: 0));

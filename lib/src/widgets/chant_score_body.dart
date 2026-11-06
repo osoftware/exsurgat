@@ -145,25 +145,21 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
     required String gabc,
     required ChantDocument? document,
     required ChantTheme? theme,
-    required Tool? tool,
-    required PageArrangement arrangement,
-    required int pageIndex,
-    required double pageGap,
-    required Decoration? pageDecoration,
+    required this._tool,
+    required this._arrangement,
+    required this._pageIndex,
+    required this._pageGap,
+    required this._pageDecoration,
   }) : _gabc = gabc,
        _ownsDocument = document == null,
-       _tool = tool,
-       _arrangement = arrangement,
-       _pageIndex = pageIndex,
-       _pageGap = pageGap,
-       _pageDecoration = pageDecoration,
        _themeOverride = theme {
     _document = document ?? ChantDocument.fromSource(gabc, ChantContext());
     // Reuse the document's context so layout state (fonts, hyphen width,
     // notation list) survives render object recreation, e.g. on tab switches.
-    if (theme != null) _document.ctxt.theme = theme;
-    // A provided theme overrides the document's theme.
-    if (theme != null) _document.theme = theme;
+    if (theme != null) {
+      _document.ctxt.theme = theme;
+      _document.theme = theme;
+    }
     _document.addListener(_handleDocumentChanged);
     _tool?._attachTo(this);
   }
@@ -630,9 +626,8 @@ abstract class Tool {
       }
     }
 
-    if (score.dropCap case DropCap(
-      :final boundsForHitTest,
-    ) when page == null || identical(page, score.pages.first)) {
+    if (score.dropCap case DropCap(:final boundsForHitTest)
+        when page == null || identical(page, score.pages.first)) {
       final dropCapBounds = boundsForHitTest.copyWith(
         y: boundsForHitTest.y + score.lines.first.bounds.y,
       );

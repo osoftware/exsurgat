@@ -573,9 +573,8 @@ class ChantTheme {
 
     final styles = <String, Map<String, dynamic>>{};
     values.forEach((key, value) {
-      final match = RegExp(
-        r'^text-style\.([a-zA-Z]+)\.([a-zA-Z-]+)$',
-      ).firstMatch(key);
+      final match = RegExp(r'^text-style\.([a-zA-Z]+)\.([a-zA-Z-]+)$')
+          .firstMatch(key);
       if (match == null) return;
       styles.putIfAbsent(match.group(1)!, () => {})[match.group(2)!] = value;
     });

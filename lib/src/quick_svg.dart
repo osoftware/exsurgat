@@ -11,8 +11,11 @@ class SvgTreeNode {
   final List<dynamic> children;
 }
 
-typedef NodeMaker<T> =
-    T Function(String name, Map<String, dynamic> attrs, [Object? children]);
+typedef NodeMaker<T> = T Function(
+  String name,
+  Map<String, dynamic> attrs, [
+  Object? children,
+]);
 
 /// Describes how SVG document should style text elements.
 enum StylingMode {

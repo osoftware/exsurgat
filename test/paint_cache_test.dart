@@ -130,11 +130,10 @@ Ky(gh)ri(gf)e(e.) e(gvFD)le(ghg)í(gfe)son(f.) (,)
         'fill': ctxt.theme.textColor,
       };
       final p1 = span.buildParagraph(ctxt, props, TextAlign.start);
-      final p2 = span.buildParagraph(
-        ctxt,
-        {...props, 'fill': 0xFF000000},
-        TextAlign.start,
-      );
+      final p2 = span.buildParagraph(ctxt, {
+        ...props,
+        'fill': 0xFF000000,
+      }, TextAlign.start);
       expect(identical(p1, p2), isFalse);
     });
 

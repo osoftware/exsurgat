@@ -9,19 +9,14 @@ import 'gabc.dart';
 /// A document containing a chant score, along with layout and theme settings.
 class ChantDocument extends ChangeNotifier {
   ChantDocument._({
-    required String source,
-    required GabcHeader header,
-    required ChantDocumentLayout layout,
-    required ChantTheme theme,
-    required ChantContext ctxt,
-    required ChantScore score,
-  }) : _source = source,
-       _score = score,
-       _header = header,
-       _theme = theme,
-       _layout = layout,
-       _ctxt = ctxt {
-    score.addListener(_handleScoreChanged);
+    required this._source,
+    required this._header,
+    required this._layout,
+    required this._theme,
+    required this._ctxt,
+    required this._score,
+  }) {
+    _score.addListener(_handleScoreChanged);
   }
 
   String _source;

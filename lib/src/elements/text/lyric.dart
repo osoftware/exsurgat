@@ -314,9 +314,8 @@ class Lyric extends TextElement {
 
     final generatedDropCap = DropCap(ctxt, '', sourceIndex);
     generatedDropCap.spans = [dropCapSpan];
-    final match = RegExp(
-      r'^(?:<\/?[^>]+>)*.?(?:<\/[^>]+>)*',
-    ).firstMatch(sourceGabc);
+    final match = RegExp(r'^(?:<\/?[^>]+>)*.?(?:<\/[^>]+>)*')
+        .firstMatch(sourceGabc);
     final dropCapSourceGabcLength = match?.group(0)?.length ?? 0;
     generatedDropCap.sourceGabc = sourceGabc.substring(
       0,

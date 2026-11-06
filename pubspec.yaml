@@ -15,13 +15,13 @@ funding:
   - https://pay.e.cash/?bip21=ecash:qrx0l5a2cjg679pghc7kalc8ff7uczf58qu7n49rwa
 
 environment:
-  sdk: ^3.11.4
+  sdk: ^3.13.7
   flutter: ">=1.17.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  xml: ^7.0.1
+  xml: ^7.1.0
 
 dev_dependencies:
   flutter_test:
