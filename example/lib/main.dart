@@ -72,6 +72,12 @@ class _EditorPageState extends State<EditorPage> {
   Widget build(BuildContext context) {
     final chantTheme = (fancy ? fancyTheme : normalTheme).copyWith(
       initialLines: initialLines,
+      dropCap: TextStyleDefinition(
+        font: fancy
+            ? fancyTheme.dropCap.font
+            : ChantTheme.kDefaultTheme.dropCap.font,
+        size: FontSize.relative(4.0 * initialLines * 1.5 - 0.5),
+      ),
     );
     return Scaffold(
       appBar: AppBar(
@@ -143,6 +149,12 @@ class _EditorPageState extends State<EditorPage> {
       stylingMode: .attributes,
       theme: (fancy ? fancyTheme : ChantTheme.kDefaultTheme).copyWith(
         initialLines: initialLines,
+        dropCap: TextStyleDefinition(
+          font: fancy
+              ? fancyTheme.dropCap.font
+              : ChantTheme.kDefaultTheme.dropCap.font,
+          size: FontSize.relative(4.0 * initialLines),
+        ),
       ),
     );
     final score =
@@ -155,7 +167,6 @@ class _EditorPageState extends State<EditorPage> {
           ..layoutChantLines(renderingContext, 800);
     final xml = score.createSvgNode(renderingContext).toXmlString();
     await FilePicker.saveFile(
-      allowedExtensions: ['.svg'],
       dialogTitle: 'Save chant to SVG',
       fileName: 'chant.svg',
       bytes: Utf8Codec().encode(xml),
