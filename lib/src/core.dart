@@ -108,8 +108,10 @@ class Scalar {
   int get hashCode => Object.hash(value, unit);
 
   @override
-  String toString() =>
-      '${value.toStringAsFixed(value.toInt() != value ? 1 : 0)}$unit';
+  String toString() {
+    final val = value.toStringAsFixed(2).replaceAll(RegExp(r'(\.)?0+$'), '');
+    return '$val$unit';
+  }
 }
 
 interface class Geom {}
