@@ -1,3 +1,8 @@
+## 0.4.0
+
+ * BREAKING: `Tool` API now relies on `GestureRecognizer` instead of low level 
+   `PointerEvent` API allowing it to participate in Gesture Arena.
+
 ## 0.3.0
 
 * FEATURE (BREAKING): `ChantTheme` now contains `initialLines` (gabc header 

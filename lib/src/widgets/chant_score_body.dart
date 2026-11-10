@@ -48,7 +48,7 @@ enum PageArrangement {
 /// Renders a read-only chant score from [gabc] source or externally owned
 /// [document] editable with [tool].
 /// For a scrollable wrapper see [ChantScoreView].
-class ChantScoreBody extends LeafRenderObjectWidget {
+class ChantScoreBody extends StatelessWidget {
   /// Creates a read-only chant score body parsed from [gabc].
   const ChantScoreBody({
     super.key,
@@ -111,31 +111,59 @@ class ChantScoreBody extends LeafRenderObjectWidget {
   final Decoration? pageDecoration;
 
   @override
-  RenderBox createRenderObject(BuildContext context) {
-    return RenderChantScore(
-      gabc: gabc,
-      document: document,
-      theme: theme,
-      tool: tool,
-      arrangement: arrangement,
-      pageIndex: pageIndex,
-      pageGap: pageGap,
-      pageDecoration: pageDecoration,
+  Widget build(BuildContext context) {
+    return Listener(
+      onPointerHover: tool?._handlePointerHover,
+      child: RawGestureDetector(
+        behavior: HitTestBehavior.translucent,
+        gestures: tool?.buildGestures() ?? const {},
+        child: _ChantScoreRenderObject(this),
+      ),
     );
   }
+}
+
+class _ScoreTapGestureRecognizer extends TapGestureRecognizer {
+  _ScoreTapGestureRecognizer({required super.debugOwner});
+
+  void Function(PointerDownEvent)? onPointerDown;
+
+  @override
+  void addAllowedPointer(PointerDownEvent event) {
+    if (state == GestureRecognizerState.ready) onPointerDown?.call(event);
+    super.addAllowedPointer(event);
+  }
+}
+
+class _ChantScoreRenderObject extends LeafRenderObjectWidget {
+  const _ChantScoreRenderObject(this.body);
+
+  final ChantScoreBody body;
+
+  @override
+  RenderBox createRenderObject(BuildContext context) => RenderChantScore(
+    gabc: body.gabc,
+    document: body.document,
+    theme: body.theme,
+    tool: body.tool,
+    arrangement: body.arrangement,
+    pageIndex: body.pageIndex,
+    pageGap: body.pageGap,
+    pageDecoration: body.pageDecoration,
+  );
 
   @override
   void updateRenderObject(BuildContext context, RenderChantScore renderObject) {
     super.updateRenderObject(context, renderObject);
     renderObject
-      ..gabc = gabc
-      ..document = document
-      ..theme = theme
-      ..tool = tool
-      ..arrangement = arrangement
-      ..pageIndex = pageIndex
-      ..pageGap = pageGap
-      ..pageDecoration = pageDecoration;
+      ..gabc = body.gabc
+      ..document = body.document
+      ..theme = body.theme
+      ..tool = body.tool
+      ..arrangement = body.arrangement
+      ..pageIndex = body.pageIndex
+      ..pageGap = body.pageGap
+      ..pageDecoration = body.pageDecoration;
   }
 }
 
@@ -239,6 +267,7 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
   Tool? get tool => _tool;
   set tool(Tool? value) {
     if (value == _tool) return;
+    _tool?._detachFrom(this);
     _tool = value;
     if (_disposed) return;
     _tool?._attachTo(this);
@@ -460,12 +489,12 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
         ),
       };
       _hitTestPageIndex = pageIndex;
-      _hitTestPageTop = pageIndex >= 0 ? -score.pages[pageIndex].bounds.y : 0;
-      final hit =
-          tool?.hitTestElements(result, position: contentLocal) ??
-          super.hitTest(result, position: contentLocal);
-      _hitTestPageIndex = null;
-      return hit;
+      try {
+        return tool?.hitTestElements(result, position: contentLocal) ??
+            super.hitTest(result, position: contentLocal);
+      } finally {
+        _hitTestPageIndex = null;
+      }
     }
     return tool?.hitTestElements(result, position: position) ??
         super.hitTest(result, position: position);
@@ -473,11 +502,6 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
 
   /// Index of the page a hit test is targeting, or null when not paginated.
   int? _hitTestPageIndex;
-
-  /// Top shift of the page last hit tested (`-page.bounds.y`), persisted
-  /// after the hit test so tools can convert pointer positions to
-  /// score-relative coordinates during event handling.
-  double _hitTestPageTop = 0;
 
   /// Maps a local position to the page-local position for hit testing.
   /// Returns null when the position is outside all page slots.
@@ -505,13 +529,25 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
   }
 
   /// Converts a global pointer position to score-relative coordinates
-  /// (content-local plus the hit-test page's top shift), matching the
+  /// (content-local plus the page's top shift), matching the
   /// score-relative bounds of chant lines. Returns null when the position is
   /// outside all page slots in paginated mode.
   Offset? pointerToScoreLocal(Offset globalPosition) {
     final contentLocal = pointerToContentLocal(globalPosition);
     if (contentLocal == null) return null;
-    return Offset(contentLocal.dx, contentLocal.dy + _hitTestPageTop);
+    if (!_isPaginated) return contentLocal;
+    final local = globalToLocal(globalPosition);
+    final pageIndex = switch (_arrangement) {
+      .single => _pageIndex.clamp(0, score.pages.length - 1),
+      _ => _pageOffsets.indexWhere(
+        (slot) => (slot & _pageSize).contains(local),
+      ),
+    };
+    if (pageIndex < 0 || pageIndex >= score.pages.length) return null;
+    return Offset(
+      contentLocal.dx,
+      contentLocal.dy - score.pages[pageIndex].bounds.y,
+    );
   }
 
   @override
@@ -521,7 +557,12 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
   PointerEnterEventListener? get onEnter => null;
 
   @override
-  PointerExitEventListener? get onExit => _tool?.handlePointerExit;
+  PointerExitEventListener? get onExit => (event) {
+    final tool = _tool;
+    if (tool != null && identical(tool._renderObject, this)) {
+      tool.handlePointerExit(event);
+    }
+  };
 
   @override
   bool get validForMouseTracker => _tool != null;
@@ -529,6 +570,7 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
   @override
   void dispose() {
     _disposed = true;
+    _tool?._detachFrom(this);
     _pagePainter?.dispose();
     _document.removeListener(_handleDocumentChanged);
     _document.score.removeListener(_handleDocumentChanged);
@@ -537,23 +579,21 @@ class RenderChantScore extends RenderBox implements MouseTrackerAnnotation {
   }
 }
 
-/// Provides pointer event handling for [ChantLayoutElement]
-/// by redirecting it to [Tool.handleTargetEvent].
+/// A hit-test target identifying an element of the score.
 class ChantHitTestTarget<T> implements HitTestTarget {
   const ChantHitTestTarget(this.element);
 
   final T element;
 
   @override
-  void handleEvent(PointerEvent event, covariant ChantHitTestEntry entry) {
-    entry.renderObject.tool?.handleTargetEvent(event, this);
-  }
+  void handleEvent(PointerEvent event, covariant ChantHitTestEntry entry) {}
 
   @override
   int get hashCode => element.hashCode;
 
   @override
-  bool operator ==(Object other) => hashCode == other.hashCode;
+  bool operator ==(Object other) =>
+      other is ChantHitTestTarget && element == other.element;
 }
 
 /// Data about a hit test target collected by [Tool.hitTestElements].
@@ -564,13 +604,63 @@ class ChantHitTestEntry<T> extends HitTestEntry<ChantHitTestTarget<T>> {
 }
 
 /// Base class for interactive editing tools.
-/// The inheriting class needs to implement [handleTargetEvent]
-/// and may override [hitTestElements].
 abstract class Tool {
   RenderChantScore? _renderObject;
+  RenderChantScore? _tapRenderObject;
+  ChantDocument? _tapDocument;
+  String? _tapSource;
+  List<ChantHitTestTarget> _tapTargets = const [];
+
   void _attachTo(RenderChantScore renderObject) {
+    _cancelTap();
     _renderObject = renderObject;
     handleAttach();
+  }
+
+  void _detachFrom(RenderChantScore renderObject) {
+    if (identical(_renderObject, renderObject)) {
+      _cancelTap();
+      _renderObject = null;
+    }
+  }
+
+  void _captureTap(PointerDownEvent event) {
+    _cancelTap();
+    final renderObject = _renderObject;
+    if (renderObject == null || !renderObject.attached) return;
+    _tapRenderObject = renderObject;
+    _tapDocument = renderObject.document;
+    _tapSource = renderObject.document.source;
+    _tapTargets = hitTestAt(event.position);
+  }
+
+  void _finishTap(TapUpDetails details) {
+    final renderObject = _tapRenderObject;
+    final document = _tapDocument;
+    final source = _tapSource;
+    final targets = _tapTargets;
+    _cancelTap();
+    if (renderObject == null ||
+        !identical(renderObject, _renderObject) ||
+        !renderObject.attached ||
+        !identical(renderObject.document, document) ||
+        renderObject.document.source != source) {
+      return;
+    }
+    handleTap(details, targets);
+  }
+
+  void _cancelTap() {
+    _tapRenderObject = null;
+    _tapDocument = null;
+    _tapSource = null;
+    _tapTargets = const [];
+  }
+
+  void _handlePointerHover(PointerHoverEvent event) {
+    final renderObject = _renderObject;
+    if (renderObject == null || !renderObject.attached) return;
+    handleHover(event, hitTestAt(event.position));
   }
 
   /// Whether the tool is attached to a render object.
@@ -599,6 +689,21 @@ abstract class Tool {
 
   /// Override this getter to change the cursor display when this tool is active.
   MouseCursor get cursor => MouseCursor.defer;
+
+  /// Finds score targets at a global position, innermost first.
+  ///
+  /// The tool must be attached to a laid-out score body.
+  List<ChantHitTestTarget> hitTestAt(Offset globalPosition) {
+    final result = BoxHitTestResult();
+    renderObject.hitTest(
+      result,
+      position: renderObject.globalToLocal(globalPosition),
+    );
+    return [
+      for (final entry in result.path)
+        if (entry is ChantHitTestEntry) entry.target,
+    ];
+  }
 
   /// Determines a set of [ChantLayoutElement]s that are located at the given
   /// position or are relevant to it in the order from the innermost to
@@ -731,11 +836,12 @@ abstract class Tool {
     return false;
   }
 
-  /// Override this method to handle pointer events.
-  ///
-  /// This method is is called for each [ChantHitTestTarget] collected by
-  /// [hitTestElements] in the same order.
-  void handleTargetEvent(PointerEvent event, ChantHitTestTarget target);
+  /// Handles an arena-winning tap. Targets were hit at pointer down and are
+  /// ordered from innermost to outermost.
+  void handleTap(TapUpDetails details, List<ChantHitTestTarget> targets) {}
+
+  /// Handles a hover and its current innermost-to-outermost hit targets.
+  void handleHover(PointerHoverEvent event, List<ChantHitTestTarget> targets) {}
 
   /// Override this method if you need to do something when the pointer leaves
   /// the score body.
@@ -747,4 +853,20 @@ abstract class Tool {
 
   /// Override this method to rebind state after source reparsing.
   void handleScoreUpdated() {}
+
+  /// Gesture recognizers managed by the score body.
+  ///
+  /// The default tap recognizer calls [handleTap]. Include
+  /// `...super.buildGestures()` when adding recognizers, or omit it to replace
+  /// the default tap behavior.
+  Map<Type, GestureRecognizerFactory> buildGestures() => {
+    _ScoreTapGestureRecognizer:
+        GestureRecognizerFactoryWithHandlers<_ScoreTapGestureRecognizer>(
+          () => _ScoreTapGestureRecognizer(debugOwner: this),
+          (recognizer) => recognizer
+            ..onPointerDown = _captureTap
+            ..onTapUp = _finishTap
+            ..onTapCancel = _cancelTap,
+        ),
+  };
 }
