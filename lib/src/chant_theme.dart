@@ -47,8 +47,12 @@ class BaseTextStyle {
     return BaseTextStyle(
       font: map['font'] as String? ?? kDefaultBaseTextStyle.font,
       size: Scalar.tryParse('${map['size']}') ?? kDefaultBaseTextStyle.size,
-      fontWeight: FontWeightSvg.tryParse(map['font-weight']),
-      fontStyle: FontStyleSvg.tryParse(map['font-style']),
+      fontWeight:
+          FontWeightSvg.tryParse(map['font-weight']) ??
+          kDefaultBaseTextStyle.fontWeight,
+      fontStyle:
+          FontStyleSvg.tryParse(map['font-style']) ??
+          kDefaultBaseTextStyle.fontStyle,
       features: FontFeatureSvg.parseVariants(map['font-variant']),
     );
   }
@@ -82,6 +86,8 @@ List<String> parseFontFallback(String css) => css
 sealed class FontSize {
   const FontSize();
 
+  factory FontSize.inherit() = InheritedFontSize;
+
   factory FontSize.relative(double factor) = RelativeFontSize;
 
   factory FontSize.staffInterval(double multiplier) = StaffIntervalFontSize;
@@ -91,7 +97,9 @@ sealed class FontSize {
   /// Resolves the concrete font size.
   double resolve(double baseSize, ChantContext ctxt);
 
-  static FontSize? tryParse(String text) {
+  static FontSize? tryParse(String? text) {
+    if (text == null) return null;
+    if (text == 'inherit') return FontSize.inherit();
     if (text.endsWith('%')) {
       final value = text.substring(0, text.length - 1);
       return FontSize.relative(double.parse(value) / 100);
@@ -105,6 +113,22 @@ sealed class FontSize {
 }
 
 /// Font size as a factor of the base text style size.
+class InheritedFontSize extends FontSize {
+  const InheritedFontSize();
+
+  @override
+  double resolve(double baseSize, ChantContext ctxt) => baseSize;
+
+  @override
+  bool operator ==(Object other) => other is InheritedFontSize;
+
+  @override
+  int get hashCode => 0;
+
+  @override
+  String toString() => 'inherit';
+}
+
 class RelativeFontSize extends FontSize {
   final double factor;
 
@@ -173,47 +197,98 @@ class TextStyleDefinition {
     this.fontStyle,
     this.size,
     this.color,
-    this.features = const [],
+    this.features,
   });
 
-  factory TextStyleDefinition.fromMap(Map<String, dynamic> map) =>
-      TextStyleDefinition(
-        font: map['font'] as String?,
-        size: FontSize.tryParse(map['size']),
-        fontWeight: FontWeightSvg.tryParse(map['font-weight']),
-        fontStyle: FontStyleSvg.tryParse(map['font-style']),
-        features: FontFeatureSvg.parseVariants(map['font-variant']),
-        color: parseColor(map['color']),
-      );
+  factory TextStyleDefinition.fromMap(
+    Map<String, dynamic> map,
+    TextStyleDefinition? defaults,
+  ) {
+    final fontVariant = map['font-variant'];
+    return TextStyleDefinition(
+      font: map['font'] == 'inherit'
+          ? null
+          : map['font'] as String? ?? defaults?.font,
+      size: switch (FontSize.tryParse(map['size'])) {
+        InheritedFontSize() => null,
+        null => defaults?.size,
+        final f => f,
+      },
+      fontWeight: map['font-weight'] == 'inherit'
+          ? null
+          : FontWeightSvg.tryParse(map['font-weight']) ?? defaults?.fontWeight,
+      fontStyle: map['font-style'] == 'inherit'
+          ? null
+          : FontStyleSvg.tryParse(map['font-style']) ?? defaults?.fontStyle,
+      features: !map.containsKey('font-variant')
+          ? defaults?.features
+          : fontVariant == 'inherit'
+          ? null
+          : FontFeatureSvg.parseVariants(fontVariant as String?),
+      color: map['color'] == 'inherit'
+          ? null
+          : parseColor(map['color']) ?? defaults?.color,
+    );
+  }
 
-  /// Font list using CSS syntax. Overrides font defined in baseTextStyle.
+  /// Font list using CSS syntax. Null inherits the [BaseTextStyle] font.
   final String? font;
 
-  /// Font weight.
+  /// Font weight. Null inherits the [BaseTextStyle] font weight.
   final FontWeight? fontWeight;
 
-  /// FontStyle.
+  /// Font style. Null inherits the [BaseTextStyle] font style.
   final FontStyle? fontStyle;
 
-  /// Size resolution strategy. Falls back to the base text style size.
+  /// Size resolution strategy. Null inherits the base text style size.
   final FontSize? size;
 
   /// Text color. Overrides [ChantTheme.textColor] but not [ChantTheme.rubricColor].
   final Color? color;
 
-  /// Font features.
-  final List<FontFeature> features;
+  /// Font features. Null inherits base features; an empty list disables them.
+  final List<FontFeature>? features;
 
   /// Serialized representation of this text style.
-  Map<String, String> toMap() => {
-    'font': ?font,
-    'size': ?size?.toString(),
-    'color': ?color?.toSvgString(),
-    'font-weight': ?fontWeight?.toSvgString(),
-    'font-style': ?fontStyle?.toSvgString(),
-    if (features.isNotEmpty)
-      'font-variant': features.map((f) => f.toSvgString()).join(' '),
+  Map<String, String> toMap([TextStyleDefinition? defaults]) => {
+    if (defaults == null || font != defaults.font) 'font': font ?? 'inherit',
+    if (defaults == null || size != defaults.size)
+      'size': size?.toString() ?? 'inherit',
+    if (defaults == null || color != defaults.color)
+      'color': color?.toSvgString() ?? 'inherit',
+    if (defaults == null || fontWeight != defaults.fontWeight)
+      'font-weight': fontWeight?.toSvgString() ?? 'inherit',
+    if (defaults == null || fontStyle != defaults.fontStyle)
+      'font-style': fontStyle?.toSvgString() ?? 'inherit',
+    if (defaults == null || !listEquals(features, defaults.features))
+      'font-variant': features == null
+          ? 'inherit'
+          : features!.isEmpty
+          ? 'normal'
+          : features!.map((f) => f.toSvgString()).join(' '),
   };
+
+  /// Values used to omit properties that match this style when written to a
+  /// GABC header, resolving inherited properties against [baseTextStyle].
+  Map<String, String> toHeaderDefaults(BaseTextStyle baseTextStyle) {
+    final effectiveFeatures = features ?? baseTextStyle.features;
+    return {
+      'font': font ?? baseTextStyle.font,
+      'size': size?.toString() ?? 'inherit',
+      'color': color?.toSvgString() ?? '',
+      'font-weight':
+          (fontWeight ?? baseTextStyle.fontWeight ?? FontWeight.normal)
+              .toSvgString()!,
+      'font-style':
+          (fontStyle ?? baseTextStyle.fontStyle ?? FontStyle.normal)
+              .toSvgString()!,
+      'font-variant': effectiveFeatures.isEmpty
+          ? 'normal'
+          : effectiveFeatures
+                .map((feature) => feature.toSvgString())
+                .join(' '),
+    };
+  }
 
   @override
   bool operator ==(Object other) =>
@@ -231,7 +306,7 @@ class TextStyleDefinition {
     size,
     fontWeight,
     fontStyle,
-    Object.hashAllUnordered(features),
+    features == null ? null : Object.hashAllUnordered(features!),
     color,
   );
 }
@@ -239,7 +314,7 @@ class TextStyleDefinition {
 extension FontWeightSvg on FontWeight? {
   String? toSvgString() => switch (this) {
     null => null,
-    FontWeight.normal => null,
+    FontWeight.normal => 'normal',
     FontWeight.bold => 'bold',
     FontWeight(:final value) => value.toString(),
   };
@@ -255,7 +330,7 @@ extension FontWeightSvg on FontWeight? {
 extension FontStyleSvg on FontStyle? {
   String? toSvgString() => switch (this) {
     null => null,
-    FontStyle.normal => null,
+    FontStyle.normal => 'normal',
     FontStyle.italic => 'italic',
   };
 
@@ -531,29 +606,33 @@ class ChantTheme {
       '${kDefaultTheme.initialLines}',
     );
 
-    header.put(
-      'base-text-style.font',
-      baseTextStyle.font,
-      kDefaultTheme.baseTextStyle.font,
-    );
-    header.put(
-      'base-text-style.size',
-      '${baseTextStyle.size}',
-      '${kDefaultTheme.baseTextStyle.size}',
-    );
-
-    if (baseTextStyle == kDefaultTheme.baseTextStyle) {
-      header.removeAll('base-text-style.');
+    header.removeAll('base-text-style.');
+    if (baseTextStyle != kDefaultTheme.baseTextStyle) {
+      final defaults = kDefaultTheme.baseTextStyle.toMap();
+      baseTextStyle.toMap().forEach(
+        (property, value) => header.put(
+          'base-text-style.$property',
+          value,
+          defaults[property] ?? '',
+        ),
+      );
     }
 
     final kDefaultStyles = kDefaultTheme.textStyles;
     textStyles.forEach((name, style) {
-      if (style == kDefaultStyles[name]) {
-        header.removeAll('text-style.$name.');
-        return;
-      }
-      style.toMap().forEach(
-        (property, value) => header['text-style.$name.$property'] = value,
+      header.removeAll('text-style.$name.');
+      if (style == kDefaultStyles[name]) return;
+      final defaults = kDefaultTextStyles[name]!.toHeaderDefaults(
+        baseTextStyle,
+      );
+      final properties = style.toMap(kDefaultTextStyles[name]);
+      // if (properties.isEmpty) properties['font-variant'] = '';
+      properties.forEach(
+        (property, value) => header.put(
+          'text-style.$name.$property',
+          value,
+          defaults[property] ?? '',
+        ),
       );
     });
   }
@@ -587,7 +666,7 @@ class ChantTheme {
       final map = styles[name];
       return map == null
           ? kDefaultTextStyles[name] ?? const TextStyleDefinition()
-          : TextStyleDefinition.fromMap(map);
+          : TextStyleDefinition.fromMap(map, kDefaultTextStyles[name]);
     }
 
     return ChantTheme(
@@ -644,8 +723,12 @@ const double kDefaultSpaceBetweenSystems = 1.5;
 const int kDefaultInitialLines = 1;
 
 const kDefaultBaseTextStyle = BaseTextStyle(
-  font: "'Palatino Linotype', 'Book Antiqua', Palatino, serif",
-  size: Scalar(16),
+  font:
+      "'Palatino Linotype', Palatino, 'URW Palladio L', 'Book Antiqua', serif",
+  size: Scalar(12, .points),
+  fontWeight: FontWeight.normal,
+  fontStyle: FontStyle.normal,
+  features: [],
 );
 
 class ChantColors {

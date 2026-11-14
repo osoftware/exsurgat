@@ -193,10 +193,9 @@ class GabcHeader {
   /// Sets [key] to [value] if it differs from [kDefaultValue];
   /// removes [key] otherwise.
   void put(String key, String value, String kDefaultValue) {
+    remove(key);
     if (value != kDefaultValue) {
       this[key] = value;
-    } else {
-      remove(key);
     }
   }
 

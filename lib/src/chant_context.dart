@@ -175,9 +175,12 @@ class ChantContext {
           ) ??
           theme.baseTextStyle.size.deviceIndependent;
       textStyle['font'] = entry.value.font ?? theme.baseTextStyle.font;
-      textStyle['font-weight'] = entry.value.fontWeight;
-      textStyle['font-style'] = entry.value.fontStyle;
-      textStyle['font-variant'] = entry.value.features;
+      textStyle['font-weight'] =
+          entry.value.fontWeight ?? theme.baseTextStyle.fontWeight;
+      textStyle['font-style'] =
+          entry.value.fontStyle ?? theme.baseTextStyle.fontStyle;
+      textStyle['font-variant'] =
+          entry.value.features ?? theme.baseTextStyle.features;
       textStyle['fill'] = entry.value.color;
 
       textStyles[entry.key] = textStyle;
