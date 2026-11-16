@@ -4,6 +4,19 @@ import 'package:exsurgat/exsurgat.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('theme color serialization preserves leading zero alpha', () {
+    for (final color in [
+      const Color(0x00123456),
+      const Color(0x01000000),
+      const Color(0x00000000),
+    ]) {
+      final theme = ChantTheme(textColor: color);
+      final header = GabcHeader.fromSource('%%\n');
+      theme.updateHeader(header);
+      expect(ChantTheme.fromGabcHeader(header).textColor, color);
+    }
+  });
+
   test('updateHeader replaces all theme values and preserves other fields', () {
     final header = GabcHeader.fromSource(
       'title: Example;\ninitial-lines: 3;\n'

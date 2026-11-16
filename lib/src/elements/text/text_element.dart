@@ -709,7 +709,7 @@ class TextSpan {
       _text,
       textAlign,
       resize,
-      extraProps['fill'],
+      extraProps['fill'] ?? ctxt.theme.textColor,
       extraProps['font-size'],
       extraProps['base-font-size'],
       extraProps['font-family'],
@@ -752,7 +752,7 @@ class TextSpan {
       props['font-family'] ?? props['base-font-family'],
     );
     return TextStyle(
-      color: _colorFromCss(props['fill'], ctxt.theme.textColor),
+      color: props['fill'] ?? ctxt.theme.textColor,
       fontFamilyFallback: fontFamily,
       fontSize: fontSize * (resize ?? 1),
       height: props['line-height'],
@@ -760,27 +760,6 @@ class TextSpan {
       fontWeight: props['font-weight'],
       fontFeatures: props['font-variant'],
     );
-  }
-
-  static Color _colorFromCss(dynamic fill, Color defaultColor) {
-    if (fill is Color) return fill;
-    if (fill is String) {
-      final value = fill.trim();
-      if (value.startsWith('#')) {
-        if (value.length == 7) {
-          return Color(int.parse('ff${value.substring(1)}', radix: 16));
-        }
-        if (value.length == 4) {
-          final r = value[1];
-          final g = value[2];
-          final b = value[3];
-          return Color(int.parse('ff$r$r$g$g$b$b', radix: 16));
-        }
-      }
-      if (value.toLowerCase() == 'black') return ChantColors.nigric;
-      if (value.toLowerCase() == 'red') return ChantColors.rubric;
-    }
-    return defaultColor;
   }
 
   String toGabcString() {
