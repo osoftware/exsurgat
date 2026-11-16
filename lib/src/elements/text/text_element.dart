@@ -52,9 +52,100 @@ abstract class TextElement extends ChantLayoutElement {
 
   /// Parses markup in [text] to fill [spans] with styled [TextSpan]s.
   void generateSpansFromText(ChantContext ctxt, String text) {
-    text = text.replaceAll(RegExp(r'\s+'), ' ');
-    this.text = '';
-    spans = [];
+    final result = parseSpansFromText(
+      ctxt,
+      text,
+      hasDropCap: dropCap != null,
+      includeSourceMappings: false,
+    );
+    this.text = result.text;
+    spans = result.spans;
+  }
+
+  /// Parses text without modifying a score element.
+  static ParsedTextSpans parseSpansFromText(
+    ChantContext ctxt,
+    String text, {
+    bool hasDropCap = false,
+    bool includeSourceMappings = true,
+  }) {
+    final source = text;
+    final sourceOffsets = <int>[];
+    if (includeSourceMappings) {
+      final normalized = StringBuffer();
+      sourceOffsets.add(0);
+      var sourceIndex = 0;
+      for (final whitespace in RegExp(r'\s+').allMatches(text)) {
+        for (var i = sourceIndex; i < whitespace.start; i++) {
+          normalized.writeCharCode(text.codeUnitAt(i));
+          sourceOffsets.add(i + 1);
+        }
+        normalized.write(' ');
+        sourceOffsets.add(whitespace.end);
+        sourceIndex = whitespace.end;
+      }
+      for (var i = sourceIndex; i < text.length; i++) {
+        normalized.writeCharCode(text.codeUnitAt(i));
+        sourceOffsets.add(i + 1);
+      }
+      text = normalized.toString();
+    } else {
+      text = text.replaceAll(RegExp(r'\s+'), ' ');
+    }
+    var plainText = '';
+    final spans = <TextSpan>[];
+    final mappings = <TextSourceMapping>[];
+    final markupStack = <MarkupStackFrame>[];
+    var visibleOffset = 0;
+
+    void mapText(
+      String visible,
+      int start,
+      int end, [
+      bool inVerbatim = false,
+    ]) {
+      if (!includeSourceMappings || visible.isEmpty) return;
+      final literal = text.substring(start, end);
+      final frames = [
+        for (final frame in markupStack)
+          TextSourceFrame(
+            tagName: frame.tagName,
+            opening: frame.openingText!,
+            closing: frame.symbol.isEmpty
+                ? '</${frame.tagName}>'
+                : frame.symbol,
+          ),
+        if (inVerbatim)
+          const TextSourceFrame(tagName: 'v', opening: '<v>', closing: '</v>'),
+      ];
+      if (visible == literal) {
+        var i = 0;
+        for (final rune in visible.runes) {
+          final length = rune > 0xffff ? 2 : 1;
+          mappings.add(
+            TextSourceMapping(
+              visibleStart: visibleOffset + i,
+              visibleEnd: visibleOffset + i + length,
+              sourceStart: sourceOffsets[start + i],
+              sourceEnd: sourceOffsets[start + i + length],
+              frames: frames,
+            ),
+          );
+          i += length;
+        }
+      } else {
+        mappings.add(
+          TextSourceMapping(
+            visibleStart: visibleOffset,
+            visibleEnd: visibleOffset + visible.length,
+            sourceStart: sourceOffsets[start],
+            sourceEnd: sourceOffsets[end],
+            frames: frames,
+          ),
+        );
+      }
+      visibleOffset += visible.length;
+    }
 
     if (text == '*' || text == '+' || text == '†') {
       final List<Map<String, dynamic>> properties = switch (text) {
@@ -65,12 +156,13 @@ abstract class TextElement extends ChantLayoutElement {
 
       final mapped = ctxt.specialCharText(text);
       spans.add(TextSpan(mapped, properties, []));
-      return;
+      mapText(mapped, 0, text.length);
+      return ParsedTextSpans(plainText, spans, mappings);
     }
 
-    final markupStack = <MarkupStackFrame>[];
     var spanStartIndex = 0;
     var newLineInNextSpan = 0;
+    final newLineSources = <(int, int)>[];
 
     bool filterFrames(MarkupStackFrame frame, String? symbol) =>
         frame.symbol == symbol;
@@ -79,10 +171,13 @@ abstract class TextElement extends ChantLayoutElement {
       String spanText,
       int index, [
       Map<String, dynamic>? extraProperties,
+      int? mappedStart,
+      int? mappedEnd,
+      bool inVerbatim = false,
     ]) {
-      if (spanText.isEmpty && dropCap == null) return;
+      if (spanText.isEmpty && !hasDropCap) return;
 
-      this.text += spanText;
+      plainText += spanText;
       final properties = <Map<String, dynamic>>[];
       for (final frame in markupStack) {
         properties.addAll(frame.propertyArray);
@@ -101,7 +196,18 @@ abstract class TextElement extends ChantLayoutElement {
       if (newLineInNextSpan > 0) {
         span.newLine = newLineInNextSpan;
         newLineInNextSpan = 0;
+        for (final (start, end) in newLineSources) {
+          mapText('\n', start, end);
+        }
+        newLineSources.clear();
       }
+      final start = mappedStart ?? index;
+      mapText(
+        spanText,
+        start,
+        mappedEnd ?? start + spanText.length,
+        inVerbatim,
+      );
     }
 
     final markupRegex = RegExp(
@@ -121,6 +227,10 @@ abstract class TextElement extends ChantLayoutElement {
       closeSpan(text.substring(spanStartIndex, match.start), spanStartIndex);
     }
 
+    String? openingText(RegExpMatch match) => includeSourceMappings
+        ? source.substring(sourceOffsets[match.start], sourceOffsets[match.end])
+        : null;
+
     for (final match in markupRegex.allMatches(text)) {
       final newLine = match.group(1);
       final vTag = match.group(2);
@@ -134,7 +244,7 @@ abstract class TextElement extends ChantLayoutElement {
       final specialCharVbar = match.group(10);
       final markupSymbol = match.group(11);
       final closingTag = match.group(12);
-      var tagName = match.group(13);
+      var tagName = match.group(13)?.toLowerCase();
       final family = match.group(14);
       final fill = match.group(15);
       final cssClass = match.group(16);
@@ -147,15 +257,27 @@ abstract class TextElement extends ChantLayoutElement {
           closeCurrentSpan(match);
         }
         newLineInNextSpan++;
+        newLineSources.add((match.start, match.end));
       } else if (vTag != null) {
         closeCurrentSpan(match);
         var lastIndex = 0;
         var iOffset = 0;
         for (final vMatch in vTagRegex.allMatches(vTag)) {
+          final isOnlyToken = vMatch.start == 0 && vMatch.end == vTag.length;
+          final tokenStart = isOnlyToken
+              ? match.start
+              : match.start + 3 + vMatch.start;
+          final tokenEnd = isOnlyToken
+              ? match.end
+              : match.start + 3 + vMatch.end;
           if (lastIndex < vMatch.start) {
             closeSpan(
               vTag.substring(lastIndex, vMatch.start),
               match.start + lastIndex + iOffset,
+              null,
+              match.start + 3 + lastIndex,
+              match.start + 3 + vMatch.start,
+              true,
             );
             iOffset = 3; // length of '<v>'
           }
@@ -167,7 +289,14 @@ abstract class TextElement extends ChantLayoutElement {
           if (diphthong != null) {
             char = makeLigature(diphthong);
             if (vAccent != null) char = addAccent(char);
-            closeSpan(char, match.start + vMatch.start + iOffset);
+            closeSpan(
+              char,
+              match.start + vMatch.start + iOffset,
+              null,
+              tokenStart,
+              tokenEnd,
+              !isOnlyToken,
+            );
           } else {
             if (grecross != null) {
               // grecross is just the command for the Cross:
@@ -176,9 +305,14 @@ abstract class TextElement extends ChantLayoutElement {
             }
             char = glyphs.greextraGlyphs[greextra] ?? '';
             if (char.isNotEmpty) {
-              closeSpan(char, match.start + vMatch.start + iOffset, {
-                'font-family': 'greextra',
-              });
+              closeSpan(
+                char,
+                match.start + vMatch.start + iOffset,
+                {'font-family': 'greextra'},
+                tokenStart,
+                tokenEnd,
+                !isOnlyToken,
+              );
             }
           }
           lastIndex = vMatch.end;
@@ -188,6 +322,10 @@ abstract class TextElement extends ChantLayoutElement {
           closeSpan(
             vTag.substring(lastIndex),
             match.start + lastIndex + iOffset,
+            null,
+            match.start + 3 + lastIndex,
+            match.start + 3 + vTag.length,
+            true,
           );
         }
       } else if (asterisk != null) {
@@ -200,19 +338,27 @@ abstract class TextElement extends ChantLayoutElement {
             ctxt.specialCharText(asterisk),
             match.start,
             ctxt.asteriskProperties,
+            match.start,
+            match.end,
           );
         }
       } else if (plus != null) {
         closeCurrentSpan(match);
-        closeSpan(ctxt.specialCharText(plus), match.start, ctxt.plusProperties);
+        closeSpan(
+          ctxt.specialCharText(plus),
+          match.start,
+          ctxt.plusProperties,
+          match.start,
+          match.end,
+        );
       } else if (tilde != null) {
         closeCurrentSpan(match);
-        closeSpan('∼', match.start);
+        closeSpan('∼', match.start, null, match.start, match.end);
       } else if (vowelLigature != null) {
         var vowel = makeLigature(vowelLigature);
         if (accent != null) vowel = addAccent(vowel);
         closeCurrentSpan(match);
-        closeSpan(vowel, match.start);
+        closeSpan(vowel, match.start, null, match.start, match.end);
       } else if (specialChar != null) {
         closeCurrentSpan(match);
         closeSpan(
@@ -221,6 +367,8 @@ abstract class TextElement extends ChantLayoutElement {
               ctxt.textAfterSpecialChar,
           match.start,
           ctxt.specialCharProperties,
+          match.start,
+          match.end,
         );
       } else {
         // otherwise we're dealing with matching markup delimeters
@@ -244,28 +392,8 @@ abstract class TextElement extends ChantLayoutElement {
           if (markupStack.isNotEmpty &&
               markupStack.last.tagName == tagName &&
               markupStack.last.symbol == markupSymbol) {
-            if (closingTag != null) {
-              closeCurrentSpan(match);
-              markupStack.removeLast();
-            }
-            // otherwise: matching symbol on top of stack but not a closing
-            // tag — fall through to group open below
-            else {
-              closeCurrentSpan(match);
-              final extraProperties = <String, dynamic>{};
-              if (family != null) extraProperties['font-family'] = family;
-              if (fill != null) extraProperties['fill'] = fill;
-              if (cssClass != null) extraProperties['class'] = cssClass;
-              markupStack.add(
-                MarkupStackFrame.createStackFrame(
-                  ctxt,
-                  tagName!,
-                  match.start,
-                  extraProperties,
-                  markupSymbol,
-                ),
-              );
-            }
+            closeCurrentSpan(match);
+            markupStack.removeLast();
           } else if (markupStack.isNotEmpty &&
               markupStack.last.tagName == tagName) {
             if (closingTag != null) {
@@ -304,6 +432,7 @@ abstract class TextElement extends ChantLayoutElement {
                   match.start,
                   extraProperties,
                   markupSymbol,
+                  openingText(match),
                 ),
               );
             }
@@ -341,6 +470,7 @@ abstract class TextElement extends ChantLayoutElement {
                   match.start,
                   extraProperties,
                   '',
+                  openingText(match),
                 ),
               );
             }
@@ -357,6 +487,7 @@ abstract class TextElement extends ChantLayoutElement {
     if (spanStartIndex < text.length || spans.isEmpty) {
       closeSpan(text.substring(spanStartIndex), spanStartIndex);
     }
+    return ParsedTextSpans(plainText, spans, mappings);
   }
 
   double measureSubstring(ChantContext ctxt, [int? length]) =>
@@ -627,6 +758,64 @@ abstract class TextElement extends ChantLayoutElement {
   String toGabcString() => spans.map((s) => s.toGabcString()).join('');
 }
 
+/// The text and spans produced by the chant markup parser.
+class ParsedTextSpans {
+  const ParsedTextSpans(this.text, this.spans, this.sourceMappings);
+
+  /// The value assigned to [TextElement.text] by the existing parser.
+  final String text;
+  final List<TextSpan> spans;
+
+  /// Source intervals for visible UTF-16 ranges, in display order.
+  ///
+  /// A transformed character may cover several source code units, and a
+  /// source token may produce several visible code units.
+  final List<TextSourceMapping> sourceMappings;
+
+  /// The text represented by the spans, including explicit line breaks.
+  String get visibleText =>
+      spans.map((span) => '${'\n' * span.newLine}${span.text}').join();
+}
+
+/// Correspondence between one visible text interval and its source interval.
+class TextSourceMapping {
+  const TextSourceMapping({
+    required this.visibleStart,
+    required this.visibleEnd,
+    required this.sourceStart,
+    required this.sourceEnd,
+    required this.frames,
+  });
+
+  final int visibleStart;
+  final int visibleEnd;
+  final int sourceStart;
+  final int sourceEnd;
+  final List<TextSourceFrame> frames;
+}
+
+/// Markup enclosing a mapped source interval, from outermost to innermost.
+class TextSourceFrame {
+  const TextSourceFrame({
+    required this.tagName,
+    required this.opening,
+    required this.closing,
+  });
+
+  final String tagName;
+  final String opening;
+  final String closing;
+}
+
+/// Resolves the text fill used by canvas and editable text rendering.
+Color resolveTextFill(Object? fill, Color fallback) => switch (fill) {
+  null => fallback,
+  Color color => color,
+  String color =>
+    parseColor(color) ?? (throw FormatException('Unsupported color: $color')),
+  _ => throw ArgumentError.value(fill, 'fill', 'Expected a color'),
+};
+
 /// A chunk of [TextElement] with uniform text style.
 class TextSpan {
   String _text;
@@ -717,6 +906,7 @@ class TextSpan {
       extraProps['font-style'],
       extraProps['font-weight'],
       extraProps['font-variant'],
+      extraProps['text-decoration'],
       extraProps['line-height'],
     );
     final cached = _cachedParagraph;
@@ -747,18 +937,24 @@ class TextSpan {
     ChantContext ctxt,
     double? resize,
   ) {
-    final fontSize = props['font-size'] ?? props['base-font-size'];
+    final size = props['font-size'] ?? props['base-font-size'];
+    final fontSize = size is FontSize
+        ? size.resolve((props['base-font-size'] as num).toDouble(), ctxt)
+        : (size as num).toDouble();
     final fontFamily = parseFontFallback(
       props['font-family'] ?? props['base-font-family'],
     );
     return TextStyle(
-      color: props['fill'] ?? ctxt.theme.textColor,
+      color: resolveTextFill(props['fill'], ctxt.theme.textColor),
       fontFamilyFallback: fontFamily,
       fontSize: fontSize * (resize ?? 1),
       height: props['line-height'],
       fontStyle: props['font-style'],
       fontWeight: props['font-weight'],
       fontFeatures: props['font-variant'],
+      decoration: props['text-decoration'] == 'underline'
+          ? TextDecoration.underline
+          : null,
     );
   }
 
@@ -782,12 +978,14 @@ class MarkupStackFrame {
     this.startIndex,
     this.propertyArray, [
     this.symbol = '',
+    this.openingText,
   ]);
 
   final String tagName;
   final int startIndex;
   final List<Map<String, dynamic>> propertyArray;
   final String symbol;
+  final String? openingText;
 
   Map<String, dynamic> get properties {
     final result = <String, dynamic>{};
@@ -803,11 +1001,15 @@ class MarkupStackFrame {
     int startIndex, [
     Map<String, dynamic> extraProperties = const {},
     String symbol = '',
+    String? openingText,
   ]) {
-    return MarkupStackFrame(tagName, startIndex, [
-      ctxt.fontStyleDictionary[tagName] ?? {},
-      extraProperties,
-    ], symbol);
+    return MarkupStackFrame(
+      tagName,
+      startIndex,
+      [ctxt.fontStyleDictionary[tagName] ?? {}, extraProperties],
+      symbol,
+      openingText,
+    );
   }
 }
 

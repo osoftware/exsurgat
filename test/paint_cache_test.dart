@@ -102,6 +102,21 @@ Ky(gh)ri(gf)e(e.) e(gvFD)le(ghg)í(gfe)son(f.) (,)
   });
 
   group('TextSpan paragraph cache', () {
+    test('underline changes invalidate the cached paragraph', () {
+      final ctxt = ChantContext();
+      final span = TextSpan('Kyrie', [], []);
+      final props = <String, dynamic>{
+        'base-font-family': 'serif',
+        'base-font-size': 16.0,
+      };
+      final plain = span.buildParagraph(ctxt, props, TextAlign.start);
+      final underlined = span.buildParagraph(ctxt, {
+        ...props,
+        'text-decoration': 'underline',
+      }, TextAlign.start);
+      expect(underlined, isNot(same(plain)));
+    });
+
     test('same style inputs return the same paragraph instance', () {
       final doc = ChantDocument.fromSource(gabcSource);
       final ctxt = doc.ctxt;
@@ -132,7 +147,7 @@ Ky(gh)ri(gf)e(e.) e(gvFD)le(ghg)í(gfe)son(f.) (,)
       final p1 = span.buildParagraph(ctxt, props, TextAlign.start);
       final p2 = span.buildParagraph(ctxt, {
         ...props,
-        'fill': 0xFF000000,
+        'fill': const ui.Color(0xFF123456),
       }, TextAlign.start);
       expect(identical(p1, p2), isFalse);
     });
@@ -151,5 +166,147 @@ Ky(gh)ri(gf)e(e.) e(gvFD)le(ghg)í(gfe)son(f.) (,)
       final p2 = span.buildParagraph(ctxt, props, TextAlign.start);
       expect(identical(p1, p2), isFalse);
     });
+  });
+
+  test('markup parsing can be reused without changing the score element', () {
+    final doc = ChantDocument.fromSource('%%\nKyrie(c)');
+    final lyric = doc.score.notations.expand((n) => n.lyrics).first;
+    final originalText = lyric.text;
+    final originalSpans = lyric.spans;
+    final parsed = TextElement.parseSpansFromText(
+      doc.ctxt,
+      '<b>A<i>B</i></b><v>{greextra}{Cross}</v>',
+    );
+
+    expect(parsed.visibleText, 'AB${greextraGlyphs['Cross']}');
+    expect(parsed.spans[0].activeTags, ['b']);
+    expect(parsed.spans[1].activeTags, ['b', 'i']);
+    expect(parsed.spans.last.properties['font-family'], 'greextra');
+    expect(lyric.text, originalText);
+    expect(lyric.spans, same(originalSpans));
+  });
+
+  test('visible text includes standalone symbols and explicit line breaks', () {
+    final ctxt = ChantContext();
+    expect(TextElement.parseSpansFromText(ctxt, '*').visibleText, '*');
+    expect(TextElement.parseSpansFromText(ctxt, 'a<br>b').visibleText, 'a\nb');
+  });
+
+  test('source mappings cover normalized and transformed visible text', () {
+    final ctxt = ChantContext();
+    const source = '<b>A  B</b><v>{greextra}{Cross}</v><br>é';
+    final parsed = TextElement.parseSpansFromText(ctxt, source);
+    final mappings = parsed.sourceMappings;
+
+    expect(parsed.visibleText, 'A B${greextraGlyphs['Cross']}\né');
+    expect(
+      mappings.map(
+        (mapping) => source.substring(mapping.sourceStart, mapping.sourceEnd),
+      ),
+      ['A', '  ', 'B', '<v>{greextra}{Cross}</v>', '<br>', 'é'],
+    );
+    expect(
+      mappings
+          .map(
+            (mapping) => parsed.visibleText.substring(
+              mapping.visibleStart,
+              mapping.visibleEnd,
+            ),
+          )
+          .join(),
+      parsed.visibleText,
+    );
+  });
+
+  test('source mappings retain UTF-16 offsets and mixed verbatim content', () {
+    final ctxt = ChantContext();
+    const source = '😀<v>x{greextra}{Cross}y</v><sp>ae</sp>';
+    final parsed = TextElement.parseSpansFromText(ctxt, source);
+    final mappings = parsed.sourceMappings;
+
+    expect(parsed.visibleText, '😀x${greextraGlyphs['Cross']}yæ');
+    expect(mappings[0].visibleStart, 0);
+    expect(mappings[0].visibleEnd, 2);
+    expect(
+      mappings
+          .map(
+            (mapping) =>
+                source.substring(mapping.sourceStart, mapping.sourceEnd),
+          )
+          .skip(1),
+      ['x', '{greextra}{Cross}', 'y', '<sp>ae</sp>'],
+    );
+    expect(mappings.last.visibleEnd, parsed.visibleText.length);
+  });
+
+  test('source mappings expose enclosing markup and verbatim frames', () {
+    final parsed = TextElement.parseSpansFromText(
+      ChantContext(),
+      '<b>A<i><v>BC</v></i></b>',
+    );
+    expect(parsed.sourceMappings[1].frames.map((frame) => frame.opening), [
+      '<b>',
+      '<i>',
+      '<v>',
+    ]);
+    expect(parsed.sourceMappings[1].frames.map((frame) => frame.closing), [
+      '</b>',
+      '</i>',
+      '</v>',
+    ]);
+  });
+
+  test('shorthand formatting closes at its matching delimiter', () {
+    final parsed = TextElement.parseSpansFromText(ChantContext(), '_a_b');
+    expect(parsed.visibleText, 'ab');
+    expect(parsed.spans.first.activeTags, ['i']);
+    expect(parsed.spans.last.activeTags, isEmpty);
+    expect(parsed.sourceMappings.first.frames.single.closing, '_');
+  });
+
+  test('underline and relative elision size resolve in canvas text styles', () {
+    final ctxt = ChantContext();
+    final parsed = TextElement.parseSpansFromText(ctxt, '<ul><e>A</e></ul>');
+    final style = TextSpan.getTextStyle(
+      {
+        'base-font-family': 'serif',
+        'base-font-size': 20.0,
+        ...parsed.spans.single.properties,
+      },
+      ctxt,
+      null,
+    );
+
+    expect(
+      style,
+      ui.TextStyle(
+        color: ctxt.theme.textColor,
+        fontFamilyFallback: ['serif'],
+        fontSize: 18.0,
+        fontStyle: ui.FontStyle.italic,
+        decoration: ui.TextDecoration.underline,
+      ),
+    );
+  });
+
+  test('font fill markup resolves to a canvas color', () {
+    final ctxt = ChantContext();
+    final parsed = TextElement.parseSpansFromText(
+      ctxt,
+      '<font fill="#123456">A</font>',
+    );
+    final props = {
+      'base-font-family': 'serif',
+      'base-font-size': 20.0,
+      ...parsed.spans.single.properties,
+    };
+    expect(
+      TextSpan.getTextStyle(props, ctxt, null),
+      ui.TextStyle(
+        color: const ui.Color(0xff123456),
+        fontFamilyFallback: ['serif'],
+        fontSize: 20,
+      ),
+    );
   });
 }
