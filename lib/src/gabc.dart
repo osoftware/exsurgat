@@ -72,10 +72,12 @@ class GabcHeader {
     return match != null ? match.end : 0;
   }
 
+  GabcHeader.empty() {
+    original = '';
+  }
+
   /// Parses header values in a GABC [text].
   GabcHeader.fromSource(String text) {
-    comments = {};
-    cValues = {};
     original = '';
     final match = regexHeaderEnd.firstMatch(text);
     if (match != null) {
@@ -122,8 +124,8 @@ class GabcHeader {
     }
   }
 
-  late Map<int, String> comments;
-  late Map<String, String> cValues;
+  final Map<int, String> comments = {};
+  final Map<String, String> cValues = {};
   late String original;
 
   final Map<String, dynamic> _values = {};
