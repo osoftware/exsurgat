@@ -242,6 +242,12 @@ class GabcHeader {
     }
     list[index] = value;
     this[arrayKey] = list;
+    if (this[key] == null) {
+      this[key] = list.firstWhere(
+        (entry) => entry.isNotEmpty,
+        orElse: () => value,
+      );
+    }
   }
 
   Iterable<String> get keys => _values.keys;
