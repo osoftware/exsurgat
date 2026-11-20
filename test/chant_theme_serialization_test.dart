@@ -146,10 +146,7 @@ void main() {
     expect(header['text-style.al.font-style'], 'inherit');
     expect(header['text-style.title.size'], 'inherit');
     expect(header['text-style.lyric.font-variant'], 'normal');
-    expect(
-      ChantTheme.fromGabcHeader(GabcHeader.fromSource('$header')),
-      theme,
-    );
+    expect(ChantTheme.fromGabcHeader(GabcHeader.fromSource('$header')), theme);
 
     final textStyles = ChantContext(theme: theme).textStyles;
     expect(textStyles['al']!['font-style'], FontStyle.normal);

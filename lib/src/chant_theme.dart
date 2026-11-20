@@ -279,14 +279,11 @@ class TextStyleDefinition {
       'font-weight':
           (fontWeight ?? baseTextStyle.fontWeight ?? FontWeight.normal)
               .toSvgString()!,
-      'font-style':
-          (fontStyle ?? baseTextStyle.fontStyle ?? FontStyle.normal)
-              .toSvgString()!,
+      'font-style': (fontStyle ?? baseTextStyle.fontStyle ?? FontStyle.normal)
+          .toSvgString()!,
       'font-variant': effectiveFeatures.isEmpty
           ? 'normal'
-          : effectiveFeatures
-                .map((feature) => feature.toSvgString())
-                .join(' '),
+          : effectiveFeatures.map((feature) => feature.toSvgString()).join(' '),
     };
   }
 

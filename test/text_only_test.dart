@@ -112,7 +112,10 @@ void main() {
     element.alignBoundsWithLyrics();
 
     expect(lyric.getLeft(), closeTo(lyricLeft, 0.001));
-    expect(element.bounds.x + translation.bounds.x, closeTo(translationLeft, 0.001));
+    expect(
+      element.bounds.x + translation.bounds.x,
+      closeTo(translationLeft, 0.001),
+    );
     expect(element.bounds.x, closeTo(lyricLeft, 0.001));
   });
 }
