@@ -411,6 +411,12 @@ class ChantLine extends ChantLayoutElement {
       (ctxt.staffLineWeight / 2 + theme.minSpaceBelowStaff) *
           ctxt.staffInterval,
     );
+    for (int i = notationsStartIndex; i < lastIndex; i++) {
+      if (notations[i] case TextOnly textOnly) {
+        textOnly.alignBoundsWithLyrics();
+        if (i < lastNeumeIndex) notationBounds += textOnly.bounds;
+      }
+    }
     double totalHeight = notationBounds.height;
 
     bounds = bounds.copyWith(

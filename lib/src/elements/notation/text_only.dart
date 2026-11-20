@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import '../../chant_context.dart';
@@ -27,6 +28,24 @@ class TextOnly extends ChantNotationElement {
     origin = Point(width / 2, -ctxt.staffInterval);
 
     finishLayout(ctxt);
+    alignBoundsWithLyrics();
+  }
+
+  /// Aligns the bounds to the lyric extents without moving their contents.
+  void alignBoundsWithLyrics() {
+    if (lyrics.isEmpty) return;
+    final left = lyrics.map((lyric) => lyric.bounds.x).reduce(math.min);
+    final right = lyrics.map((lyric) => lyric.bounds.right).reduce(math.max);
+    bounds = bounds.copyWith(x: bounds.x + left, width: right - left);
+    origin = Point(origin.x - left, origin.y);
+    for (final element in [
+      ...visualizers,
+      ...lyrics,
+      ...translationText,
+      ...alText,
+    ]) {
+      element.bounds = element.bounds.copyWith(x: element.bounds.x - left);
+    }
   }
 
   @override

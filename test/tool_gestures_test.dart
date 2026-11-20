@@ -19,6 +19,17 @@ class _RecordingTool extends Tool {
   }
 }
 
+class _LifecycleTool extends Tool {
+  final attachedDocuments = <ChantDocument>[];
+  final detachedDocuments = <ChantDocument>[];
+
+  @override
+  void handleAttach() => attachedDocuments.add(document);
+
+  @override
+  void handleDetach() => detachedDocuments.add(document);
+}
+
 class _AdditionalGestureTool extends _RecordingTool {
   int longPresses = 0;
 
@@ -146,5 +157,48 @@ void main() {
     await tester.tapAt(position);
     await tester.pumpAndSettle();
     expect(first.taps, hasLength(1));
+  });
+
+  testWidgets('detachment happens before a tool moves to another score', (
+    tester,
+  ) async {
+    final first = ChantDocument.fromSource('%%\nA(c)');
+    final second = ChantDocument.fromSource('%%\nB(d)');
+    final tool = _LifecycleTool();
+    await showScore(tester, first, tool);
+    await tester.pumpWidget(
+      Directionality(
+        textDirection: TextDirection.ltr,
+        child: Row(
+          children: [
+            SizedBox(
+              width: 300,
+              height: 400,
+              child: ChantScoreBody.editable(
+                key: const ValueKey('first'),
+                document: first,
+                tool: tool,
+              ),
+            ),
+            SizedBox(
+              width: 300,
+              height: 400,
+              child: ChantScoreBody.editable(
+                key: const ValueKey('second'),
+                document: second,
+                tool: tool,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tool.attachedDocuments.last, same(second));
+    expect(tool.detachedDocuments.last, same(first));
+    expect(tool.document, same(second));
+    await tester.pumpWidget(const SizedBox());
+    expect(tool.detachedDocuments.last, same(second));
+    expect(tool.attached, isFalse);
   });
 }

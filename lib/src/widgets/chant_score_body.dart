@@ -613,6 +613,10 @@ abstract class Tool {
 
   void _attachTo(RenderChantScore renderObject) {
     _cancelTap();
+    final previous = _renderObject;
+    if (previous != null && !identical(previous, renderObject)) {
+      handleDetach();
+    }
     _renderObject = renderObject;
     handleAttach();
   }
@@ -620,6 +624,7 @@ abstract class Tool {
   void _detachFrom(RenderChantScore renderObject) {
     if (identical(_renderObject, renderObject)) {
       _cancelTap();
+      handleDetach();
       _renderObject = null;
     }
   }
@@ -850,6 +855,9 @@ abstract class Tool {
   /// Override this method if you need to do something when the tool is attached
   /// to a score body.
   void handleAttach() {}
+
+  /// Called before this tool is detached from its score body.
+  void handleDetach() {}
 
   /// Override this method to rebind state after source reparsing.
   void handleScoreUpdated() {}

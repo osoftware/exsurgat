@@ -122,6 +122,8 @@ class TextElementSelection {
 }
 
 /// Which element to highlight without selecting and in what color.
+///
+/// Highlighting a neume also highlights its notes.
 class ElementHighlight {
   const ElementHighlight(this.element, this.color);
 
@@ -333,8 +335,19 @@ class ChantScore extends ChangeNotifier {
       e.selected = true;
     }
 
-    previousSelection.highlight?.element.highlight = null;
-    selection?.highlight?.element.highlight = selection.highlight?.color;
+    void setHighlight(ElementHighlight? highlight, ui.Color? color) {
+      final element = highlight?.element;
+      if (element == null) return;
+      element.highlight = color;
+      if (element case Neume(:final notes)) {
+        for (final note in notes) {
+          note.highlight = color;
+        }
+      }
+    }
+
+    setHighlight(previousSelection.highlight, null);
+    setHighlight(selection?.highlight, selection?.highlight?.color);
   }
 
   /// Updates the internal notations arrays from the current [words].
