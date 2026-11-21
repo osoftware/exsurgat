@@ -102,7 +102,7 @@ class ChantDocument extends ChangeNotifier {
 
     final header = GabcHeader.fromSource(source);
     final theme = ChantTheme.fromGabcHeader(header);
-    ctxt.theme = ctxt.theme.copyWith(initialLines: theme.initialLines);
+    ctxt.theme = theme;
     return ChantDocument._(
       source: source,
       ctxt: ctxt,
