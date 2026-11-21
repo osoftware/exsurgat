@@ -16,8 +16,11 @@ void main() {
       // Verify theme loaded correctly from GABC header
       final dropCapStyle = doc.ctxt.textStyles['dropCap'];
       expect(dropCapStyle, isNotNull, reason: 'dropCap style not found');
-      expect(dropCapStyle!['font'], contains('SolesmesCaps'),
-          reason: 'dropCap font should be SolesmesCaps');
+      expect(
+        dropCapStyle!['font'],
+        contains('SolesmesCaps'),
+        reason: 'dropCap font should be SolesmesCaps',
+      );
     });
 
     test('regular lyric font loads correctly', () {
@@ -32,13 +35,11 @@ void main() {
       // Verify theme loaded correctly
       final lyricStyle = doc.ctxt.textStyles['lyric'];
       expect(lyricStyle, isNotNull, reason: 'lyric style not found');
-      expect(lyricStyle!['font'], isNotNull,
-          reason: 'lyric should have font defined');
+      expect(
+        lyricStyle!['font'],
+        isNotNull,
+        reason: 'lyric should have font defined',
+      );
     });
   });
 }
-
-
-
-
-

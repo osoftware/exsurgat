@@ -1,7 +1,15 @@
 ## 0.4.0
 
- * BREAKING: `Tool` API now relies on `GestureRecognizer` instead of low level 
-   `PointerEvent` API allowing it to participate in Gesture Arena.
+* BREAKING: `Tool` API now relies on `GestureRecognizer` instead of low level 
+  `PointerEvent` API allowing it to participate in Gesture Arena.
+* BUGFIX: Fixed theme properties from GABC header not loading in
+  `ChantDocument.fromSource()`.
+* BUGFIX: Fixed duplicate header entries appearing when GABC header keys with
+  dots (e.g. `text-style.dropCap.font`) were edited; both dash-case and
+  camelCase variants were output instead of one.
+* BUGFIX: Refined `ChantTheme` styles overrides rules.
+* BUGFIX: Fix stale color of text elements after `ChantTheme` change.
+
 
 ## 0.3.0
 
