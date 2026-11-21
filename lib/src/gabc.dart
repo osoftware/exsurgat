@@ -210,9 +210,8 @@ class GabcHeader {
   /// array and the scalar entry).
   void setEntry(String key, String value, [int? index]) {
     if (index == null) {
-      if (value.isEmpty) {
-        remove(key);
-      } else {
+      remove(key);
+      if (value.isNotEmpty) {
         this[key] = value;
       }
       return;
@@ -228,26 +227,23 @@ class GabcHeader {
       if (list.isEmpty) {
         remove(key);
       } else {
+        remove(key);
         this[arrayKey] = list;
       }
       return;
     }
+    remove(key);
     final existing = this[arrayKey] as List?;
     final list = existing != null ? [...existing] : <String>[];
-    if (existing == null && this[key] != null) {
-      list.add('${this[key]}');
-    }
     while (list.length <= index) {
       list.add('');
     }
     list[index] = value;
     this[arrayKey] = list;
-    if (this[key] == null) {
-      this[key] = list.firstWhere(
-        (entry) => entry.isNotEmpty,
-        orElse: () => value,
-      );
-    }
+    this[key] = list.firstWhere(
+      (entry) => entry.isNotEmpty,
+      orElse: () => value,
+    );
   }
 
   Iterable<String> get keys => _values.keys;
@@ -255,23 +251,44 @@ class GabcHeader {
   @override
   String toString() {
     final result = <String>[];
+    final processedKeys = <String>{};
     for (final key in _values.keys) {
+      if (processedKeys.contains(key)) continue;
       if (_values[key] is! String ||
           RegExp(r'^(length|original|comments|cValues)$').hasMatch(key)) {
         continue;
       }
-      final alternateKey = key.replaceAllMapped(
-        RegExp(r'[A-Z]'),
-        (m) => '-${m.group(0)!.toLowerCase()}',
-      );
-      if (alternateKey != key && _values.containsKey(alternateKey)) continue;
-      final array = _values['${key}Array'];
-      if (array != null) {
-        for (var i = 0; i < (array as List).length; ++i) {
-          result.add('$key: ${array[i]};');
+      final alternateKey = key.contains('-')
+          ? key.replaceAllMapped(
+              RegExp(r'-([a-z])'),
+              (m) => m.group(1)!.toUpperCase(),
+            )
+          : key.replaceAllMapped(
+              RegExp(r'[A-Z]'),
+              (m) => '-${m.group(0)!.toLowerCase()}',
+            );
+      if (alternateKey != key && _values.containsKey(alternateKey)) {
+        processedKeys.add(key);
+        processedKeys.add(alternateKey);
+        // Output using the original key form from parse
+        final array = _values['${key}Array'];
+        if (array != null) {
+          for (var i = 0; i < (array as List).length; ++i) {
+            result.add('$key: ${array[i]};');
+          }
+        } else {
+          result.add('$key: ${_values[key]};');
         }
       } else {
-        result.add('$key: ${_values[key]};');
+        processedKeys.add(key);
+        final array = _values['${key}Array'];
+        if (array != null) {
+          for (var i = 0; i < (array as List).length; ++i) {
+            result.add('$key: ${array[i]};');
+          }
+        } else {
+          result.add('$key: ${_values[key]};');
+        }
       }
     }
     for (final key in cValues.keys) {
