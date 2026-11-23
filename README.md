@@ -156,6 +156,12 @@ MIT license. See `LICENSE` for details.
 
 This project started as a Dart port of a JavaScript project [exsurge](https://github.com/bbloomf/exsurge) created by Fr. Matthew Spencer OSJ and maintained by Benjamin Bloomfield.
 
+
+## Who's using it
+
+* [Guido Studio](https://guido.orb.net.pl "WYSIWYG GABC editor") - WYSIWYG GABC editor
+* [Cécile](https://cecile.orb.net.pl "Gregorian chant learning app") - Gregorian chant learning app
+
 ## Support
 
 * [Buy me a coffee](https://buymeacoffee.com/ostudio)
